@@ -15,7 +15,7 @@ $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'circuit', 'create', 'submit', 'confirm', 'api', 'club', 'player'];
+$validPages = ['home', 'circuits', 'clubs', 'circuit', 'club', 'player', 'create', 'submit', 'confirm', 'api'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -44,9 +44,10 @@ $content = ob_get_clean();
 <body>
     <header class="header">
         <div class="header-inner">
-            <a href="?" class="logo">Open<span>ELO</span></a>
+            <a href="?" class="logo">♞ Open<span>ELO</span></a>
             <nav class="nav">
                 <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
+                <a href="?page=clubs" <?= $page === 'clubs' || $page === 'club' ? 'class="active"' : '' ?>><?= __('nav_clubs') ?></a>
                 <a href="?page=submit" <?= $page === 'submit' ? 'class="active"' : '' ?>><?= __('nav_submit_result') ?></a>
                 <a href="?page=create" <?= $page === 'create' ? 'class="active"' : '' ?>><?= __('nav_create') ?></a>
                 <select class="lang-select" onchange="changeLang(this.value)">
@@ -62,7 +63,7 @@ $content = ob_get_clean();
     </main>
 
     <footer class="footer">
-        <p><?= __('footer_text') ?> <a href="https://github.com/openelo/openelo"><?= __('footer_github') ?></a></p>
+        <p>♟ <?= __('footer_text') ?> <a href="https://github.com/openelo/openelo"><?= __('footer_github') ?></a></p>
     </footer>
 
     <script>

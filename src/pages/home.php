@@ -41,19 +41,19 @@ $circuits = $db->query("
 <section class="stats">
     <div class="stat-card">
         <div class="number"><?= $stats['circuits'] ?></div>
-        <div class="label"><?= __('nav_circuits') ?></div>
+        <div class="label"><span class="chess-icon">♔</span> <?= __('nav_circuits') ?></div>
     </div>
     <div class="stat-card">
         <div class="number"><?= $stats['clubs'] ?></div>
-        <div class="label"><?= __('circuit_clubs') ?></div>
+        <div class="label"><span class="chess-icon">♜</span> <?= __('circuit_clubs') ?></div>
     </div>
     <div class="stat-card">
         <div class="number"><?= $stats['players'] ?></div>
-        <div class="label"><?= __('circuit_players') ?></div>
+        <div class="label"><span class="chess-icon">♟</span> <?= __('circuit_players') ?></div>
     </div>
     <div class="stat-card">
         <div class="number"><?= $stats['matches'] ?></div>
-        <div class="label"><?= __('circuit_matches') ?></div>
+        <div class="label"><span class="chess-icon">♞</span> <?= __('circuit_matches') ?></div>
     </div>
 </section>
 
@@ -61,18 +61,22 @@ $circuits = $db->query("
     <h2><?= __('site_tagline') ?></h2>
     <div class="features-grid">
         <div class="feature-card">
+            <div class="feature-icon">♜</div>
             <h3><?= __('feature_1_title') ?></h3>
             <p><?= __('feature_1_desc') ?></p>
         </div>
         <div class="feature-card">
+            <div class="feature-icon">♝</div>
             <h3><?= __('feature_2_title') ?></h3>
             <p><?= __('feature_2_desc') ?></p>
         </div>
         <div class="feature-card">
+            <div class="feature-icon">♛</div>
             <h3><?= __('feature_3_title') ?></h3>
             <p><?= __('feature_3_desc') ?></p>
         </div>
         <div class="feature-card">
+            <div class="feature-icon">♚</div>
             <h3><?= __('feature_4_title') ?></h3>
             <p><?= __('feature_4_desc') ?></p>
         </div>
@@ -116,8 +120,8 @@ $circuits = $db->query("
         <div class="circuit-card">
             <h3><a href="?page=circuit&id=<?= $circuit['id'] ?>"><?= htmlspecialchars($circuit['name']) ?></a></h3>
             <div class="circuit-meta">
-                <span><?= $circuit['club_count'] ?> <?= __('circuit_clubs') ?></span>
-                <span><?= $circuit['player_count'] ?> <?= __('circuit_players') ?></span>
+                <span>♜ <?= $circuit['club_count'] ?> <?= __('circuit_clubs') ?></span>
+                <span>♟ <?= $circuit['player_count'] ?> <?= __('circuit_players') ?></span>
             </div>
         </div>
         <?php endforeach; ?>

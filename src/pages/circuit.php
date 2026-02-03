@@ -101,7 +101,7 @@ $tab = $_GET['tab'] ?? 'rankings';
                 <tbody>
                     <?php foreach ($rankings as $i => $player): ?>
                     <tr>
-                        <td class="rank"><?= $i + 1 ?></td>
+                        <td class="rank <?= $i < 3 ? 'rank-' . ($i + 1) : '' ?>"><?= $i + 1 ?></td>
                         <td><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a></td>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
                         <td class="rating"><?= $player['rating'] ?></td>
