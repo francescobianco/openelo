@@ -255,30 +255,51 @@ $translations = [
     ],
 ];
 
+// Store detected language to avoid multiple cookie attempts
+$_currentLang = null;
+
 /**
- * Get current language
+ * Initialize language (call before any output)
  */
-function getCurrentLang(): string {
+function initLang(): void {
+    global $_currentLang;
+
     // 1. Check URL parameter
     if (isset($_GET['lang']) && in_array($_GET['lang'], SUPPORTED_LANGS)) {
-        setcookie('openelo_lang', $_GET['lang'], time() + 86400 * 365, '/');
-        return $_GET['lang'];
+        $_currentLang = $_GET['lang'];
+        setcookie('openelo_lang', $_currentLang, time() + 86400 * 365, '/');
+        return;
     }
 
     // 2. Check cookie
     if (isset($_COOKIE['openelo_lang']) && in_array($_COOKIE['openelo_lang'], SUPPORTED_LANGS)) {
-        return $_COOKIE['openelo_lang'];
+        $_currentLang = $_COOKIE['openelo_lang'];
+        return;
     }
 
     // 3. Auto-detect from browser
     if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
         $browserLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
         if (in_array($browserLang, SUPPORTED_LANGS)) {
-            return $browserLang;
+            $_currentLang = $browserLang;
+            return;
         }
     }
 
-    return DEFAULT_LANG;
+    $_currentLang = DEFAULT_LANG;
+}
+
+/**
+ * Get current language
+ */
+function getCurrentLang(): string {
+    global $_currentLang;
+
+    if ($_currentLang === null) {
+        initLang();
+    }
+
+    return $_currentLang;
 }
 
 /**
