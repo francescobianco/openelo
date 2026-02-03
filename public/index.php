@@ -42,7 +42,7 @@ $content = ob_get_clean();
 <body>
     <header class="header">
         <div class="header-inner">
-            <a href="?" class="logo">Open<span>Elo</span></a>
+            <a href="?" class="logo">Open<span>ELO</span></a>
             <nav class="nav">
                 <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
                 <a href="?page=submit" <?= $page === 'submit' ? 'class="active"' : '' ?>><?= __('nav_submit_result') ?></a>

@@ -29,7 +29,7 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
     <body>
         <div class='container'>
             <div class='header'>
-                <h1>OpenElo</h1>
+                <h1>OpenELO</h1>
             </div>
             <div class='content'>
                 <p>{$message}</p>
@@ -42,7 +42,7 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
                 </p>
             </div>
             <div class='footer'>
-                <p>OpenElo - " . __('site_tagline') . "</p>
+                <p>OpenELO - " . __('site_tagline') . "</p>
             </div>
         </div>
     </body>

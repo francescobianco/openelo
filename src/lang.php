@@ -6,7 +6,7 @@
 $translations = [
     'en' => [
         // General
-        'site_title' => 'OpenElo',
+        'site_title' => 'OpenELO',
         'site_tagline' => 'Open Chess Rating System',
         'site_description' => 'A free, decentralized Elo rating system for chess communities outside FIDE circuits.',
 
@@ -125,13 +125,13 @@ $translations = [
         'error_already_member' => 'Already member of this circuit.',
 
         // Footer
-        'footer_text' => 'OpenElo is open source software.',
+        'footer_text' => 'OpenELO is open source software.',
         'footer_github' => 'View on GitHub',
     ],
 
     'it' => [
         // General
-        'site_title' => 'OpenElo',
+        'site_title' => 'OpenELO',
         'site_tagline' => 'Sistema di Rating Scacchistico Aperto',
         'site_description' => 'Un sistema Elo gratuito e decentralizzato per comunità scacchistiche fuori dai circuiti FIDE.',
 
@@ -144,7 +144,7 @@ $translations = [
 
         // Landing page
         'hero_title' => 'Il Tuo Rating, Il Tuo Circuito',
-        'hero_subtitle' => 'Un sistema Elo decentralizzato basato sulla fiducia, non sulla burocrazia.',
+        'hero_subtitle' => 'Un sistema ELO decentralizzato basato sulla fiducia, non sulla burocrazia.',
         'hero_cta' => 'Esplora Circuiti',
         'hero_create' => 'Crea Circuito',
 
@@ -250,7 +250,7 @@ $translations = [
         'error_already_member' => 'Già membro di questo circuito.',
 
         // Footer
-        'footer_text' => 'OpenElo è software open source.',
+        'footer_text' => 'OpenELO è software open source.',
         'footer_github' => 'Vedi su GitHub',
     ],
 ];

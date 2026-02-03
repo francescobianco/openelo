@@ -5,6 +5,9 @@
 
 require_once __DIR__ . '/config.php';
 
+// Schema version - increment this when schema changes
+define('DB_SCHEMA_VERSION', 2);
+
 class Database {
     private static ?PDO $pdo = null;
 
@@ -15,13 +18,44 @@ class Database {
                 mkdir($dir, 0755, true);
             }
 
+            $needsInit = !file_exists(DB_PATH);
+
             self::$pdo = new PDO('sqlite:' . DB_PATH);
             self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-            self::init();
+            // Check schema version
+            if (!$needsInit) {
+                $version = self::getSchemaVersion();
+                if ($version < DB_SCHEMA_VERSION) {
+                    self::resetDatabase();
+                    $needsInit = true;
+                }
+            }
+
+            if ($needsInit) {
+                self::init();
+            }
         }
         return self::$pdo;
+    }
+
+    private static function getSchemaVersion(): int {
+        try {
+            $result = self::$pdo->query("SELECT version FROM schema_version LIMIT 1");
+            $row = $result->fetch();
+            return $row ? (int)$row['version'] : 0;
+        } catch (PDOException $e) {
+            return 0;
+        }
+    }
+
+    private static function resetDatabase(): void {
+        // Drop all tables
+        $tables = self::$pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll();
+        foreach ($tables as $table) {
+            self::$pdo->exec("DROP TABLE IF EXISTS " . $table['name']);
+        }
     }
 
     private static function init(): void {
@@ -135,9 +169,18 @@ class Database {
         CREATE INDEX IF NOT EXISTS idx_ratings_circuit ON ratings(circuit_id);
         CREATE INDEX IF NOT EXISTS idx_matches_circuit ON matches(circuit_id);
         CREATE INDEX IF NOT EXISTS idx_players_club ON players(club_id);
+
+        -- Schema version tracking
+        CREATE TABLE IF NOT EXISTS schema_version (
+            version INTEGER NOT NULL
+        );
         ";
 
         self::$pdo->exec($sql);
+
+        // Set schema version
+        self::$pdo->exec("DELETE FROM schema_version");
+        self::$pdo->exec("INSERT INTO schema_version (version) VALUES (" . DB_SCHEMA_VERSION . ")");
     }
 }
 

@@ -8,7 +8,11 @@ $db = Database::get();
 // Get stats
 $stats = [
     'circuits' => $db->query("SELECT COUNT(*) FROM circuits WHERE confirmed = 1")->fetchColumn(),
-    'clubs' => $db->query("SELECT COUNT(*) FROM clubs WHERE confirmed = 1")->fetchColumn(),
+    'clubs' => $db->query("
+        SELECT COUNT(*) FROM clubs c
+        WHERE c.president_confirmed = 1
+        AND EXISTS (SELECT 1 FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1)
+    ")->fetchColumn(),
     'players' => $db->query("SELECT COUNT(*) FROM players WHERE confirmed = 1")->fetchColumn(),
     'matches' => $db->query("SELECT COUNT(*) FROM matches WHERE rating_applied = 1")->fetchColumn(),
 ];
@@ -16,7 +20,7 @@ $stats = [
 // Get recent circuits
 $circuits = $db->query("
     SELECT c.*,
-        (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.circuit_id = c.id AND cc.confirmed = 1) as club_count,
+        (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.circuit_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as club_count,
         (SELECT COUNT(DISTINCT r.player_id) FROM ratings r WHERE r.circuit_id = c.id) as player_count
     FROM circuits c
     WHERE c.confirmed = 1
