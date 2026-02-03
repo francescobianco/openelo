@@ -27,15 +27,15 @@ $translations = [
         'feature_1_desc' => 'Ratings are valid within trust circuits. No central authority, just community validation.',
         'feature_2_title' => 'Email-Based',
         'feature_2_desc' => 'No passwords, no logins. Everything works through email confirmations.',
-        'feature_3_title' => 'Triple Validation',
-        'feature_3_desc' => 'Every match requires confirmation from both players and the club president.',
+        'feature_3_title' => 'Double Validation',
+        'feature_3_desc' => 'Clubs require approval from president and circuit owner. Players from player and president.',
         'feature_4_title' => 'FIDE-style K Factor',
         'feature_4_desc' => 'K=40 for new players, K=20 under 2200, K=10 above. Familiar and fair.',
 
         'how_it_works' => 'How It Works',
-        'step_1' => 'Create or join a circuit',
-        'step_2' => 'Register your club',
-        'step_3' => 'Add players',
+        'step_1' => 'Create a circuit',
+        'step_2' => 'Register your club in a circuit',
+        'step_3' => 'Add players to your club',
         'step_4' => 'Submit and validate matches',
         'step_5' => 'Watch ratings evolve',
 
@@ -52,6 +52,7 @@ $translations = [
         'form_result' => 'Result',
         'form_submit' => 'Submit',
         'form_cancel' => 'Cancel',
+        'form_select' => 'Select...',
 
         'result_white_wins' => 'White wins (1-0)',
         'result_black_wins' => 'Black wins (0-1)',
@@ -70,19 +71,25 @@ $translations = [
         'club_create' => 'Create Club',
         'club_name' => 'Club Name',
         'club_president_email' => 'President Email',
-        'club_created' => 'Club created! Check your email to confirm.',
-        'club_join_circuit' => 'Join Circuit',
-        'club_request_sent' => 'Request sent! The circuit owner will receive an email.',
+        'club_created' => 'Club created! Both president and circuit owner will receive confirmation emails.',
+        'club_join_circuit' => 'Join Another Circuit',
+        'club_request_sent' => 'Request sent! Both president and circuit owner will receive emails.',
+        'club_pending' => 'Pending approval',
+        'club_active' => 'Active',
+        'club_view' => 'View Club',
 
         // Player
         'player_register' => 'Register Player',
-        'player_registered' => 'Player registered! Check your email to confirm.',
+        'player_registered' => 'Player registered! Both player and club president will receive confirmation emails.',
         'player_rating' => 'Rating',
         'player_games' => 'Games',
+        'player_view' => 'View Profile',
+        'player_change_club' => 'Change Club',
+        'player_transfer_requested' => 'Transfer requested! Both player and new club president will receive emails.',
 
         // Match
         'match_submit' => 'Submit Match Result',
-        'match_submitted' => 'Match submitted! All parties will receive confirmation emails.',
+        'match_submitted' => 'Match submitted! Both players and the club president will receive confirmation emails.',
         'match_pending' => 'Pending confirmations',
         'match_confirmed' => 'Confirmed',
 
@@ -90,6 +97,7 @@ $translations = [
         'confirm_success' => 'Confirmed successfully!',
         'confirm_error' => 'Invalid or expired token.',
         'confirm_already' => 'Already confirmed.',
+        'confirm_waiting' => 'Waiting for other confirmations',
 
         // Rankings
         'rankings_title' => 'Rankings',
@@ -99,11 +107,22 @@ $translations = [
         'rankings_rating' => 'Rating',
         'rankings_games' => 'Games',
 
+        // Status
+        'status_pending_president' => 'Waiting for president confirmation',
+        'status_pending_circuit' => 'Waiting for circuit owner confirmation',
+        'status_pending_player' => 'Waiting for player confirmation',
+        'status_pending_both' => 'Waiting for both confirmations',
+        'status_active' => 'Active',
+
         // Errors
         'error_required' => 'This field is required.',
         'error_email' => 'Invalid email address.',
         'error_not_found' => 'Not found.',
         'error_generic' => 'An error occurred. Please try again.',
+        'error_same_player' => 'Players must be different.',
+        'error_invalid_result' => 'Invalid result.',
+        'error_email_exists' => 'Email already registered.',
+        'error_already_member' => 'Already member of this circuit.',
 
         // Footer
         'footer_text' => 'OpenElo is open source software.',
@@ -133,15 +152,15 @@ $translations = [
         'feature_1_desc' => 'I rating sono validi nei circuiti di fiducia. Nessuna autorità centrale, solo validazione della comunità.',
         'feature_2_title' => 'Basato su Email',
         'feature_2_desc' => 'Niente password, niente login. Tutto funziona tramite conferme via email.',
-        'feature_3_title' => 'Tripla Validazione',
-        'feature_3_desc' => 'Ogni partita richiede conferma di entrambi i giocatori e del presidente del circolo.',
+        'feature_3_title' => 'Doppia Validazione',
+        'feature_3_desc' => 'I circoli richiedono approvazione di presidente e proprietario circuito. I giocatori di giocatore e presidente.',
         'feature_4_title' => 'Fattore K stile FIDE',
         'feature_4_desc' => 'K=40 per nuovi giocatori, K=20 sotto 2200, K=10 sopra. Familiare e giusto.',
 
         'how_it_works' => 'Come Funziona',
-        'step_1' => 'Crea o unisciti a un circuito',
-        'step_2' => 'Registra il tuo circolo',
-        'step_3' => 'Aggiungi giocatori',
+        'step_1' => 'Crea un circuito',
+        'step_2' => 'Registra il tuo circolo in un circuito',
+        'step_3' => 'Aggiungi giocatori al circolo',
         'step_4' => 'Inserisci e valida le partite',
         'step_5' => 'Guarda evolvere i rating',
 
@@ -158,6 +177,7 @@ $translations = [
         'form_result' => 'Risultato',
         'form_submit' => 'Invia',
         'form_cancel' => 'Annulla',
+        'form_select' => 'Seleziona...',
 
         'result_white_wins' => 'Vince il Bianco (1-0)',
         'result_black_wins' => 'Vince il Nero (0-1)',
@@ -176,19 +196,25 @@ $translations = [
         'club_create' => 'Crea Circolo',
         'club_name' => 'Nome Circolo',
         'club_president_email' => 'Email Presidente',
-        'club_created' => 'Circolo creato! Controlla la tua email per confermare.',
-        'club_join_circuit' => 'Unisciti al Circuito',
-        'club_request_sent' => 'Richiesta inviata! Il proprietario del circuito riceverà un\'email.',
+        'club_created' => 'Circolo creato! Sia il presidente che il proprietario del circuito riceveranno email di conferma.',
+        'club_join_circuit' => 'Unisciti ad un Altro Circuito',
+        'club_request_sent' => 'Richiesta inviata! Sia il presidente che il proprietario del circuito riceveranno email.',
+        'club_pending' => 'In attesa di approvazione',
+        'club_active' => 'Attivo',
+        'club_view' => 'Vedi Circolo',
 
         // Player
         'player_register' => 'Registra Giocatore',
-        'player_registered' => 'Giocatore registrato! Controlla la tua email per confermare.',
+        'player_registered' => 'Giocatore registrato! Sia il giocatore che il presidente del circolo riceveranno email di conferma.',
         'player_rating' => 'Rating',
         'player_games' => 'Partite',
+        'player_view' => 'Vedi Profilo',
+        'player_change_club' => 'Cambia Circolo',
+        'player_transfer_requested' => 'Trasferimento richiesto! Sia il giocatore che il presidente del nuovo circolo riceveranno email.',
 
         // Match
         'match_submit' => 'Inserisci Risultato Partita',
-        'match_submitted' => 'Partita inserita! Tutte le parti riceveranno email di conferma.',
+        'match_submitted' => 'Partita inserita! Entrambi i giocatori e il presidente del circolo riceveranno email di conferma.',
         'match_pending' => 'Conferme in attesa',
         'match_confirmed' => 'Confermata',
 
@@ -196,6 +222,7 @@ $translations = [
         'confirm_success' => 'Confermato con successo!',
         'confirm_error' => 'Token non valido o scaduto.',
         'confirm_already' => 'Già confermato.',
+        'confirm_waiting' => 'In attesa di altre conferme',
 
         // Rankings
         'rankings_title' => 'Classifiche',
@@ -205,11 +232,22 @@ $translations = [
         'rankings_rating' => 'Rating',
         'rankings_games' => 'Partite',
 
+        // Status
+        'status_pending_president' => 'In attesa conferma presidente',
+        'status_pending_circuit' => 'In attesa conferma proprietario circuito',
+        'status_pending_player' => 'In attesa conferma giocatore',
+        'status_pending_both' => 'In attesa di entrambe le conferme',
+        'status_active' => 'Attivo',
+
         // Errors
         'error_required' => 'Campo obbligatorio.',
         'error_email' => 'Indirizzo email non valido.',
         'error_not_found' => 'Non trovato.',
         'error_generic' => 'Si è verificato un errore. Riprova.',
+        'error_same_player' => 'I giocatori devono essere diversi.',
+        'error_invalid_result' => 'Risultato non valido.',
+        'error_email_exists' => 'Email già registrata.',
+        'error_already_member' => 'Già membro di questo circuito.',
 
         // Footer
         'footer_text' => 'OpenElo è software open source.',

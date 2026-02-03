@@ -8,7 +8,6 @@ require_once __DIR__ . '/lang.php';
 
 /**
  * Send confirmation email
- * In production, use a proper mail library like PHPMailer
  */
 function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl): bool {
     $lang = getCurrentLang();
@@ -24,7 +23,6 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
             .header { background: #1a1a2e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
             .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
             .button { display: inline-block; background: #4361ee; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-            .button:hover { background: #3a56d4; }
             .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
         </style>
     </head>
@@ -36,7 +34,7 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
             <div class='content'>
                 <p>{$message}</p>
                 <p style='text-align: center;'>
-                    <a href='{$confirmUrl}' class='button'>" . __('form_submit') . "</a>
+                    <a href='{$confirmUrl}' class='button'>" . ($lang === 'it' ? 'Conferma' : 'Confirm') . "</a>
                 </p>
                 <p style='font-size: 12px; color: #666;'>
                     " . ($lang === 'it' ? 'Oppure copia questo link:' : 'Or copy this link:') . "<br>
@@ -64,7 +62,7 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
         if (!is_dir($logDir)) {
             mkdir($logDir, 0755, true);
         }
-        $logFile = $logDir . '/' . date('Y-m-d_H-i-s') . '_' . md5($to . time()) . '.html';
+        $logFile = $logDir . '/' . date('Y-m-d_H-i-s') . '_' . md5($to . microtime()) . '.html';
         file_put_contents($logFile, "To: {$to}\nSubject: {$subject}\n\n{$htmlMessage}");
         return true;
     }
@@ -91,35 +89,35 @@ function sendCircuitConfirmation(string $email, string $circuitName, string $tok
 }
 
 /**
- * Send club creation confirmation
+ * Send club creation confirmation to president
  */
-function sendClubConfirmation(string $email, string $clubName, string $token): bool {
+function sendClubPresidentConfirmation(string $email, string $clubName, string $circuitName, string $token): bool {
     $lang = getCurrentLang();
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
         $subject = "Conferma creazione circolo: {$clubName}";
-        $message = "Hai richiesto di creare il circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare e attivare il circolo.";
+        $message = "Hai richiesto di creare il circolo <strong>{$clubName}</strong> nel circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il proprietario del circuito dovrà anche approvare l'adesione.";
     } else {
         $subject = "Confirm club creation: {$clubName}";
-        $message = "You requested to create the club <strong>{$clubName}</strong>.<br><br>Click the button below to confirm and activate the club.";
+        $message = "You requested to create the club <strong>{$clubName}</strong> in circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to confirm. The circuit owner will also need to approve the membership.";
     }
 
     return sendConfirmationEmail($email, $subject, $message, $url);
 }
 
 /**
- * Send club join circuit request to circuit owner
+ * Send club join request to circuit owner
  */
-function sendCircuitJoinRequest(string $ownerEmail, string $clubName, string $circuitName, string $token): bool {
+function sendClubCircuitConfirmation(string $ownerEmail, string $clubName, string $circuitName, string $token): bool {
     $lang = getCurrentLang();
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
-        $subject = "Richiesta adesione circuito: {$clubName}";
+        $subject = "Richiesta adesione circolo: {$clubName}";
         $message = "Il circolo <strong>{$clubName}</strong> ha richiesto di aderire al circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per approvare l'adesione.";
     } else {
-        $subject = "Circuit join request: {$clubName}";
+        $subject = "Club membership request: {$clubName}";
         $message = "The club <strong>{$clubName}</strong> has requested to join the circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to approve the membership.";
     }
 
@@ -127,21 +125,39 @@ function sendCircuitJoinRequest(string $ownerEmail, string $clubName, string $ci
 }
 
 /**
- * Send player registration confirmation
+ * Send player registration confirmation to player
  */
-function sendPlayerConfirmation(string $email, string $playerName, string $token): bool {
+function sendPlayerSelfConfirmation(string $email, string $playerName, string $clubName, string $token): bool {
     $lang = getCurrentLang();
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
         $subject = "Conferma registrazione giocatore";
-        $message = "È stata richiesta la registrazione del giocatore <strong>{$playerName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare.";
+        $message = "È stata richiesta la tua registrazione come giocatore <strong>{$playerName}</strong> nel circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il presidente del circolo dovrà anche approvare.";
     } else {
         $subject = "Confirm player registration";
-        $message = "Registration has been requested for player <strong>{$playerName}</strong>.<br><br>Click the button below to confirm.";
+        $message = "Registration has been requested for you as player <strong>{$playerName}</strong> in club <strong>{$clubName}</strong>.<br><br>Click the button below to confirm. The club president will also need to approve.";
     }
 
     return sendConfirmationEmail($email, $subject, $message, $url);
+}
+
+/**
+ * Send player registration confirmation to president
+ */
+function sendPlayerPresidentConfirmation(string $presidentEmail, string $playerName, string $clubName, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    if ($lang === 'it') {
+        $subject = "Approvazione nuovo giocatore: {$playerName}";
+        $message = "Il giocatore <strong>{$playerName}</strong> ha richiesto di unirsi al circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per approvare l'iscrizione.";
+    } else {
+        $subject = "Approve new player: {$playerName}";
+        $message = "Player <strong>{$playerName}</strong> has requested to join club <strong>{$clubName}</strong>.<br><br>Click the button below to approve the registration.";
+    }
+
+    return sendConfirmationEmail($presidentEmail, $subject, $message, $url);
 }
 
 /**
@@ -177,4 +193,40 @@ function sendMatchConfirmation(string $email, string $role, array $matchDetails,
     }
 
     return sendConfirmationEmail($email, $subject, $message, $url);
+}
+
+/**
+ * Send club transfer confirmation to player
+ */
+function sendTransferPlayerConfirmation(string $email, string $playerName, string $newClubName, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    if ($lang === 'it') {
+        $subject = "Conferma trasferimento circolo";
+        $message = "Hai richiesto di trasferirti al circolo <strong>{$newClubName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il presidente del nuovo circolo dovrà anche approvare.";
+    } else {
+        $subject = "Confirm club transfer";
+        $message = "You requested to transfer to club <strong>{$newClubName}</strong>.<br><br>Click the button below to confirm. The new club president will also need to approve.";
+    }
+
+    return sendConfirmationEmail($email, $subject, $message, $url);
+}
+
+/**
+ * Send club transfer confirmation to new president
+ */
+function sendTransferPresidentConfirmation(string $presidentEmail, string $playerName, string $clubName, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    if ($lang === 'it') {
+        $subject = "Richiesta trasferimento: {$playerName}";
+        $message = "Il giocatore <strong>{$playerName}</strong> ha richiesto di trasferirsi al circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per approvare il trasferimento.";
+    } else {
+        $subject = "Transfer request: {$playerName}";
+        $message = "Player <strong>{$playerName}</strong> has requested to transfer to club <strong>{$clubName}</strong>.<br><br>Click the button below to approve the transfer.";
+    }
+
+    return sendConfirmationEmail($presidentEmail, $subject, $message, $url);
 }

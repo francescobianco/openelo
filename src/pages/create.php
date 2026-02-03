@@ -41,63 +41,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'create_club':
                 $name = trim($_POST['name'] ?? '');
                 $email = trim($_POST['email'] ?? '');
+                $circuitId = (int)($_POST['circuit_id'] ?? 0);
 
-                if (empty($name) || empty($email)) {
+                if (empty($name) || empty($email) || !$circuitId) {
                     throw new Exception(__('error_required'));
                 }
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     throw new Exception(__('error_email'));
                 }
 
+                // Get circuit
+                $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ? AND confirmed = 1");
+                $stmt->execute([$circuitId]);
+                $circuit = $stmt->fetch();
+
+                if (!$circuit) {
+                    throw new Exception(__('error_not_found'));
+                }
+
+                // Create club
                 $stmt = $db->prepare("INSERT INTO clubs (name, president_email) VALUES (?, ?)");
                 $stmt->execute([$name, $email]);
                 $clubId = $db->lastInsertId();
 
-                $token = createConfirmation('club', $clubId, $email);
-                sendClubConfirmation($email, $name, $token);
-
-                $message = __('club_created');
-                $messageType = 'success';
-                break;
-
-            case 'join_circuit':
-                $clubId = (int)($_POST['club_id'] ?? 0);
-                $circuitId = (int)($_POST['circuit_id'] ?? 0);
-
-                if (!$clubId || !$circuitId) {
-                    throw new Exception(__('error_required'));
-                }
-
-                // Get club and circuit
-                $stmt = $db->prepare("SELECT * FROM clubs WHERE id = ? AND confirmed = 1");
-                $stmt->execute([$clubId]);
-                $club = $stmt->fetch();
-
-                $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ? AND confirmed = 1");
-                $stmt->execute([$circuitId]);
-                $circuitData = $stmt->fetch();
-
-                if (!$club || !$circuitData) {
-                    throw new Exception(__('error_not_found'));
-                }
-
-                // Check if already member
-                $stmt = $db->prepare("SELECT * FROM circuit_clubs WHERE circuit_id = ? AND club_id = ?");
-                $stmt->execute([$circuitId, $clubId]);
-                if ($stmt->fetch()) {
-                    throw new Exception($lang === 'it' ? 'Già membro del circuito' : 'Already member of circuit');
-                }
-
-                // Create membership request
-                $stmt = $db->prepare("INSERT INTO circuit_clubs (circuit_id, club_id) VALUES (?, ?)");
+                // Create circuit-club membership (primary)
+                $stmt = $db->prepare("INSERT INTO circuit_clubs (circuit_id, club_id, is_primary) VALUES (?, ?, 1)");
                 $stmt->execute([$circuitId, $clubId]);
                 $membershipId = $db->lastInsertId();
 
-                // Send email to circuit owner
-                $token = createConfirmation('membership', $membershipId, $circuitData['owner_email']);
-                sendCircuitJoinRequest($circuitData['owner_email'], $club['name'], $circuitData['name'], $token);
+                // Send email to president
+                $tokenPresident = createConfirmation('club_president', $membershipId, $email);
+                sendClubPresidentConfirmation($email, $name, $circuit['name'], $tokenPresident);
 
-                $message = __('club_request_sent');
+                // Send email to circuit owner
+                $tokenCircuit = createConfirmation('club_circuit', $membershipId, $circuit['owner_email']);
+                sendClubCircuitConfirmation($circuit['owner_email'], $name, $circuit['name'], $tokenCircuit);
+
+                $message = __('club_created');
                 $messageType = 'success';
                 break;
 
@@ -107,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $email = trim($_POST['email'] ?? '');
                 $clubId = (int)($_POST['club_id'] ?? 0);
 
-                if (empty($firstName) || empty($lastName) || empty($email)) {
+                if (empty($firstName) || empty($lastName) || empty($email) || !$clubId) {
                     throw new Exception(__('error_required'));
                 }
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -118,15 +98,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $db->prepare("SELECT id FROM players WHERE email = ?");
                 $stmt->execute([$email]);
                 if ($stmt->fetch()) {
-                    throw new Exception($lang === 'it' ? 'Email già registrata' : 'Email already registered');
+                    throw new Exception(__('error_email_exists'));
                 }
 
+                // Get club (must be active)
+                $stmt = $db->prepare("SELECT c.*,
+                    (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as active_circuits
+                    FROM clubs c WHERE c.id = ? AND c.president_confirmed = 1");
+                $stmt->execute([$clubId]);
+                $club = $stmt->fetch();
+
+                if (!$club || $club['active_circuits'] == 0) {
+                    throw new Exception(__('error_not_found'));
+                }
+
+                // Create player
                 $stmt = $db->prepare("INSERT INTO players (first_name, last_name, email, club_id) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$firstName, $lastName, $email, $clubId ?: null]);
+                $stmt->execute([$firstName, $lastName, $email, $clubId]);
                 $playerId = $db->lastInsertId();
 
-                $token = createConfirmation('player', $playerId, $email);
-                sendPlayerConfirmation($email, "$firstName $lastName", $token);
+                $playerName = "$firstName $lastName";
+
+                // Send email to player
+                $tokenPlayer = createConfirmation('player_self', $playerId, $email);
+                sendPlayerSelfConfirmation($email, $playerName, $club['name'], $tokenPlayer);
+
+                // Send email to president
+                $tokenPresident = createConfirmation('player_president', $playerId, $club['president_email']);
+                sendPlayerPresidentConfirmation($club['president_email'], $playerName, $club['name'], $tokenPresident);
 
                 $message = __('player_registered');
                 $messageType = 'success';
@@ -140,7 +139,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get data for forms
 $circuits = $db->query("SELECT * FROM circuits WHERE confirmed = 1 ORDER BY name")->fetchAll();
-$clubs = $db->query("SELECT * FROM clubs WHERE confirmed = 1 ORDER BY name")->fetchAll();
+
+// Get active clubs (president confirmed + at least one active circuit)
+$clubs = $db->query("
+    SELECT c.* FROM clubs c
+    WHERE c.president_confirmed = 1
+    AND EXISTS (
+        SELECT 1 FROM circuit_clubs cc
+        WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
+    )
+    ORDER BY c.name
+")->fetchAll();
 ?>
 
 <div class="container">
@@ -170,11 +179,21 @@ $clubs = $db->query("SELECT * FROM clubs WHERE confirmed = 1 ORDER BY name")->fe
             </form>
         </div>
 
-        <!-- Create Club -->
+        <!-- Create Club (requires circuit) -->
+        <?php if (!empty($circuits)): ?>
         <div class="create-section">
             <h2><?= __('club_create') ?></h2>
             <form method="POST">
                 <input type="hidden" name="action" value="create_club">
+                <div class="form-group">
+                    <label for="club_circuit"><?= __('form_circuit') ?></label>
+                    <select id="club_circuit" name="circuit_id" required>
+                        <option value="">-- <?= __('form_select') ?> --</option>
+                        <?php foreach ($circuits as $c): ?>
+                        <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label for="club_name"><?= __('club_name') ?></label>
                     <input type="text" id="club_name" name="name" required>
@@ -186,41 +205,23 @@ $clubs = $db->query("SELECT * FROM clubs WHERE confirmed = 1 ORDER BY name")->fe
                 <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
             </form>
         </div>
+        <?php endif; ?>
 
-        <!-- Join Circuit -->
-        <?php if (!empty($clubs) && !empty($circuits)): ?>
+        <!-- Register Player (requires active club) -->
+        <?php if (!empty($clubs)): ?>
         <div class="create-section">
-            <h2><?= __('club_join_circuit') ?></h2>
+            <h2><?= __('player_register') ?></h2>
             <form method="POST">
-                <input type="hidden" name="action" value="join_circuit">
+                <input type="hidden" name="action" value="register_player">
                 <div class="form-group">
-                    <label for="join_club"><?= __('form_club') ?></label>
-                    <select id="join_club" name="club_id" required>
-                        <option value="">-- <?= __('form_club') ?> --</option>
+                    <label for="player_club"><?= __('form_club') ?></label>
+                    <select id="player_club" name="club_id" required>
+                        <option value="">-- <?= __('form_select') ?> --</option>
                         <?php foreach ($clubs as $club): ?>
                         <option value="<?= $club['id'] ?>"><?= htmlspecialchars($club['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="join_circuit"><?= __('form_circuit') ?></label>
-                    <select id="join_circuit" name="circuit_id" required>
-                        <option value="">-- <?= __('form_circuit') ?> --</option>
-                        <?php foreach ($circuits as $c): ?>
-                        <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
-            </form>
-        </div>
-        <?php endif; ?>
-
-        <!-- Register Player -->
-        <div class="create-section">
-            <h2><?= __('player_register') ?></h2>
-            <form method="POST">
-                <input type="hidden" name="action" value="register_player">
                 <div class="form-group">
                     <label for="player_first"><?= __('form_first_name') ?></label>
                     <input type="text" id="player_first" name="first_name" required>
@@ -233,19 +234,9 @@ $clubs = $db->query("SELECT * FROM clubs WHERE confirmed = 1 ORDER BY name")->fe
                     <label for="player_email"><?= __('form_email') ?></label>
                     <input type="email" id="player_email" name="email" required>
                 </div>
-                <?php if (!empty($clubs)): ?>
-                <div class="form-group">
-                    <label for="player_club"><?= __('form_club') ?> (<?= $lang === 'it' ? 'opzionale' : 'optional' ?>)</label>
-                    <select id="player_club" name="club_id">
-                        <option value="">-- <?= __('form_club') ?> --</option>
-                        <?php foreach ($clubs as $club): ?>
-                        <option value="<?= $club['id'] ?>"><?= htmlspecialchars($club['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <?php endif; ?>
                 <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
             </form>
         </div>
+        <?php endif; ?>
     </div>
 </div>

@@ -21,7 +21,7 @@ if (!$circuit) {
 $stmt = $db->prepare("
     SELECT cl.* FROM clubs cl
     JOIN circuit_clubs cc ON cc.club_id = cl.id
-    WHERE cc.circuit_id = ? AND cc.confirmed = 1 AND cl.confirmed = 1
+    WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
     ORDER BY cl.name
 ");
 $stmt->execute([$circuitId]);
@@ -29,10 +29,10 @@ $clubs = $stmt->fetchAll();
 
 // Get rankings
 $stmt = $db->prepare("
-    SELECT p.*, r.rating, r.games_played, cl.name as club_name
+    SELECT p.*, r.rating, r.games_played, cl.name as club_name, cl.id as club_id
     FROM ratings r
     JOIN players p ON p.id = r.player_id
-    LEFT JOIN clubs cl ON cl.id = p.club_id
+    JOIN clubs cl ON cl.id = p.club_id
     WHERE r.circuit_id = ? AND p.confirmed = 1
     ORDER BY r.rating DESC
 ");
@@ -42,13 +42,14 @@ $rankings = $stmt->fetchAll();
 // Get recent matches
 $stmt = $db->prepare("
     SELECT m.*,
-        pw.first_name as white_first, pw.last_name as white_last,
-        pb.first_name as black_first, pb.last_name as black_last,
-        cl.name as club_name
+        pw.id as white_id, pw.first_name as white_first, pw.last_name as white_last,
+        pb.id as black_id, pb.first_name as black_first, pb.last_name as black_last,
+        cw.name as white_club, cb.name as black_club
     FROM matches m
     JOIN players pw ON pw.id = m.white_player_id
     JOIN players pb ON pb.id = m.black_player_id
-    JOIN clubs cl ON cl.id = m.club_id
+    JOIN clubs cw ON cw.id = pw.club_id
+    JOIN clubs cb ON cb.id = pb.club_id
     WHERE m.circuit_id = ? AND m.rating_applied = 1
     ORDER BY m.created_at DESC
     LIMIT 20
@@ -101,8 +102,8 @@ $tab = $_GET['tab'] ?? 'rankings';
                     <?php foreach ($rankings as $i => $player): ?>
                     <tr>
                         <td class="rank"><?= $i + 1 ?></td>
-                        <td><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></td>
-                        <td><?= htmlspecialchars($player['club_name'] ?? '-') ?></td>
+                        <td><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a></td>
+                        <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
                         <td class="rating"><?= $player['rating'] ?></td>
                         <td><?= $player['games_played'] ?></td>
                     </tr>
@@ -121,7 +122,7 @@ $tab = $_GET['tab'] ?? 'rankings';
         <?php else: ?>
         <?php foreach ($clubs as $club): ?>
         <div class="circuit-card">
-            <h3><?= htmlspecialchars($club['name']) ?></h3>
+            <h3><a href="?page=club&id=<?= $club['id'] ?>"><?= htmlspecialchars($club['name']) ?></a></h3>
         </div>
         <?php endforeach; ?>
         <?php endif; ?>
@@ -140,17 +141,21 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <th><?= __('form_white') ?></th>
                         <th><?= __('form_result') ?></th>
                         <th><?= __('form_black') ?></th>
-                        <th><?= __('form_club') ?></th>
                         <th>Data</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($matches as $match): ?>
                     <tr>
-                        <td><?= htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) ?></td>
+                        <td>
+                            <a href="?page=player&id=<?= $match['white_id'] ?>"><?= htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) ?></a>
+                            <small style="color: var(--text-secondary);">(<?= htmlspecialchars($match['white_club']) ?>)</small>
+                        </td>
                         <td><strong><?= $match['result'] ?></strong></td>
-                        <td><?= htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) ?></td>
-                        <td><?= htmlspecialchars($match['club_name']) ?></td>
+                        <td>
+                            <a href="?page=player&id=<?= $match['black_id'] ?>"><?= htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) ?></a>
+                            <small style="color: var(--text-secondary);">(<?= htmlspecialchars($match['black_club']) ?>)</small>
+                        </td>
                         <td><?= date('d/m/Y', strtotime($match['created_at'])) ?></td>
                     </tr>
                     <?php endforeach; ?>

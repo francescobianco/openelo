@@ -14,35 +14,21 @@ $messageType = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $circuitId = (int)($_POST['circuit_id'] ?? 0);
-        $clubId = (int)($_POST['club_id'] ?? 0);
         $whiteId = (int)($_POST['white_player_id'] ?? 0);
         $blackId = (int)($_POST['black_player_id'] ?? 0);
         $result = $_POST['result'] ?? '';
 
-        if (!$circuitId || !$clubId || !$whiteId || !$blackId || !$result) {
+        if (!$circuitId || !$whiteId || !$blackId || !$result) {
             throw new Exception(__('error_required'));
         }
 
         if ($whiteId === $blackId) {
-            throw new Exception($lang === 'it' ? 'I giocatori devono essere diversi' : 'Players must be different');
+            throw new Exception(__('error_same_player'));
         }
 
         // Validate result
         if (!in_array($result, ['1-0', '0-1', '0.5-0.5'])) {
-            throw new Exception($lang === 'it' ? 'Risultato non valido' : 'Invalid result');
-        }
-
-        // Get club and verify it's in the circuit
-        $stmt = $db->prepare("
-            SELECT c.* FROM clubs c
-            JOIN circuit_clubs cc ON cc.club_id = c.id
-            WHERE c.id = ? AND cc.circuit_id = ? AND cc.confirmed = 1 AND c.confirmed = 1
-        ");
-        $stmt->execute([$clubId, $circuitId]);
-        $club = $stmt->fetch();
-
-        if (!$club) {
-            throw new Exception($lang === 'it' ? 'Circolo non trovato nel circuito' : 'Club not found in circuit');
+            throw new Exception(__('error_invalid_result'));
         }
 
         // Get circuit
@@ -50,8 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$circuitId]);
         $circuitData = $stmt->fetch();
 
-        // Get players
-        $stmt = $db->prepare("SELECT * FROM players WHERE id = ? AND confirmed = 1");
+        if (!$circuitData) {
+            throw new Exception(__('error_not_found'));
+        }
+
+        // Get players with their clubs
+        $stmt = $db->prepare("
+            SELECT p.*, c.name as club_name, c.president_email
+            FROM players p
+            JOIN clubs c ON c.id = p.club_id
+            WHERE p.id = ? AND p.confirmed = 1
+        ");
         $stmt->execute([$whiteId]);
         $whitePlayer = $stmt->fetch();
 
@@ -59,15 +54,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $blackPlayer = $stmt->fetch();
 
         if (!$whitePlayer || !$blackPlayer) {
-            throw new Exception($lang === 'it' ? 'Giocatore non trovato' : 'Player not found');
+            throw new Exception(__('error_not_found'));
         }
+
+        // Determine which president to notify (use white player's club president)
+        $presidentEmail = $whitePlayer['president_email'];
 
         // Create match
         $stmt = $db->prepare("
-            INSERT INTO matches (circuit_id, club_id, white_player_id, black_player_id, result)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO matches (circuit_id, white_player_id, black_player_id, result)
+            VALUES (?, ?, ?, ?)
         ");
-        $stmt->execute([$circuitId, $clubId, $whiteId, $blackId, $result]);
+        $stmt->execute([$circuitId, $whiteId, $blackId, $result]);
         $matchId = $db->lastInsertId();
 
         // Prepare match details for emails
@@ -85,8 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tokenBlack = createConfirmation('match', $matchId, $blackPlayer['email'], 'black');
         sendMatchConfirmation($blackPlayer['email'], 'player', $matchDetails, $tokenBlack);
 
-        $tokenPresident = createConfirmation('match', $matchId, $club['president_email'], 'president');
-        sendMatchConfirmation($club['president_email'], 'president', $matchDetails, $tokenPresident);
+        $tokenPresident = createConfirmation('match', $matchId, $presidentEmail, 'president');
+        sendMatchConfirmation($presidentEmail, 'president', $matchDetails, $tokenPresident);
 
         $message = __('match_submitted');
         $messageType = 'success';
@@ -97,8 +95,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get data for forms
-$circuits = $db->query("SELECT * FROM circuits WHERE confirmed = 1 ORDER BY name")->fetchAll();
+// Get circuits with active players
+$circuits = $db->query("
+    SELECT c.* FROM circuits c
+    WHERE c.confirmed = 1
+    AND EXISTS (
+        SELECT 1 FROM ratings r
+        JOIN players p ON p.id = r.player_id
+        WHERE r.circuit_id = c.id AND p.confirmed = 1
+    )
+    ORDER BY c.name
+")->fetchAll();
+
 $selectedCircuit = (int)($_GET['circuit'] ?? 0);
 ?>
 
@@ -117,20 +125,13 @@ $selectedCircuit = (int)($_GET['circuit'] ?? 0);
         <form method="POST" id="matchForm">
             <div class="form-group">
                 <label for="circuit"><?= __('form_circuit') ?></label>
-                <select id="circuit" name="circuit_id" required onchange="loadCircuitData()">
-                    <option value="">-- <?= __('form_circuit') ?> --</option>
+                <select id="circuit" name="circuit_id" required onchange="loadCircuitPlayers()">
+                    <option value="">-- <?= __('form_select') ?> --</option>
                     <?php foreach ($circuits as $c): ?>
                     <option value="<?= $c['id'] ?>" <?= $selectedCircuit === $c['id'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars($c['name']) ?>
                     </option>
                     <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="club"><?= __('form_club') ?></label>
-                <select id="club" name="club_id" required disabled>
-                    <option value="">-- <?= __('form_club') ?> --</option>
                 </select>
             </div>
 
@@ -151,7 +152,7 @@ $selectedCircuit = (int)($_GET['circuit'] ?? 0);
             <div class="form-group">
                 <label for="result"><?= __('form_result') ?></label>
                 <select id="result" name="result" required>
-                    <option value="">-- <?= __('form_result') ?> --</option>
+                    <option value="">-- <?= __('form_select') ?> --</option>
                     <option value="1-0"><?= __('result_white_wins') ?></option>
                     <option value="0-1"><?= __('result_black_wins') ?></option>
                     <option value="0.5-0.5"><?= __('result_draw') ?></option>
@@ -164,37 +165,25 @@ $selectedCircuit = (int)($_GET['circuit'] ?? 0);
 </div>
 
 <script>
-function loadCircuitData() {
+function loadCircuitPlayers() {
     const circuitId = document.getElementById('circuit').value;
-    const clubSelect = document.getElementById('club');
     const whiteSelect = document.getElementById('white');
     const blackSelect = document.getElementById('black');
 
     if (!circuitId) {
-        clubSelect.disabled = true;
         whiteSelect.disabled = true;
         blackSelect.disabled = true;
-        clubSelect.innerHTML = '<option value="">-- <?= __('form_club') ?> --</option>';
         whiteSelect.innerHTML = '<option value="">-- <?= __('form_player') ?> --</option>';
         blackSelect.innerHTML = '<option value="">-- <?= __('form_player') ?> --</option>';
         return;
     }
 
-    // Load clubs and players via API
-    fetch('?page=api&action=circuit_data&circuit_id=' + circuitId)
+    fetch('?page=api&action=circuit_players&circuit_id=' + circuitId)
         .then(r => r.json())
         .then(data => {
-            // Populate clubs
-            clubSelect.innerHTML = '<option value="">-- <?= __('form_club') ?> --</option>';
-            data.clubs.forEach(club => {
-                clubSelect.innerHTML += `<option value="${club.id}">${club.name}</option>`;
-            });
-            clubSelect.disabled = false;
-
-            // Populate players
             let playerOptions = '<option value="">-- <?= __('form_player') ?> --</option>';
             data.players.forEach(player => {
-                playerOptions += `<option value="${player.id}">${player.first_name} ${player.last_name} (${player.rating})</option>`;
+                playerOptions += `<option value="${player.id}">${player.first_name} ${player.last_name} (${player.club_name}) - ${player.rating}</option>`;
             });
             whiteSelect.innerHTML = playerOptions;
             blackSelect.innerHTML = playerOptions;
@@ -203,8 +192,7 @@ function loadCircuitData() {
         });
 }
 
-// Load on page load if circuit is preselected
 if (document.getElementById('circuit').value) {
-    loadCircuitData();
+    loadCircuitPlayers();
 }
 </script>
