@@ -1,0 +1,22 @@
+services:
+  openelo:
+    build: .
+    ports:
+      - "${PORT:-8080}:80"
+    volumes:
+      - ./data:/var/www/html/data
+      - ./src:/var/www/html/src
+      - ./public:/var/www/html/public
+    environment:
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+      - DB_PATH=/var/www/html/data/openelo.db
+      - DEFAULT_LANG=${DEFAULT_LANG:-en}
+      - SMTP_HOST=${SMTP_HOST:-smtp.example.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - MAIL_FROM=${MAIL_FROM:-noreply@openelo.org}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-OpenElo}
+      - TOKEN_EXPIRY_HOURS=${TOKEN_EXPIRY_HOURS:-72}
+      - ELO_START=${ELO_START:-1200}
+    restart: unless-stopped
