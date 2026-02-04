@@ -335,9 +335,13 @@ a:hover {
 }
 
 .circuit-card-link {
-    text-decoration: none;
+    text-decoration: none !important;
     color: inherit;
     display: block;
+}
+
+.circuit-card-link:hover {
+    text-decoration: none !important;
 }
 
 .circuit-card {
@@ -345,12 +349,11 @@ a:hover {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
-    transition: border-color 0.2s, transform 0.2s;
+    transition: border-color 0.2s;
 }
 
 .circuit-card-link:hover .circuit-card {
     border-color: var(--accent);
-    transform: translateY(-2px);
 }
 
 .circuit-card h3 {
