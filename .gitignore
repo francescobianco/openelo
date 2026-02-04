@@ -1,6 +1,7 @@
 # Environment
 .env
 env.php
+env.*.php
 
 # Data
 data/
