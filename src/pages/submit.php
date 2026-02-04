@@ -4,6 +4,7 @@
  */
 
 require_once SRC_PATH . '/mail.php';
+require_once SRC_PATH . '/elo.php';
 
 $db = Database::get();
 
