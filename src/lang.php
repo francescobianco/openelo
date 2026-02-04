@@ -22,7 +22,7 @@ $translations = [
         'hero_title' => 'Your Rating, Your Circuit',
         'hero_subtitle' => 'A decentralized Elo rating system built on trust, not bureaucracy.',
         'hero_cta' => 'Explore Circuits',
-        'hero_create' => 'Register Circuit',
+        'hero_create' => 'Create Circuit',
 
         'feature_1_title' => 'Local Trust',
         'feature_1_desc' => 'Ratings are valid within trust circuits. No central authority, just community validation.',
@@ -60,19 +60,19 @@ $translations = [
         'result_draw' => 'Draw (½-½)',
 
         // Circuit
-        'circuit_create' => 'Register Circuit',
+        'circuit_create' => 'Create Circuit',
         'circuit_name' => 'Circuit Name',
         'circuit_owner_email' => 'Owner Email',
-        'circuit_created' => 'Circuit registered! Check your email to confirm.',
+        'circuit_created' => 'Circuit created! Check your email to confirm.',
         'circuit_clubs' => 'Clubs',
         'circuit_players' => 'Players',
         'circuit_matches' => 'Matches',
 
         // Club
-        'club_create' => 'Create Club',
+        'club_create' => 'Register Club',
         'club_name' => 'Club Name',
         'club_president_email' => 'President Email',
-        'club_created' => 'Club created! Both president and circuit owner will receive confirmation emails.',
+        'club_created' => 'Club registered! Both president and circuit owner will receive confirmation emails.',
         'club_join_circuit' => 'Join Another Circuit',
         'club_request_sent' => 'Request sent! Both president and circuit owner will receive emails.',
         'club_pending' => 'Pending approval',
@@ -148,7 +148,7 @@ $translations = [
         'hero_title' => 'Il Tuo Rating, Il Tuo Circuito',
         'hero_subtitle' => 'Un sistema ELO decentralizzato basato sulla fiducia, non sulla burocrazia.',
         'hero_cta' => 'Esplora Circuiti',
-        'hero_create' => 'Registra Circuito',
+        'hero_create' => 'Crea Circuito',
 
         'feature_1_title' => 'Fiducia Locale',
         'feature_1_desc' => 'I rating sono validi nei circuiti di fiducia. Nessuna autorità centrale, solo validazione della comunità.',
@@ -186,19 +186,19 @@ $translations = [
         'result_draw' => 'Patta (½-½)',
 
         // Circuit
-        'circuit_create' => 'Registra Circuito',
+        'circuit_create' => 'Crea Circuito',
         'circuit_name' => 'Nome Circuito',
         'circuit_owner_email' => 'Email Proprietario',
-        'circuit_created' => 'Circuito registrato! Controlla la tua email per confermare.',
+        'circuit_created' => 'Circuito creato! Controlla la tua email per confermare.',
         'circuit_clubs' => 'Circoli',
         'circuit_players' => 'Giocatori',
         'circuit_matches' => 'Partite',
 
         // Club
-        'club_create' => 'Crea Circolo',
+        'club_create' => 'Registra Circolo',
         'club_name' => 'Nome Circolo',
         'club_president_email' => 'Email Presidente',
-        'club_created' => 'Circolo creato! Sia il presidente che il proprietario del circuito riceveranno email di conferma.',
+        'club_created' => 'Circolo registrato! Sia il presidente che il proprietario del circuito riceveranno email di conferma.',
         'club_join_circuit' => 'Unisciti ad un Altro Circuito',
         'club_request_sent' => 'Richiesta inviata! Sia il presidente che il proprietario del circuito riceveranno email.',
         'club_pending' => 'In attesa di approvazione',
