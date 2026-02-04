@@ -13,15 +13,26 @@ $messageType = null;
 
 // Handle resend request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resend_circuit') {
-    $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
-    $stmt->execute([$circuitId]);
-    $circuitData = $stmt->fetch();
+    // Check rate limit
+    $rateLimitError = checkReminderRateLimit();
 
-    if ($circuitData && !$circuitData['confirmed']) {
-        $token = createConfirmation('circuit', $circuitId, $circuitData['owner_email']);
-        sendCircuitConfirmation($circuitData['owner_email'], $circuitData['name'], $token);
-        $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-        $messageType = 'success';
+    if ($rateLimitError) {
+        $message = $lang === 'it'
+            ? 'Stai mandando troppi solleciti! Potrai mandare il prossimo tra ' . $rateLimitError['minutes'] . ' minuti.'
+            : 'You are sending too many reminders! You can send the next one in ' . $rateLimitError['minutes'] . ' minutes.';
+        $messageType = 'error';
+    } else {
+        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
+        $stmt->execute([$circuitId]);
+        $circuitData = $stmt->fetch();
+
+        if ($circuitData && !$circuitData['confirmed']) {
+            $token = createConfirmation('circuit', $circuitId, $circuitData['owner_email']);
+            sendCircuitConfirmation($circuitData['owner_email'], $circuitData['name'], $token);
+            logReminder();
+            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+            $messageType = 'success';
+        }
     }
 }
 

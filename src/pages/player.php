@@ -14,7 +14,16 @@ $messageType = null;
 
 // Handle resend requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'resend_player') {
+    // Check rate limit for reminder actions
+    $isReminderAction = in_array($_POST['action'], ['resend_player', 'resend_president']);
+    $rateLimitError = $isReminderAction ? checkReminderRateLimit() : null;
+
+    if ($rateLimitError) {
+        $message = $lang === 'it'
+            ? 'Stai mandando troppi solleciti! Potrai mandare il prossimo tra ' . $rateLimitError['minutes'] . ' minuti.'
+            : 'You are sending too many reminders! You can send the next one in ' . $rateLimitError['minutes'] . ' minutes.';
+        $messageType = 'error';
+    } elseif ($_POST['action'] === 'resend_player') {
         $stmt = $db->prepare("SELECT p.*, c.name as club_name
             FROM players p
             JOIN clubs c ON c.id = p.club_id
@@ -26,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $playerName = $playerData['first_name'] . ' ' . $playerData['last_name'];
             $token = createConfirmation('player_self', $playerId, $playerData['email']);
             sendPlayerSelfConfirmation($playerData['email'], $playerName, $playerData['club_name'], $token);
+            logReminder();
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
@@ -41,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $playerName = $playerData['first_name'] . ' ' . $playerData['last_name'];
             $token = createConfirmation('player_president', $playerId, $playerData['president_email']);
             sendPlayerPresidentConfirmation($playerData['president_email'], $playerName, $playerData['club_name'], $token);
+            logReminder();
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }

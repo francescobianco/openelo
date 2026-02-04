@@ -182,13 +182,13 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
 
                             // Determine result from player's perspective
                             if ($m['result'] === '0.5-0.5') {
-                                $playerResult = '=';
+                                $playerResult = $lang === 'it' ? 'Pareggio' : 'Draw';
                                 $resultColor = 'var(--text-secondary)';
                             } elseif (($isWhite && $m['result'] === '1-0') || (!$isWhite && $m['result'] === '0-1')) {
-                                $playerResult = 'W';
+                                $playerResult = $lang === 'it' ? 'Vittoria' : 'Win';
                                 $resultColor = 'var(--success)';
                             } else {
-                                $playerResult = 'L';
+                                $playerResult = $lang === 'it' ? 'Sconfitta' : 'Loss';
                                 $resultColor = 'var(--error)';
                             }
                     ?>

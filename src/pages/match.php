@@ -13,59 +13,70 @@ $messageType = null;
 
 // Handle resend requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resend_match') {
-    $role = $_POST['role'] ?? '';
+    // Check rate limit
+    $rateLimitError = checkReminderRateLimit();
 
-    $stmt = $db->prepare("
-        SELECT m.*,
-            pw.email as white_email, pw.first_name as white_first, pw.last_name as white_last,
-            pw.club_id as white_club_id,
-            pb.email as black_email, pb.first_name as black_first, pb.last_name as black_last,
-            pb.club_id as black_club_id,
-            c.name as circuit_name, c.owner_email as circuit_owner_email,
-            cl.president_email
-        FROM matches m
-        JOIN players pw ON pw.id = m.white_player_id
-        JOIN players pb ON pb.id = m.black_player_id
-        JOIN circuits c ON c.id = m.circuit_id
-        JOIN clubs cl ON cl.id = pw.club_id
-        WHERE m.id = ?
-    ");
-    $stmt->execute([$matchId]);
-    $matchData = $stmt->fetch();
+    if ($rateLimitError) {
+        $message = $lang === 'it'
+            ? 'Stai mandando troppi solleciti! Potrai mandare il prossimo tra ' . $rateLimitError['minutes'] . ' minuti.'
+            : 'You are sending too many reminders! You can send the next one in ' . $rateLimitError['minutes'] . ' minutes.';
+        $messageType = 'error';
+    } else {
+        $role = $_POST['role'] ?? '';
 
-    if ($matchData) {
-        // Determine if players are from the same club
-        $sameClub = ($matchData['white_club_id'] === $matchData['black_club_id']);
+        $stmt = $db->prepare("
+            SELECT m.*,
+                pw.email as white_email, pw.first_name as white_first, pw.last_name as white_last,
+                pw.club_id as white_club_id,
+                pb.email as black_email, pb.first_name as black_first, pb.last_name as black_last,
+                pb.club_id as black_club_id,
+                c.name as circuit_name, c.owner_email as circuit_owner_email,
+                cl.president_email
+            FROM matches m
+            JOIN players pw ON pw.id = m.white_player_id
+            JOIN players pb ON pb.id = m.black_player_id
+            JOIN circuits c ON c.id = m.circuit_id
+            JOIN clubs cl ON cl.id = pw.club_id
+            WHERE m.id = ?
+        ");
+        $stmt->execute([$matchId]);
+        $matchData = $stmt->fetch();
 
-        $matchDetails = [
-            'white_name' => $matchData['white_first'] . ' ' . $matchData['white_last'],
-            'black_name' => $matchData['black_first'] . ' ' . $matchData['black_last'],
-            'result' => $matchData['result'],
-            'circuit_name' => $matchData['circuit_name']
-        ];
+        if ($matchData) {
+            // Determine if players are from the same club
+            $sameClub = ($matchData['white_club_id'] === $matchData['black_club_id']);
 
-        $email = '';
-        $confirmRole = '';
+            $matchDetails = [
+                'white_name' => $matchData['white_first'] . ' ' . $matchData['white_last'],
+                'black_name' => $matchData['black_first'] . ' ' . $matchData['black_last'],
+                'result' => $matchData['result'],
+                'circuit_name' => $matchData['circuit_name']
+            ];
 
-        if ($role === 'white' && !$matchData['white_confirmed']) {
-            $email = $matchData['white_email'];
-            $confirmRole = 'white';
-        } elseif ($role === 'black' && !$matchData['black_confirmed']) {
-            $email = $matchData['black_email'];
-            $confirmRole = 'black';
-        } elseif ($role === 'president' && !$matchData['president_confirmed'] && $sameClub) {
-            $email = $matchData['president_email'];
-            $confirmRole = 'president';
-        } elseif ($role === 'circuit_manager' && !$matchData['president_confirmed'] && !$sameClub) {
-            $email = $matchData['circuit_owner_email'];
-            $confirmRole = 'president';
-        }
+            $email = '';
+            $confirmRole = '';
 
-        if ($email) {
-            $token = createConfirmation('match', $matchId, $email, $confirmRole);
-            sendMatchConfirmation($email, $confirmRole, $matchDetails, $token);
-            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-            $messageType = 'success';
+            if ($role === 'white' && !$matchData['white_confirmed']) {
+                $email = $matchData['white_email'];
+                $confirmRole = 'white';
+            } elseif ($role === 'black' && !$matchData['black_confirmed']) {
+                $email = $matchData['black_email'];
+                $confirmRole = 'black';
+            } elseif ($role === 'president' && !$matchData['president_confirmed'] && $sameClub) {
+                $email = $matchData['president_email'];
+                $confirmRole = 'president';
+            } elseif ($role === 'circuit_manager' && !$matchData['president_confirmed'] && !$sameClub) {
+                $email = $matchData['circuit_owner_email'];
+                $confirmRole = 'president';
+            }
+
+            if ($email) {
+                $token = createConfirmation('match', $matchId, $email, $confirmRole);
+                sendMatchConfirmation($email, $confirmRole, $matchDetails, $token);
+                logReminder();
+                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+                $messageType = 'success';
+            }
         }
     }
 }

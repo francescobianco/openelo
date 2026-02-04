@@ -6,7 +6,12 @@
 require_once __DIR__ . '/config.php';
 
 // Schema version - increment this when schema changes
-define('DB_SCHEMA_VERSION', 2);
+define('DB_SCHEMA_VERSION', 3);
+
+// Reminder rate limiting constants
+define('REMINDER_RATE_LIMIT_COUNT', 5);      // Max reminders per minute
+define('REMINDER_RATE_LIMIT_WINDOW', 60);    // Window in seconds (1 minute)
+define('REMINDER_COOLDOWN_SECONDS', 900);    // Cooldown in seconds (15 minutes)
 
 class Database {
     private static ?PDO $pdo = null;
@@ -172,11 +177,19 @@ class Database {
             expires_at DATETIME NOT NULL
         );
 
+        -- Reminder rate limiting logs
+        CREATE TABLE IF NOT EXISTS reminder_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip_address TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
         -- Indexes
         CREATE INDEX IF NOT EXISTS idx_confirmations_token ON confirmations(token);
         CREATE INDEX IF NOT EXISTS idx_ratings_circuit ON ratings(circuit_id);
         CREATE INDEX IF NOT EXISTS idx_matches_circuit ON matches(circuit_id);
         CREATE INDEX IF NOT EXISTS idx_players_club ON players(club_id);
+        CREATE INDEX IF NOT EXISTS idx_reminder_logs_ip ON reminder_logs(ip_address, created_at);
 
         -- Schema version tracking
         CREATE TABLE IF NOT EXISTS schema_version (
@@ -298,4 +311,95 @@ function addPlayerToClubCircuits(int $playerId, int $clubId): void {
         ");
         $stmt->execute([$playerId, $circuit['circuit_id'], ELO_START]);
     }
+}
+
+/**
+ * Get client IP address
+ */
+function getClientIp(): string {
+    // Check for forwarded IP (behind proxy/load balancer)
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        return trim($ips[0]);
+    }
+    if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        return $_SERVER['HTTP_X_REAL_IP'];
+    }
+    return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+}
+
+/**
+ * Check reminder rate limit
+ * Returns null if OK, or an array with error message and seconds remaining if rate limited
+ */
+function checkReminderRateLimit(): ?array {
+    $db = Database::get();
+    $ip = getClientIp();
+
+    // MySQL uses NOW(), SQLite uses datetime('now')
+    $nowFunc = DB_TYPE === 'mysql' ? 'NOW()' : "datetime('now')";
+    $dateSubMinute = DB_TYPE === 'mysql'
+        ? "DATE_SUB(NOW(), INTERVAL " . REMINDER_RATE_LIMIT_WINDOW . " SECOND)"
+        : "datetime('now', '-" . REMINDER_RATE_LIMIT_WINDOW . " seconds')";
+
+    // Count reminders in the last minute
+    $stmt = $db->prepare("
+        SELECT COUNT(*) as count, MIN(created_at) as first_reminder
+        FROM reminder_logs
+        WHERE ip_address = ? AND created_at > $dateSubMinute
+    ");
+    $stmt->execute([$ip]);
+    $result = $stmt->fetch();
+
+    if ($result['count'] >= REMINDER_RATE_LIMIT_COUNT) {
+        // Check if we're still in cooldown from the first reminder of this burst
+        $dateSubCooldown = DB_TYPE === 'mysql'
+            ? "DATE_SUB(NOW(), INTERVAL " . REMINDER_COOLDOWN_SECONDS . " SECOND)"
+            : "datetime('now', '-" . REMINDER_COOLDOWN_SECONDS . " seconds')";
+
+        // Find the first reminder that triggered the rate limit (the 5th one in the last minute)
+        $stmt = $db->prepare("
+            SELECT created_at
+            FROM reminder_logs
+            WHERE ip_address = ? AND created_at > $dateSubCooldown
+            ORDER BY created_at ASC
+            LIMIT 1
+        ");
+        $stmt->execute([$ip]);
+        $firstReminder = $stmt->fetch();
+
+        if ($firstReminder) {
+            $firstTime = strtotime($firstReminder['created_at']);
+            $unlockTime = $firstTime + REMINDER_COOLDOWN_SECONDS;
+            $secondsRemaining = $unlockTime - time();
+
+            if ($secondsRemaining > 0) {
+                $minutesRemaining = ceil($secondsRemaining / 60);
+                return [
+                    'seconds' => $secondsRemaining,
+                    'minutes' => $minutesRemaining
+                ];
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Log a reminder sent
+ */
+function logReminder(): void {
+    $db = Database::get();
+    $ip = getClientIp();
+
+    $stmt = $db->prepare("INSERT INTO reminder_logs (ip_address) VALUES (?)");
+    $stmt->execute([$ip]);
+
+    // Cleanup old entries (older than cooldown period)
+    $dateSubCleanup = DB_TYPE === 'mysql'
+        ? "DATE_SUB(NOW(), INTERVAL " . (REMINDER_COOLDOWN_SECONDS * 2) . " SECOND)"
+        : "datetime('now', '-" . (REMINDER_COOLDOWN_SECONDS * 2) . " seconds')";
+
+    $db->exec("DELETE FROM reminder_logs WHERE created_at < $dateSubCleanup");
 }

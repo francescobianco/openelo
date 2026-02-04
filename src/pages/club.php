@@ -13,7 +13,16 @@ $messageType = null;
 
 // Handle resend requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'resend_president') {
+    // Check rate limit for reminder actions
+    $isReminderAction = in_array($_POST['action'], ['resend_president', 'resend_club_circuit', 'resend_circuit']);
+    $rateLimitError = $isReminderAction ? checkReminderRateLimit() : null;
+
+    if ($rateLimitError) {
+        $message = $lang === 'it'
+            ? 'Stai mandando troppi solleciti! Potrai mandare il prossimo tra ' . $rateLimitError['minutes'] . ' minuti.'
+            : 'You are sending too many reminders! You can send the next one in ' . $rateLimitError['minutes'] . ' minutes.';
+        $messageType = 'error';
+    } elseif ($_POST['action'] === 'resend_president') {
         $stmt = $db->prepare("SELECT c.*, cc.id as membership_id, ci.name as circuit_name
             FROM clubs c
             JOIN circuit_clubs cc ON cc.club_id = c.id
@@ -25,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($data && !$data['president_confirmed']) {
             $token = createConfirmation('club_president', $data['membership_id'], $data['president_email']);
             sendClubPresidentConfirmation($data['president_email'], $data['name'], $data['circuit_name'], $token);
+            logReminder();
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
@@ -41,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($data && !$data['club_confirmed']) {
             $token = createConfirmation('membership_club', $membershipId, $data['president_email']);
             sendClubPresidentConfirmation($data['president_email'], $data['club_name'], $data['circuit_name'], $token);
+            logReminder();
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
@@ -57,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($data && !$data['circuit_confirmed']) {
             $token = createConfirmation($data['is_primary'] ? 'club_circuit' : 'membership_circuit', $membershipId, $data['owner_email']);
             sendClubCircuitConfirmation($data['owner_email'], $data['club_name'], $data['circuit_name'], $token);
+            logReminder();
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
@@ -310,6 +322,7 @@ $isActive = $club['active_circuits'] > 0;
                 <?php foreach ($players as $p): ?>
                 <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
                     <a href="?page=player&id=<?= $p['id'] ?>"><?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?></a>
+                    <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?: 'NC') ?></span>
                 </li>
                 <?php endforeach; ?>
             </ul>
