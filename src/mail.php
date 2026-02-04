@@ -12,33 +12,40 @@ require_once __DIR__ . '/lang.php';
 function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl): bool {
     $lang = getCurrentLang();
 
+    $logoUrl = BASE_URL . '/logo.png';
+
     $htmlMessage = "
     <!DOCTYPE html>
     <html lang='{$lang}'>
     <head>
         <meta charset='UTF-8'>
         <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; color: #333; margin: 0; padding: 0; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #1a1a2e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-            .button { display: inline-block; background: #4361ee; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
-            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+            .header { background: #1a1a2e; color: white; padding: 24px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+            .header img { height: 48px; width: 48px; vertical-align: middle; margin-right: 10px; }
+            .header-title { display: inline-block; vertical-align: middle; font-size: 1.6rem; font-weight: 700; letter-spacing: 0.5px; }
+            .header-title span { color: #4361ee; }
+            .content { background: #f8f9fa; padding: 32px; border-radius: 0 0 8px 8px; font-size: 16px; }
+            .content p { margin: 0 0 16px 0; font-size: 16px; }
+            .button { display: inline-block; background: #4361ee; color: white !important; padding: 14px 36px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; font-size: 16px; }
+            .footer { text-align: center; color: #666; font-size: 13px; margin-top: 20px; }
         </style>
     </head>
     <body>
         <div class='container'>
             <div class='header'>
-                <h1>♞ OpenELO ♞</h1>
+                <img src='{$logoUrl}' alt='OpenELO'>
+                <span class='header-title'>Open<span>ELO</span></span>
             </div>
             <div class='content'>
                 <p>{$message}</p>
                 <p style='text-align: center;'>
                     <a href='{$confirmUrl}' class='button'>" . ($lang === 'it' ? 'Conferma' : 'Confirm') . "</a>
                 </p>
-                <p style='font-size: 12px; color: #666;'>
+                <p style='font-size: 13px; color: #666;'>
                     " . ($lang === 'it' ? 'Oppure copia questo link:' : 'Or copy this link:') . "<br>
-                    <code>{$confirmUrl}</code>
+                    <code style='font-size: 12px; word-break: break-all;'>{$confirmUrl}</code>
                 </p>
             </div>
             <div class='footer'>
