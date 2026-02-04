@@ -22,7 +22,7 @@ $translations = [
         'hero_title' => 'Your Rating, Your Circuit',
         'hero_subtitle' => 'A decentralized Elo rating system built on trust, not bureaucracy.',
         'hero_cta' => 'Explore Circuits',
-        'hero_create' => 'Create Circuit',
+        'hero_create' => 'Register Circuit',
 
         'feature_1_title' => 'Local Trust',
         'feature_1_desc' => 'Ratings are valid within trust circuits. No central authority, just community validation.',
@@ -60,10 +60,10 @@ $translations = [
         'result_draw' => 'Draw (½-½)',
 
         // Circuit
-        'circuit_create' => 'Create Circuit',
+        'circuit_create' => 'Register Circuit',
         'circuit_name' => 'Circuit Name',
         'circuit_owner_email' => 'Owner Email',
-        'circuit_created' => 'Circuit created! Check your email to confirm.',
+        'circuit_created' => 'Circuit registered! Check your email to confirm.',
         'circuit_clubs' => 'Clubs',
         'circuit_players' => 'Players',
         'circuit_matches' => 'Matches',
@@ -148,7 +148,7 @@ $translations = [
         'hero_title' => 'Il Tuo Rating, Il Tuo Circuito',
         'hero_subtitle' => 'Un sistema ELO decentralizzato basato sulla fiducia, non sulla burocrazia.',
         'hero_cta' => 'Esplora Circuiti',
-        'hero_create' => 'Crea Circuito',
+        'hero_create' => 'Registra Circuito',
 
         'feature_1_title' => 'Fiducia Locale',
         'feature_1_desc' => 'I rating sono validi nei circuiti di fiducia. Nessuna autorità centrale, solo validazione della comunità.',
@@ -186,10 +186,10 @@ $translations = [
         'result_draw' => 'Patta (½-½)',
 
         // Circuit
-        'circuit_create' => 'Crea Circuito',
+        'circuit_create' => 'Registra Circuito',
         'circuit_name' => 'Nome Circuito',
         'circuit_owner_email' => 'Email Proprietario',
-        'circuit_created' => 'Circuito creato! Controlla la tua email per confermare.',
+        'circuit_created' => 'Circuito registrato! Controlla la tua email per confermare.',
         'circuit_clubs' => 'Circoli',
         'circuit_players' => 'Giocatori',
         'circuit_matches' => 'Partite',
