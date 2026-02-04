@@ -1,0 +1,12 @@
+# configurazione delle credenziali e apertura
+open -u XXXXXXXXXX,XXXXXXXXXX ftp://XXXXXXXXXXX
+
+# opzionale: impostazioni di trasferimento
+set ftp:list-options -a
+set ssl:verify-certificate false
+
+# mirror upload
+mirror -R --only-newer --verbose . /htdocs
+
+# fine
+bye
