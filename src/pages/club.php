@@ -137,8 +137,8 @@ foreach ($clubCircuits as $cc) {
         $pendingConfirmations[] = [
             'type' => 'club_circuit',
             'description' => $lang === 'it'
-                ? 'Conferma del presidente per il circuito "' . htmlspecialchars($cc['name']) . '"'
-                : 'President confirmation for circuit "' . htmlspecialchars($cc['name']) . '"'
+                ? 'Conferma del presidente del circolo per l\'adesione al circuito "' . htmlspecialchars($cc['name']) . '"'
+                : 'Club president confirmation for joining circuit "' . htmlspecialchars($cc['name']) . '"'
         ];
     }
     if (!$cc['circuit_confirmed']) {
