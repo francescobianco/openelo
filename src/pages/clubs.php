@@ -6,11 +6,16 @@
 $db = Database::get();
 
 // Get all active clubs (president confirmed + at least one active circuit)
+// MySQL uses GROUP_CONCAT with SEPARATOR, SQLite uses comma as second parameter
+$groupConcat = DB_TYPE === 'mysql'
+    ? "GROUP_CONCAT(ci.name SEPARATOR ', ')"
+    : "GROUP_CONCAT(ci.name, ', ')";
+
 $clubs = $db->query("
     SELECT c.*,
         (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as circuit_count,
         (SELECT COUNT(*) FROM players p WHERE p.club_id = c.id AND p.confirmed = 1) as player_count,
-        (SELECT GROUP_CONCAT(ci.name, ', ') FROM circuit_clubs cc2
+        (SELECT $groupConcat FROM circuit_clubs cc2
          JOIN circuits ci ON ci.id = cc2.circuit_id
          WHERE cc2.club_id = c.id AND cc2.club_confirmed = 1 AND cc2.circuit_confirmed = 1) as circuit_names
     FROM clubs c

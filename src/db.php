@@ -222,9 +222,12 @@ function createConfirmation(string $type, int $targetId, string $email, ?string 
 function verifyConfirmation(string $token): ?array {
     $db = Database::get();
 
+    // MySQL uses NOW(), SQLite uses datetime('now')
+    $nowFunc = DB_TYPE === 'mysql' ? 'NOW()' : "datetime('now')";
+
     $stmt = $db->prepare("
         SELECT * FROM confirmations
-        WHERE token = ? AND confirmed = 0 AND expires_at > datetime('now')
+        WHERE token = ? AND confirmed = 0 AND expires_at > $nowFunc
     ");
     $stmt->execute([$token]);
     $conf = $stmt->fetch();
@@ -287,8 +290,10 @@ function addPlayerToClubCircuits(int $playerId, int $clubId): void {
 
     foreach ($circuits as $circuit) {
         // Create rating entry if not exists
+        // MySQL uses INSERT IGNORE, SQLite uses INSERT OR IGNORE
+        $insertIgnore = DB_TYPE === 'mysql' ? 'INSERT IGNORE' : 'INSERT OR IGNORE';
         $stmt = $db->prepare("
-            INSERT OR IGNORE INTO ratings (player_id, circuit_id, rating, games_played)
+            $insertIgnore INTO ratings (player_id, circuit_id, rating, games_played)
             VALUES (?, ?, ?, 0)
         ");
         $stmt->execute([$playerId, $circuit['circuit_id'], ELO_START]);

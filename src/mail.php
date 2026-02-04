@@ -97,17 +97,17 @@ function sendClubPresidentConfirmation(string $email, string $clubName, string $
 
     if ($lang === 'it') {
         $subject = "♖ Conferma creazione circolo: {$clubName}";
-        $message = "♟ Hai richiesto di creare il circolo <strong>{$clubName}</strong> nel circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il proprietario del circuito dovrà anche approvare l'adesione.";
+        $message = "♟ Hai richiesto di creare il circolo <strong>{$clubName}</strong> nel circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il responsabile del circuito dovrà anche approvare l'adesione.";
     } else {
         $subject = "♖ Confirm club creation: {$clubName}";
-        $message = "♟ You requested to create the club <strong>{$clubName}</strong> in circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to confirm. The circuit owner will also need to approve the membership.";
+        $message = "♟ You requested to create the club <strong>{$clubName}</strong> in circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to confirm. The circuit manager will also need to approve the membership.";
     }
 
     return sendConfirmationEmail($email, $subject, $message, $url);
 }
 
 /**
- * Send club join request to circuit owner
+ * Send club join request to circuit manager
  */
 function sendClubCircuitConfirmation(string $ownerEmail, string $clubName, string $circuitName, string $token): bool {
     $lang = getCurrentLang();

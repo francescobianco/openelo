@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $tokenPresident = createConfirmation('membership_club', $membershipId, $club['president_email']);
         sendClubPresidentConfirmation($club['president_email'], $club['name'], $circuit['name'], $tokenPresident);
 
-        // Send email to circuit owner
+        // Send email to circuit manager
         $tokenCircuit = createConfirmation('membership_circuit', $membershipId, $circuit['owner_email']);
         sendClubCircuitConfirmation($circuit['owner_email'], $club['name'], $circuit['name'], $tokenCircuit);
 

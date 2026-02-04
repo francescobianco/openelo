@@ -70,7 +70,7 @@ if (empty($token)) {
                     break;
 
                 case 'club_circuit':
-                    // Circuit owner confirms club membership
+                    // Circuit manager confirms club membership
                     $membershipId = $confirmation['target_id'];
 
                     $stmt = $db->prepare("UPDATE circuit_clubs SET circuit_confirmed = 1 WHERE id = ?");
@@ -110,7 +110,7 @@ if (empty($token)) {
                     break;
 
                 case 'membership_circuit':
-                    // Circuit owner confirms club joining
+                    // Circuit manager confirms club joining
                     $membershipId = $confirmation['target_id'];
                     $stmt = $db->prepare("UPDATE circuit_clubs SET circuit_confirmed = 1 WHERE id = ?");
                     $stmt->execute([$membershipId]);

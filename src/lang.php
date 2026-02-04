@@ -29,7 +29,7 @@ $translations = [
         'feature_2_title' => 'Email-Based',
         'feature_2_desc' => 'No passwords, no logins. Everything works through email confirmations.',
         'feature_3_title' => 'Double Validation',
-        'feature_3_desc' => 'Clubs require approval from president and circuit owner. Players from player and president.',
+        'feature_3_desc' => 'Clubs require approval from president and circuit manager. Players from player and president.',
         'feature_4_title' => 'FIDE-style K Factor',
         'feature_4_desc' => 'K=40 for new players, K=20 under 2200, K=10 above. Familiar and fair.',
 
@@ -62,7 +62,7 @@ $translations = [
         // Circuit
         'circuit_create' => 'Create Circuit',
         'circuit_name' => 'Circuit Name',
-        'circuit_owner_email' => 'Owner Email',
+        'circuit_owner_email' => 'Manager Email',
         'circuit_created' => 'Circuit created! Check your email to confirm.',
         'circuit_clubs' => 'Clubs',
         'circuit_players' => 'Players',
@@ -72,9 +72,9 @@ $translations = [
         'club_create' => 'Register Club',
         'club_name' => 'Club Name',
         'club_president_email' => 'President Email',
-        'club_created' => 'Club registered! Both president and circuit owner will receive confirmation emails.',
+        'club_created' => 'Club registered! Both president and circuit manager will receive confirmation emails.',
         'club_join_circuit' => 'Join Another Circuit',
-        'club_request_sent' => 'Request sent! Both president and circuit owner will receive emails.',
+        'club_request_sent' => 'Request sent! Both president and circuit manager will receive emails.',
         'club_pending' => 'Pending approval',
         'club_active' => 'Active',
         'club_view' => 'View Club',
@@ -110,7 +110,7 @@ $translations = [
 
         // Status
         'status_pending_president' => 'Waiting for president confirmation',
-        'status_pending_circuit' => 'Waiting for circuit owner confirmation',
+        'status_pending_circuit' => 'Waiting for circuit manager confirmation',
         'status_pending_player' => 'Waiting for player confirmation',
         'status_pending_both' => 'Waiting for both confirmations',
         'status_active' => 'Active',
@@ -155,7 +155,7 @@ $translations = [
         'feature_2_title' => 'Basato su Email',
         'feature_2_desc' => 'Niente password, niente login. Tutto funziona tramite conferme via email.',
         'feature_3_title' => 'Doppia Validazione',
-        'feature_3_desc' => 'I circoli richiedono approvazione di presidente e proprietario circuito. I giocatori di giocatore e presidente.',
+        'feature_3_desc' => 'I circoli richiedono approvazione di presidente e responsabile circuito. I giocatori di giocatore e presidente.',
         'feature_4_title' => 'Fattore K stile FIDE',
         'feature_4_desc' => 'K=40 per nuovi giocatori, K=20 sotto 2200, K=10 sopra. Familiare e giusto.',
 
@@ -188,7 +188,7 @@ $translations = [
         // Circuit
         'circuit_create' => 'Crea Circuito',
         'circuit_name' => 'Nome Circuito',
-        'circuit_owner_email' => 'Email Proprietario',
+        'circuit_owner_email' => 'Email Responsabile',
         'circuit_created' => 'Circuito creato! Controlla la tua email per confermare.',
         'circuit_clubs' => 'Circoli',
         'circuit_players' => 'Giocatori',
@@ -198,9 +198,9 @@ $translations = [
         'club_create' => 'Registra Circolo',
         'club_name' => 'Nome Circolo',
         'club_president_email' => 'Email Presidente',
-        'club_created' => 'Circolo registrato! Sia il presidente che il proprietario del circuito riceveranno email di conferma.',
+        'club_created' => 'Circolo registrato! Sia il presidente che il responsabile del circuito riceveranno email di conferma.',
         'club_join_circuit' => 'Unisciti ad un Altro Circuito',
-        'club_request_sent' => 'Richiesta inviata! Sia il presidente che il proprietario del circuito riceveranno email.',
+        'club_request_sent' => 'Richiesta inviata! Sia il presidente che il responsabile del circuito riceveranno email.',
         'club_pending' => 'In attesa di approvazione',
         'club_active' => 'Attivo',
         'club_view' => 'Vedi Circolo',
@@ -236,7 +236,7 @@ $translations = [
 
         // Status
         'status_pending_president' => 'In attesa conferma presidente',
-        'status_pending_circuit' => 'In attesa conferma proprietario circuito',
+        'status_pending_circuit' => 'In attesa conferma responsabile circuito',
         'status_pending_player' => 'In attesa conferma giocatore',
         'status_pending_both' => 'In attesa di entrambe le conferme',
         'status_active' => 'Attivo',
