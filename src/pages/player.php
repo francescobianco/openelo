@@ -235,28 +235,6 @@ $stmt = $db->prepare("
 $stmt->execute([$player['club_id']]);
 $availableClubs = $stmt->fetchAll();
 
-// Get recent matches with rating changes (only matches with stored rating data)
-$stmt = $db->prepare("
-    SELECT m.*, ci.name as circuit_name, ci.id as circuit_id,
-        pw.first_name as white_first, pw.last_name as white_last,
-        pb.first_name as black_first, pb.last_name as black_last,
-        m.white_rating_before, m.black_rating_before,
-        m.white_rating_change, m.black_rating_change,
-        m.created_at
-    FROM matches m
-    JOIN circuits ci ON ci.id = m.circuit_id
-    JOIN players pw ON pw.id = m.white_player_id
-    JOIN players pb ON pb.id = m.black_player_id
-    WHERE (m.white_player_id = ? OR m.black_player_id = ?)
-        AND m.rating_applied = 1
-        AND m.white_rating_before IS NOT NULL
-        AND m.white_rating_before > 0
-    ORDER BY m.created_at DESC
-    LIMIT 20
-");
-$stmt->execute([$playerId, $playerId]);
-$matches = $stmt->fetchAll();
-
 // Get pending matches (not yet fully confirmed)
 $stmt = $db->prepare("
     SELECT m.*, ci.name as circuit_name,
@@ -432,75 +410,6 @@ $pendingMatches = $stmt->fetchAll();
                 </p>
                 <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
             </form>
-        </div>
-        <?php endif; ?>
-
-        <!-- Rating History -->
-        <?php if (!empty($matches)): ?>
-        <div class="create-section">
-            <h2>📊 <?= $lang === 'it' ? 'Storico Variazioni Rating' : 'Rating History' ?></h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
-                            <th><?= $lang === 'it' ? 'Avversario' : 'Opponent' ?></th>
-                            <th><?= __('form_circuit') ?></th>
-                            <th><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
-                            <th><?= $lang === 'it' ? 'Rating' : 'Rating' ?></th>
-                            <th><?= $lang === 'it' ? 'Variazione' : 'Change' ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($matches as $m):
-                            $isWhite = ($m['white_player_id'] == $playerId);
-                            $opponentName = $isWhite
-                                ? $m['black_first'] . ' ' . $m['black_last']
-                                : $m['white_first'] . ' ' . $m['white_last'];
-                            $ratingBefore = $isWhite ? $m['white_rating_before'] : $m['black_rating_before'];
-                            $ratingChange = $isWhite ? $m['white_rating_change'] : $m['black_rating_change'];
-                            $ratingAfter = $ratingBefore + $ratingChange;
-
-                            // Determine result from player's perspective
-                            if ($m['result'] === '0.5-0.5') {
-                                $playerResult = '=';
-                            } elseif (($isWhite && $m['result'] === '1-0') || (!$isWhite && $m['result'] === '0-1')) {
-                                $playerResult = 'W';
-                            } else {
-                                $playerResult = 'L';
-                            }
-                        ?>
-                        <tr>
-                            <td style="font-size: 0.85rem; color: var(--text-secondary);">
-                                <?= date('d/m/Y', strtotime($m['created_at'])) ?>
-                            </td>
-                            <td>
-                                <?= $isWhite ? '♚' : '♔' ?>
-                                <?= htmlspecialchars($opponentName) ?>
-                            </td>
-                            <td>
-                                <a href="?page=circuit&id=<?= $m['circuit_id'] ?>">
-                                    <?= htmlspecialchars($m['circuit_name']) ?>
-                                </a>
-                            </td>
-                            <td style="text-align: center;">
-                                <strong style="color: <?= $playerResult === 'W' ? 'var(--success)' : ($playerResult === 'L' ? 'var(--error)' : 'var(--text-secondary)') ?>">
-                                    <?= $playerResult ?>
-                                </strong>
-                            </td>
-                            <td style="text-align: center;">
-                                <span style="color: var(--text-secondary); font-size: 0.9rem;"><?= $ratingBefore ?></span>
-                                →
-                                <strong><?= $ratingAfter ?></strong>
-                            </td>
-                            <td style="text-align: center; font-weight: bold; color: <?= $ratingChange > 0 ? 'var(--success)' : ($ratingChange < 0 ? 'var(--error)' : 'var(--text-secondary)') ?>">
-                                <?= $ratingChange > 0 ? '+' : '' ?><?= $ratingChange ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
         </div>
         <?php endif; ?>
 

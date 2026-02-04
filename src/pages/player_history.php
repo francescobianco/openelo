@@ -154,11 +154,11 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
                     <tr>
                         <th>#</th>
                         <th><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
-                        <th><?= $lang === 'it' ? 'Colore' : 'Color' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Colore' : 'Color' ?></th>
                         <th><?= $lang === 'it' ? 'Dettagli' : 'Details' ?></th>
-                        <th><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
-                        <th><?= $lang === 'it' ? 'Rating' : 'Rating' ?></th>
-                        <th><?= $lang === 'it' ? 'Variazione' : 'Change' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Rating' : 'Rating' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Variazione' : 'Change' ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -234,7 +234,7 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
                         <td style="font-size: 0.85rem; color: var(--text-secondary);">
                             <?= date('d/m/Y', strtotime($entry['created_at'])) ?>
                         </td>
-                        <td>
+                        <td style="text-align: center;">
                             <span style="font-size: 1.2rem;">⭐</span>
                         </td>
                         <td>
