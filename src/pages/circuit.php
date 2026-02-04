@@ -197,6 +197,9 @@ $tab = $_GET['tab'] ?? 'rankings';
         <?php if (empty($clubs)): ?>
         <div class="empty-state">
             <p><?= $lang === 'it' ? 'Nessun circolo ancora.' : 'No clubs yet.' ?></p>
+            <a href="?page=create&circuit=<?= $circuitId ?>" class="btn btn-primary">
+                <?= $lang === 'it' ? 'Registra un Circolo' : 'Register a Club' ?>
+            </a>
         </div>
         <?php else: ?>
         <?php foreach ($clubs as $club): ?>

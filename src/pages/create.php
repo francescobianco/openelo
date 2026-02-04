@@ -157,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get data for forms
+$preselectedCircuit = (int)($_GET['circuit'] ?? 0);
 $circuits = $db->query("SELECT * FROM circuits WHERE confirmed = 1 ORDER BY name")->fetchAll();
 
 // Get active clubs (president confirmed + at least one active circuit)
@@ -200,7 +201,7 @@ $clubs = $db->query("
 
         <!-- Create Club (requires circuit) -->
         <?php if (!empty($circuits)): ?>
-        <div class="create-section">
+        <div class="create-section<?= $preselectedCircuit ? ' glow-highlight' : '' ?>" <?= $preselectedCircuit ? 'id="create-club"' : '' ?>>
             <h2><?= __('club_create') ?></h2>
             <form method="POST">
                 <input type="hidden" name="action" value="create_club">
@@ -209,7 +210,7 @@ $clubs = $db->query("
                     <select id="club_circuit" name="circuit_id" required>
                         <option value="">-- <?= __('form_select') ?> --</option>
                         <?php foreach ($circuits as $c): ?>
-                        <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
+                        <option value="<?= $c['id'] ?>" <?= $c['id'] == $preselectedCircuit ? 'selected' : '' ?>><?= htmlspecialchars($c['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -259,3 +260,14 @@ $clubs = $db->query("
         <?php endif; ?>
     </div>
 </div>
+
+<?php if ($preselectedCircuit): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('create-club');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+</script>
+<?php endif; ?>

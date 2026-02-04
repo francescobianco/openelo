@@ -667,6 +667,25 @@ tr:hover {
     border-bottom: 1px solid var(--border);
 }
 
+.create-section.glow-highlight {
+    animation: glow-pulse 2s ease-in-out 3 forwards;
+}
+
+@keyframes glow-pulse {
+    0% {
+        box-shadow: 0 0 5px rgba(67, 97, 238, 0.3);
+        border-color: var(--accent);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(67, 97, 238, 0.6), 0 0 40px rgba(67, 97, 238, 0.2);
+        border-color: rgba(67, 97, 238, 0.8);
+    }
+    100% {
+        box-shadow: none;
+        border-color: var(--border);
+    }
+}
+
 /* Footer */
 .footer {
     background: var(--bg-secondary);
