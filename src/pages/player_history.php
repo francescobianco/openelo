@@ -54,7 +54,8 @@ $stmt = $db->prepare("
         pw.id as white_id, pw.first_name as white_first, pw.last_name as white_last,
         pb.id as black_id, pb.first_name as black_first, pb.last_name as black_last,
         clw.name as white_club,
-        clb.name as black_club
+        clb.name as black_club,
+        'match' as entry_type
     FROM matches m
     JOIN players pw ON pw.id = m.white_player_id
     JOIN players pb ON pb.id = m.black_player_id
@@ -65,10 +66,45 @@ $stmt = $db->prepare("
         AND m.rating_applied = 1
         AND m.white_rating_before IS NOT NULL
         AND m.white_rating_before > 0
-    ORDER BY m.created_at ASC
 ");
 $stmt->execute([$circuitId, $playerId, $playerId]);
 $matches = $stmt->fetchAll();
+
+// Get all approved manual rating changes for this player in this circuit
+$stmt = $db->prepare("
+    SELECT
+        requested_rating as new_rating,
+        requested_category,
+        created_at,
+        'manual' as entry_type
+    FROM manual_rating_requests
+    WHERE player_id = ?
+        AND circuit_id = ?
+        AND completed = 1
+        AND player_confirmed = 1
+        AND president_confirmed = 1
+        AND circuit_confirmed = 1
+");
+$stmt->execute([$playerId, $circuitId]);
+$manualChanges = $stmt->fetchAll();
+
+// Combine matches and manual changes, sort by date
+$history = [];
+
+// Add matches to history
+foreach ($matches as $match) {
+    $history[] = array_merge($match, ['sort_date' => $match['created_at']]);
+}
+
+// Add manual changes to history
+foreach ($manualChanges as $change) {
+    $history[] = array_merge($change, ['sort_date' => $change['created_at']]);
+}
+
+// Sort by date
+usort($history, function($a, $b) {
+    return strtotime($a['sort_date']) - strtotime($b['sort_date']);
+});
 
 $playerName = $player['first_name'] . ' ' . $player['last_name'];
 ?>

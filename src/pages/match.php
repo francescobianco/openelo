@@ -145,7 +145,7 @@ $isApplied = $match['rating_applied'] == 1;
 
     <?php if (!empty($pendingConfirmations)): ?>
     <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div style="font-size: 2rem; line-height: 1; flex-shrink: 0;">⏳</div>
+        <div class="pending-icon">⏳</div>
         <div style="flex: 1;">
             <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
             <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questa partita non è ancora stata validata. Sono necessarie le seguenti approvazioni:' : 'This match has not been validated yet. The following approvals are required:' ?></p>

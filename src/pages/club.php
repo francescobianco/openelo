@@ -200,7 +200,7 @@ $isActive = $club['active_circuits'] > 0;
 
     <?php if (!empty($pendingConfirmations)): ?>
     <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div style="font-size: 2rem; line-height: 1; flex-shrink: 0;">⏳</div>
+        <div class="pending-icon">⏳</div>
         <div style="flex: 1;">
             <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
             <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo circolo non è ancora completamente attivo. Sono necessarie le seguenti approvazioni:' : 'This club is not yet fully active. The following approvals are required:' ?></p>

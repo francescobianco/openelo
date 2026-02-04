@@ -707,6 +707,14 @@ tr:hover {
     padding-left: 0;
 }
 
+/* Pending approvals icon positioning */
+.pending-icon {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+    padding-top: 0.25rem;
+}
+
 /* Modal */
 .modal-overlay {
     display: none;

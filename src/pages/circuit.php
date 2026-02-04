@@ -103,7 +103,7 @@ $tab = $_GET['tab'] ?? 'rankings';
 
     <?php if (!empty($pendingConfirmations)): ?>
     <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div style="font-size: 2rem; line-height: 1; flex-shrink: 0;">⏳</div>
+        <div class="pending-icon">⏳</div>
         <div style="flex: 1;">
             <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
             <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo circuito non è ancora visibile pubblicamente. Sono necessarie le seguenti approvazioni:' : 'This circuit is not yet publicly visible. The following approvals are required:' ?></p>
