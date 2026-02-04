@@ -15,4 +15,5 @@ return [
     '20240101000001_create_initial_schema',
     '20240101000002_create_deletion_requests',
     '20240101000003_add_soft_delete',
+    '20240101000004_add_manual_ratings_and_categories',
 ];

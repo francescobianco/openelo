@@ -4,6 +4,7 @@
  */
 
 require_once SRC_PATH . '/mail.php';
+require_once SRC_PATH . '/utils.php';
 
 $db = Database::get();
 
@@ -138,6 +139,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Handle manual rating request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_manual_rating') {
+    try {
+        $circuitId = (int)($_POST['circuit_id'] ?? 0);
+        $requestedRating = (int)($_POST['requested_rating'] ?? 0);
+        $requestedCategory = trim($_POST['requested_category'] ?? '');
+
+        if (!$circuitId || !$requestedRating || empty($requestedCategory)) {
+            throw new Exception(__('error_required'));
+        }
+
+        if ($requestedRating < 0 || $requestedRating > 3000) {
+            throw new Exception($lang === 'it' ? 'Rating non valido' : 'Invalid rating');
+        }
+
+        // Get circuit and verify player has rating in it
+        $stmt = $db->prepare("
+            SELECT c.*, r.rating as current_rating
+            FROM circuits c
+            JOIN ratings r ON r.circuit_id = c.id
+            WHERE c.id = ? AND r.player_id = ? AND c.confirmed = 1
+        ");
+        $stmt->execute([$circuitId, $playerId]);
+        $circuit = $stmt->fetch();
+
+        if (!$circuit) {
+            throw new Exception($lang === 'it' ? 'Circuito non trovato o giocatore non registrato' : 'Circuit not found or player not registered');
+        }
+
+        // Create manual rating request
+        $stmt = $db->prepare("
+            INSERT INTO manual_rating_requests (player_id, circuit_id, requested_rating, requested_category)
+            VALUES (?, ?, ?, ?)
+        ");
+        $stmt->execute([$playerId, $circuitId, $requestedRating, $requestedCategory]);
+        $requestId = $db->lastInsertId();
+
+        $playerName = $player['first_name'] . ' ' . $player['last_name'];
+
+        // Send confirmation emails to player, president, and circuit manager
+        $tokenPlayer = createConfirmation('manual_rating_player', $requestId, $player['email']);
+        sendManualRatingConfirmation($player['email'], 'player', $playerName, $circuit['name'], $requestedRating, $requestedCategory, $tokenPlayer);
+
+        $tokenPresident = createConfirmation('manual_rating_president', $requestId, $player['president_email']);
+        sendManualRatingConfirmation($player['president_email'], 'president', $playerName, $circuit['name'], $requestedRating, $requestedCategory, $tokenPresident);
+
+        $tokenCircuit = createConfirmation('manual_rating_circuit', $requestId, $circuit['owner_email']);
+        sendManualRatingConfirmation($circuit['owner_email'], 'circuit', $playerName, $circuit['name'], $requestedRating, $requestedCategory, $tokenCircuit);
+
+        $message = $lang === 'it'
+            ? 'Richiesta inviata! Tutti i responsabili riceveranno un\'email di conferma.'
+            : 'Request sent! All responsible parties will receive a confirmation email.';
+        $messageType = 'success';
+
+    } catch (Exception $e) {
+        $message = $e->getMessage();
+        $messageType = 'error';
+    }
+}
+
 // Get player's ratings in all circuits
 $stmt = $db->prepare("
     SELECT ci.name as circuit_name, ci.id as circuit_id, r.rating, r.games_played
@@ -236,7 +297,7 @@ $pendingMatches = $stmt->fetchAll();
     </div>
     <?php endif; ?>
 
-    <div class="create-grid">
+    <div class="player-grid">
         <!-- Ratings -->
         <div class="create-section">
             <h2><?= __('rankings_title') ?></h2>
@@ -305,21 +366,39 @@ $pendingMatches = $stmt->fetchAll();
         </div>
         <?php endif; ?>
 
-        <!-- Change Club -->
-        <?php if (!empty($availableClubs)): ?>
+        <!-- Manual Rating Request -->
+        <?php if (!empty($ratings)): ?>
         <div class="create-section">
-            <h2><?= __('player_change_club') ?></h2>
+            <h2>⭐ <?= $lang === 'it' ? 'Richiedi Variazione Manuale' : 'Request Manual Rating Change' ?></h2>
             <form method="POST">
-                <input type="hidden" name="action" value="transfer">
+                <input type="hidden" name="action" value="request_manual_rating">
                 <div class="form-group">
-                    <label for="club_id"><?= __('form_club') ?></label>
-                    <select id="club_id" name="club_id" required>
+                    <label for="circuit_id"><?= __('form_circuit') ?></label>
+                    <select id="circuit_id" name="circuit_id" required>
                         <option value="">-- <?= __('form_select') ?> --</option>
-                        <?php foreach ($availableClubs as $c): ?>
-                        <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
+                        <?php foreach ($ratings as $r): ?>
+                        <option value="<?= $r['circuit_id'] ?>"><?= htmlspecialchars($r['circuit_name']) ?> (<?= $lang === 'it' ? 'Attuale' : 'Current' ?>: <?= $r['rating'] ?>)</option>
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="requested_rating"><?= $lang === 'it' ? 'Nuovo Rating' : 'New Rating' ?></label>
+                    <input type="number" id="requested_rating" name="requested_rating" min="0" max="3000" required>
+                </div>
+                <div class="form-group">
+                    <label for="requested_category"><?= $lang === 'it' ? 'Categoria' : 'Category' ?></label>
+                    <select id="requested_category" name="requested_category" required>
+                        <option value="">-- <?= __('form_select') ?> --</option>
+                        <?php foreach (getAvailableCategories() as $code => $name): ?>
+                        <option value="<?= $code ?>" <?= $player['category'] === $code ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 1rem 0;">
+                    <?= $lang === 'it'
+                        ? 'Categoria attuale: <strong>' . htmlspecialchars($player['category']) . '</strong>. Le categorie possono solo salire, non retrocedere.'
+                        : 'Current category: <strong>' . htmlspecialchars($player['category']) . '</strong>. Categories can only go up, not down.' ?>
+                </p>
                 <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
             </form>
         </div>
@@ -355,6 +434,26 @@ $pendingMatches = $stmt->fetchAll();
                     </tbody>
                 </table>
             </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Change Club -->
+        <?php if (!empty($availableClubs)): ?>
+        <div class="create-section">
+            <h2><?= __('player_change_club') ?></h2>
+            <form method="POST">
+                <input type="hidden" name="action" value="transfer">
+                <div class="form-group">
+                    <label for="club_id"><?= __('form_club') ?></label>
+                    <select id="club_id" name="club_id" required>
+                        <option value="">-- <?= __('form_select') ?> --</option>
+                        <?php foreach ($availableClubs as $c): ?>
+                        <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
+            </form>
         </div>
         <?php endif; ?>
     </div>

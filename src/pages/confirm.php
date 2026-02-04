@@ -4,6 +4,7 @@
  */
 
 require_once SRC_PATH . '/elo.php';
+require_once SRC_PATH . '/utils.php';
 
 $db = Database::get();
 
@@ -270,6 +271,141 @@ if (empty($token)) {
 
                     $messageType = 'success';
                     $redirectUrl = '?page=match&id=' . $matchId;
+                    break;
+
+                case 'manual_rating_player':
+                    // Player confirms manual rating request
+                    $requestId = $confirmation['target_id'];
+                    $stmt = $db->prepare("UPDATE manual_rating_requests SET player_confirmed = 1 WHERE id = ?");
+                    $stmt->execute([$requestId]);
+
+                    // Check if all confirmations are in
+                    $stmt = $db->prepare("SELECT * FROM manual_rating_requests WHERE id = ?");
+                    $stmt->execute([$requestId]);
+                    $request = $stmt->fetch();
+
+                    if ($request['player_confirmed'] && $request['president_confirmed'] && $request['circuit_confirmed']) {
+                        // All confirmed - apply rating change
+                        $stmt = $db->prepare("UPDATE ratings SET rating = ? WHERE player_id = ? AND circuit_id = ?");
+                        $stmt->execute([$request['requested_rating'], $request['player_id'], $request['circuit_id']]);
+
+                        // Update category only if better
+                        $stmt = $db->prepare("SELECT category FROM players WHERE id = ?");
+                        $stmt->execute([$request['player_id']]);
+                        $currentCategory = $stmt->fetchColumn();
+
+                        if (isBetterCategory($request['requested_category'], $currentCategory)) {
+                            $stmt = $db->prepare("UPDATE players SET category = ? WHERE id = ?");
+                            $stmt->execute([$request['requested_category'], $request['player_id']]);
+                        }
+
+                        // Mark request as completed
+                        $stmt = $db->prepare("UPDATE manual_rating_requests SET completed = 1 WHERE id = ?");
+                        $stmt->execute([$requestId]);
+
+                        $message = $lang === 'it'
+                            ? 'Confermato! La variazione manuale è stata applicata.'
+                            : 'Confirmed! The manual rating change has been applied.';
+                    } else {
+                        $pending = [];
+                        if (!$request['president_confirmed']) $pending[] = $lang === 'it' ? 'Presidente' : 'President';
+                        if (!$request['circuit_confirmed']) $pending[] = $lang === 'it' ? 'Responsabile circuito' : 'Circuit manager';
+
+                        $message = __('confirm_success') . ' ' . ($lang === 'it' ? 'In attesa di: ' : 'Waiting for: ') . implode(', ', $pending);
+                    }
+
+                    $messageType = 'success';
+                    $redirectUrl = '?page=player&id=' . $request['player_id'];
+                    break;
+
+                case 'manual_rating_president':
+                    // President confirms manual rating request
+                    $requestId = $confirmation['target_id'];
+                    $stmt = $db->prepare("UPDATE manual_rating_requests SET president_confirmed = 1 WHERE id = ?");
+                    $stmt->execute([$requestId]);
+
+                    // Check if all confirmations are in
+                    $stmt = $db->prepare("SELECT * FROM manual_rating_requests WHERE id = ?");
+                    $stmt->execute([$requestId]);
+                    $request = $stmt->fetch();
+
+                    if ($request['player_confirmed'] && $request['president_confirmed'] && $request['circuit_confirmed']) {
+                        // All confirmed - apply rating change
+                        $stmt = $db->prepare("UPDATE ratings SET rating = ? WHERE player_id = ? AND circuit_id = ?");
+                        $stmt->execute([$request['requested_rating'], $request['player_id'], $request['circuit_id']]);
+
+                        // Update category only if better
+                        $stmt = $db->prepare("SELECT category FROM players WHERE id = ?");
+                        $stmt->execute([$request['player_id']]);
+                        $currentCategory = $stmt->fetchColumn();
+
+                        if (isBetterCategory($request['requested_category'], $currentCategory)) {
+                            $stmt = $db->prepare("UPDATE players SET category = ? WHERE id = ?");
+                            $stmt->execute([$request['requested_category'], $request['player_id']]);
+                        }
+
+                        // Mark request as completed
+                        $stmt = $db->prepare("UPDATE manual_rating_requests SET completed = 1 WHERE id = ?");
+                        $stmt->execute([$requestId]);
+
+                        $message = $lang === 'it'
+                            ? 'Confermato! La variazione manuale è stata applicata.'
+                            : 'Confirmed! The manual rating change has been applied.';
+                    } else {
+                        $pending = [];
+                        if (!$request['player_confirmed']) $pending[] = $lang === 'it' ? 'Giocatore' : 'Player';
+                        if (!$request['circuit_confirmed']) $pending[] = $lang === 'it' ? 'Responsabile circuito' : 'Circuit manager';
+
+                        $message = __('confirm_success') . ' ' . ($lang === 'it' ? 'In attesa di: ' : 'Waiting for: ') . implode(', ', $pending);
+                    }
+
+                    $messageType = 'success';
+                    $redirectUrl = '?page=player&id=' . $request['player_id'];
+                    break;
+
+                case 'manual_rating_circuit':
+                    // Circuit manager confirms manual rating request
+                    $requestId = $confirmation['target_id'];
+                    $stmt = $db->prepare("UPDATE manual_rating_requests SET circuit_confirmed = 1 WHERE id = ?");
+                    $stmt->execute([$requestId]);
+
+                    // Check if all confirmations are in
+                    $stmt = $db->prepare("SELECT * FROM manual_rating_requests WHERE id = ?");
+                    $stmt->execute([$requestId]);
+                    $request = $stmt->fetch();
+
+                    if ($request['player_confirmed'] && $request['president_confirmed'] && $request['circuit_confirmed']) {
+                        // All confirmed - apply rating change
+                        $stmt = $db->prepare("UPDATE ratings SET rating = ? WHERE player_id = ? AND circuit_id = ?");
+                        $stmt->execute([$request['requested_rating'], $request['player_id'], $request['circuit_id']]);
+
+                        // Update category only if better
+                        $stmt = $db->prepare("SELECT category FROM players WHERE id = ?");
+                        $stmt->execute([$request['player_id']]);
+                        $currentCategory = $stmt->fetchColumn();
+
+                        if (isBetterCategory($request['requested_category'], $currentCategory)) {
+                            $stmt = $db->prepare("UPDATE players SET category = ? WHERE id = ?");
+                            $stmt->execute([$request['requested_category'], $request['player_id']]);
+                        }
+
+                        // Mark request as completed
+                        $stmt = $db->prepare("UPDATE manual_rating_requests SET completed = 1 WHERE id = ?");
+                        $stmt->execute([$requestId]);
+
+                        $message = $lang === 'it'
+                            ? 'Confermato! La variazione manuale è stata applicata.'
+                            : 'Confirmed! The manual rating change has been applied.';
+                    } else {
+                        $pending = [];
+                        if (!$request['player_confirmed']) $pending[] = $lang === 'it' ? 'Giocatore' : 'Player';
+                        if (!$request['president_confirmed']) $pending[] = $lang === 'it' ? 'Presidente' : 'President';
+
+                        $message = __('confirm_success') . ' ' . ($lang === 'it' ? 'In attesa di: ' : 'Waiting for: ') . implode(', ', $pending);
+                    }
+
+                    $messageType = 'success';
+                    $redirectUrl = '?page=player&id=' . $request['player_id'];
                     break;
 
                 default:

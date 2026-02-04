@@ -261,3 +261,37 @@ function sendDeletionRequest(string $to, string $entityType, string $entityName,
 
     return sendConfirmationEmail($to, $subject, $message, $url);
 }
+
+/**
+ * Send manual rating request confirmation
+ */
+function sendManualRatingConfirmation(string $to, string $role, string $playerName, string $circuitName, int $rating, string $category, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    $roleText = [
+        'player' => $lang === 'it' ? 'giocatore' : 'player',
+        'president' => $lang === 'it' ? 'presidente del circolo' : 'club president',
+        'circuit' => $lang === 'it' ? 'responsabile del circuito' : 'circuit manager',
+    ];
+
+    if ($lang === 'it') {
+        $subject = "⭐ Richiesta variazione manuale: {$playerName}";
+        $message = "Come <strong>{$roleText[$role]}</strong>, ti viene chiesto di confermare la seguente variazione manuale:<br><br>
+            <strong>Giocatore:</strong> {$playerName}<br>
+            <strong>Circuito:</strong> {$circuitName}<br>
+            <strong>Nuovo Rating:</strong> {$rating}<br>
+            <strong>Categoria:</strong> {$category}<br><br>
+            Clicca il pulsante qui sotto per confermare.";
+    } else {
+        $subject = "⭐ Manual rating request: {$playerName}";
+        $message = "As <strong>{$roleText[$role]}</strong>, you are asked to confirm the following manual rating change:<br><br>
+            <strong>Player:</strong> {$playerName}<br>
+            <strong>Circuit:</strong> {$circuitName}<br>
+            <strong>New Rating:</strong> {$rating}<br>
+            <strong>Category:</strong> {$category}<br><br>
+            Click the button below to confirm.";
+    }
+
+    return sendConfirmationEmail($to, $subject, $message, $url);
+}

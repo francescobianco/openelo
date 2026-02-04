@@ -61,3 +61,45 @@ function checkSimilarName(PDO $db, string $table, string $name, ?int $excludeId 
 
     return null;
 }
+
+/**
+ * Get category hierarchy (lower number = better category)
+ */
+function getCategoryRank(string $category): int {
+    $hierarchy = [
+        'GM' => 9,  // GrandMaster
+        'IM' => 8,  // International Master
+        'FM' => 7,  // FIDE Master
+        'CM' => 6,  // Candidate Master
+        '1N' => 5,  // Prima Nazionale
+        '2N' => 4,  // Seconda Nazionale
+        '3N' => 3,  // Terza Nazionale
+        '4N' => 2,  // Quarta Nazionale (se esiste)
+        'NC' => 1,  // Non Classificato
+    ];
+
+    return $hierarchy[strtoupper($category)] ?? 0;
+}
+
+/**
+ * Check if new category is better than current
+ */
+function isBetterCategory(string $newCategory, string $currentCategory): bool {
+    return getCategoryRank($newCategory) > getCategoryRank($currentCategory);
+}
+
+/**
+ * Get all available categories for dropdown
+ */
+function getAvailableCategories(): array {
+    return [
+        'NC' => 'NC - Non Classificato / Not Classified',
+        '3N' => '3N - Terza Nazionale / Third National',
+        '2N' => '2N - Seconda Nazionale / Second National',
+        '1N' => '1N - Prima Nazionale / First National',
+        'CM' => 'CM - Candidate Master',
+        'FM' => 'FM - FIDE Master',
+        'IM' => 'IM - International Master',
+        'GM' => 'GM - GrandMaster',
+    ];
+}
