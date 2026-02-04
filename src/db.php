@@ -13,19 +13,27 @@ class Database {
 
     public static function get(): PDO {
         if (self::$pdo === null) {
-            $dir = dirname(DB_PATH);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
+            if (DB_TYPE === 'mysql') {
+                $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+                    DB_HOST, DB_PORT, DB_NAME);
+                self::$pdo = new PDO($dsn, DB_USER, DB_PASSWORD);
+                $needsInit = false; // MySQL migrations handled separately
+            } else {
+                // SQLite
+                $dir = dirname(DB_PATH);
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+
+                $needsInit = !file_exists(DB_PATH);
+                self::$pdo = new PDO('sqlite:' . DB_PATH);
             }
 
-            $needsInit = !file_exists(DB_PATH);
-
-            self::$pdo = new PDO('sqlite:' . DB_PATH);
             self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-            // Check schema version
-            if (!$needsInit) {
+            // Check schema version (legacy system, will be replaced by migrations)
+            if (!$needsInit && DB_TYPE === 'sqlite') {
                 $version = self::getSchemaVersion();
                 if ($version < DB_SCHEMA_VERSION) {
                     self::resetDatabase();
@@ -33,7 +41,7 @@ class Database {
                 }
             }
 
-            if ($needsInit) {
+            if ($needsInit && DB_TYPE === 'sqlite') {
                 self::init();
             }
         }

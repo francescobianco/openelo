@@ -26,6 +26,32 @@ Copy `.env.example` to `.env` and configure:
 - `BASE_URL` - Your app URL
 - `SMTP_*` - Email settings for production
 - `DEFAULT_LANG` - Default language (en/it)
+- `DB_TYPE` - Database type: `sqlite` (default) or `mysql`
+- `DB_*` - Database connection settings (for MySQL)
+
+### Legacy Hosting Support
+
+For hosting that doesn't support environment variables:
+
+1. Copy `env.php.example` to `env.php`
+2. Fill in your configuration values
+3. The app will automatically load it
+
+## Database Migrations
+
+Run database migrations to set up or update the schema:
+
+```bash
+# From command line
+php -f migrate.php
+
+# Or visit in browser (legacy hosting)
+https://yourdomain.com/migrate.php
+```
+
+**Supported Databases:**
+- SQLite (default, no setup required)
+- MySQL/MariaDB
 
 ## Development
 

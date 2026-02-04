@@ -5,6 +5,11 @@
 
 define('SRC_PATH', dirname(__DIR__) . '/src');
 
+// Helper function for asset paths (adds 'public/' prefix when accessed from root index.php)
+function asset($path) {
+    return (defined('ROOT_MODE') && ROOT_MODE ? 'public/' : '') . $path;
+}
+
 require_once SRC_PATH . '/config.php';
 require_once SRC_PATH . '/lang.php';
 require_once SRC_PATH . '/db.php';
@@ -39,7 +44,7 @@ $content = ob_get_clean();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= __('site_title') ?> - <?= __('site_tagline') ?></title>
     <meta name="description" content="<?= __('site_description') ?>">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="<?= asset('style.css') ?>">
 </head>
 <body>
     <header class="header">

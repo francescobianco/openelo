@@ -3,8 +3,20 @@
  * OpenElo - Configuration
  */
 
-// Database (SQLite per semplicità)
-define('DB_PATH', getenv('DB_PATH') ?: dirname(__DIR__) . '/data/openelo.db');
+// Load environment variables from env.php if it exists (for legacy hosting)
+$envFile = dirname(__DIR__) . '/env.php';
+if (file_exists($envFile)) {
+    require_once $envFile;
+}
+
+// Database configuration
+define('DB_TYPE', getenv('DB_TYPE') ?: 'sqlite'); // sqlite or mysql
+define('DB_PATH', getenv('DB_PATH') ?: dirname(__DIR__) . '/data/openelo.db'); // SQLite only
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost'); // MySQL only
+define('DB_PORT', getenv('DB_PORT') ?: '3306'); // MySQL only
+define('DB_NAME', getenv('DB_NAME') ?: 'openelo'); // MySQL only
+define('DB_USER', getenv('DB_USER') ?: 'root'); // MySQL only
+define('DB_PASSWORD', getenv('DB_PASSWORD') ?: ''); // MySQL only
 
 // Email settings
 define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.example.com');
