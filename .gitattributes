@@ -1,0 +1,10 @@
+DESIGN.md
+docker-compose.yml
+docker-entrypoint.sh
+Dockerfile
+example.lftp
+Makefile
+README.md
+.env.example
+.gitattributes
+.gitignore
