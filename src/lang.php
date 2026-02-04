@@ -16,7 +16,8 @@ $translations = [
         'nav_clubs' => 'Clubs',
         'nav_rankings' => 'Rankings',
         'nav_submit_result' => 'Submit Result',
-        'nav_create' => 'Create',
+        'nav_create' => 'Create/Register',
+        'nav_players' => 'Players',
 
         // Landing page
         'hero_title' => 'Your Rating, Your Circuit',
@@ -142,7 +143,8 @@ $translations = [
         'nav_clubs' => 'Circoli',
         'nav_rankings' => 'Classifiche',
         'nav_submit_result' => 'Inserisci Risultato',
-        'nav_create' => 'Crea',
+        'nav_create' => 'Crea/Registra',
+        'nav_players' => 'Giocatori',
 
         // Landing page
         'hero_title' => 'Il Tuo Rating, Il Tuo Circuito',

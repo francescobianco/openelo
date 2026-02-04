@@ -20,7 +20,7 @@ $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'clubs', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'api'];
+$validPages = ['home', 'circuits', 'clubs', 'players', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'api'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -67,12 +67,14 @@ $content = ob_get_clean();
             </div>
             <nav class="nav" id="mobile-nav">
                 <div class="nav-links">
+                    <a href="?page=about" <?= $page === 'about' ? 'class="active"' : '' ?>><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
                     <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
                     <a href="?page=clubs" <?= $page === 'clubs' || $page === 'club' ? 'class="active"' : '' ?>><?= __('nav_clubs') ?></a>
-                    <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
+                    <a href="?page=players" <?= $page === 'players' || $page === 'player' ? 'class="active"' : '' ?>><?= __('nav_players') ?></a>
                     <a href="?page=create" <?= $page === 'create' ? 'class="active"' : '' ?>><?= __('nav_create') ?></a>
-                    <a href="?page=about" <?= $page === 'about' ? 'class="active"' : '' ?>><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
+                    <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
                 </div>
+                <div class="nav-separator"></div>
                 <select class="lang-select" onchange="changeLang(this.value)">
                     <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
                     <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>

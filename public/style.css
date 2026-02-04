@@ -137,6 +137,13 @@ a:hover {
     box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
 }
 
+.nav-separator {
+    width: 1px;
+    height: 1.2rem;
+    background: var(--border);
+    margin: 0 0.25rem;
+}
+
 .lang-select {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -861,6 +868,7 @@ tr:hover {
         border-bottom: none;
     }
 
+    .nav .nav-separator,
     .nav .lang-select {
         display: none;
     }
