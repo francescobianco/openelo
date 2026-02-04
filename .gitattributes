@@ -1,10 +1,10 @@
-DESIGN.md
-docker-compose.yml
-docker-entrypoint.sh
-Dockerfile
-example.lftp
-Makefile
-README.md
-.env.example
-.gitattributes
-.gitignore
+DESIGN.md                   export-ignore
+docker-compose.yml          export-ignore
+docker-entrypoint.sh        export-ignore
+Dockerfile                  export-ignore
+example.lftp                export-ignore
+Makefile                    export-ignore
+README.md                   export-ignore
+.env.example                export-ignore
+.gitattributes              export-ignore
+.gitignore                  export-ignore

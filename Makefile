@@ -17,7 +17,7 @@ start:
 
 # Usage:
 #   make ftp-deploy file=prod.lftp
-ftp-deploy:
+ftp-deploy: push
 	@sh -c '\
 	SCRIPT="$(file)"; \
 	if [ -z "$$SCRIPT" ]; then \
