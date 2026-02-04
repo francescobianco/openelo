@@ -72,6 +72,58 @@ function getOrCreateRating(int $playerId, int $circuitId): array {
 }
 
 /**
+ * Calculate expected rating changes for a match
+ * Returns array with white/black ratings and their expected changes
+ */
+function calculateRatingChanges(int $whiteId, int $blackId, int $circuitId, string $result): array {
+    // Get current ratings
+    $whiteRating = getOrCreateRating($whiteId, $circuitId);
+    $blackRating = getOrCreateRating($blackId, $circuitId);
+
+    // Calculate expected scores
+    $expectedWhite = expectedScore($whiteRating['rating'], $blackRating['rating']);
+    $expectedBlack = 1 - $expectedWhite;
+
+    // Actual scores based on result
+    switch ($result) {
+        case '1-0':
+            $scoreWhite = 1;
+            $scoreBlack = 0;
+            break;
+        case '0-1':
+            $scoreWhite = 0;
+            $scoreBlack = 1;
+            break;
+        case '0.5-0.5':
+            $scoreWhite = 0.5;
+            $scoreBlack = 0.5;
+            break;
+        default:
+            return [
+                'white_rating' => $whiteRating['rating'],
+                'black_rating' => $blackRating['rating'],
+                'white_change' => 0,
+                'black_change' => 0
+            ];
+    }
+
+    // Get K factors
+    $kWhite = getKFactor($whiteId, $circuitId);
+    $kBlack = getKFactor($blackId, $circuitId);
+
+    // Calculate rating changes
+    $whiteChange = round($kWhite * ($scoreWhite - $expectedWhite));
+    $blackChange = round($kBlack * ($scoreBlack - $expectedBlack));
+
+    return [
+        'white_rating' => $whiteRating['rating'],
+        'black_rating' => $blackRating['rating'],
+        'white_change' => $whiteChange,
+        'black_change' => $blackChange
+    ];
+}
+
+/**
  * Apply rating change for a confirmed match
  * Result: '1-0' = white wins, '0-1' = black wins, '0.5-0.5' = draw
  */
@@ -96,39 +148,17 @@ function applyRatingChange(int $matchId): bool {
     $whiteId = $match['white_player_id'];
     $blackId = $match['black_player_id'];
 
-    // Get ratings
+    // Use stored rating changes (frozen at match creation time)
+    $whiteChange = $match['white_rating_change'];
+    $blackChange = $match['black_rating_change'];
+
+    // Get current ratings
     $whiteRating = getOrCreateRating($whiteId, $circuitId);
     $blackRating = getOrCreateRating($blackId, $circuitId);
 
-    // Calculate expected scores
-    $expectedWhite = expectedScore($whiteRating['rating'], $blackRating['rating']);
-    $expectedBlack = 1 - $expectedWhite;
-
-    // Actual scores based on result
-    switch ($match['result']) {
-        case '1-0':
-            $scoreWhite = 1;
-            $scoreBlack = 0;
-            break;
-        case '0-1':
-            $scoreWhite = 0;
-            $scoreBlack = 1;
-            break;
-        case '0.5-0.5':
-            $scoreWhite = 0.5;
-            $scoreBlack = 0.5;
-            break;
-        default:
-            return false;
-    }
-
-    // Get K factors
-    $kWhite = getKFactor($whiteId, $circuitId);
-    $kBlack = getKFactor($blackId, $circuitId);
-
-    // Calculate new ratings
-    $newWhiteRating = round($whiteRating['rating'] + $kWhite * ($scoreWhite - $expectedWhite));
-    $newBlackRating = round($blackRating['rating'] + $kBlack * ($scoreBlack - $expectedBlack));
+    // Calculate new ratings using the frozen changes
+    $newWhiteRating = $whiteRating['rating'] + $whiteChange;
+    $newBlackRating = $blackRating['rating'] + $blackChange;
 
     // Update ratings
     $stmt = $db->prepare("

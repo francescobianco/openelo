@@ -20,7 +20,7 @@ $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'clubs', 'circuit', 'club', 'player', 'create', 'submit', 'confirm', 'match', 'deletion', 'api'];
+$validPages = ['home', 'circuits', 'clubs', 'circuit', 'club', 'player', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'api'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -47,14 +47,27 @@ $content = ob_get_clean();
     <link rel="stylesheet" href="<?= asset('style.css') ?>">
 </head>
 <body>
+    <!-- Mobile menu overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
+
     <header class="header">
         <div class="header-inner">
             <a href="?" class="logo">♞ Open<span>ELO</span></a>
-            <nav class="nav">
-                <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
-                <a href="?page=clubs" <?= $page === 'clubs' || $page === 'club' ? 'class="active"' : '' ?>><?= __('nav_clubs') ?></a>
-                <a href="?page=submit" <?= $page === 'submit' ? 'class="active"' : '' ?>><?= __('nav_submit_result') ?></a>
-                <a href="?page=create" <?= $page === 'create' ? 'class="active"' : '' ?>><?= __('nav_create') ?></a>
+            <div class="mobile-actions">
+                <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <nav class="nav" id="mobile-nav">
+                <div class="nav-links">
+                    <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
+                    <a href="?page=clubs" <?= $page === 'clubs' || $page === 'club' ? 'class="active"' : '' ?>><?= __('nav_clubs') ?></a>
+                    <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>" style="display: none;"><?= __('nav_submit_result') ?></a>
+                    <a href="?page=create" <?= $page === 'create' ? 'class="active"' : '' ?>><?= __('nav_create') ?></a>
+                </div>
                 <select class="lang-select" onchange="changeLang(this.value)">
                     <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
                     <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>
@@ -68,7 +81,19 @@ $content = ob_get_clean();
     </main>
 
     <footer class="footer">
-        <p>♟ <?= __('footer_text') ?> <a href="https://github.com/openelo/openelo"><?= __('footer_github') ?></a></p>
+        <p>
+            ♟ <?= __('footer_text') ?> <a href="https://github.com/openelo/openelo"><?= __('footer_github') ?></a>
+            <span style="margin: 0 1rem;">·</span>
+            <a href="?page=about"><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
+            <span style="margin: 0 1rem;">·</span>
+            <a href="?page=contact"><?= $lang === 'it' ? 'Contatti' : 'Contact' ?></a>
+        </p>
+        <div class="footer-lang-select">
+            <select class="lang-select" onchange="changeLang(this.value)">
+                <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
+                <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>
+            </select>
+        </div>
     </footer>
 
     <script>
@@ -77,6 +102,57 @@ $content = ob_get_clean();
         url.searchParams.set('lang', lang);
         window.location.href = url.toString();
     }
+
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+        const nav = document.getElementById('mobile-nav');
+        const hamburger = document.getElementById('hamburger');
+        const overlay = document.getElementById('mobile-overlay');
+
+        nav.classList.toggle('active');
+        hamburger.classList.toggle('active');
+        overlay.classList.toggle('active');
+
+        if (nav.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Modal management
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Close modal on overlay click
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            closeModal(e.target.id);
+        }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.modal-overlay.active');
+            if (activeModal) {
+                closeModal(activeModal.id);
+            }
+        }
+    });
     </script>
 </body>
 </html>

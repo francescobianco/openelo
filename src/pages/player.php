@@ -224,18 +224,21 @@ $stmt = $db->prepare("
 $stmt->execute([$player['club_id']]);
 $availableClubs = $stmt->fetchAll();
 
-// Get recent matches
+// Get recent matches with rating changes
 $stmt = $db->prepare("
-    SELECT m.*, ci.name as circuit_name,
+    SELECT m.*, ci.name as circuit_name, ci.id as circuit_id,
         pw.first_name as white_first, pw.last_name as white_last,
-        pb.first_name as black_first, pb.last_name as black_last
+        pb.first_name as black_first, pb.last_name as black_last,
+        m.white_rating_before, m.black_rating_before,
+        m.white_rating_change, m.black_rating_change,
+        m.created_at
     FROM matches m
     JOIN circuits ci ON ci.id = m.circuit_id
     JOIN players pw ON pw.id = m.white_player_id
     JOIN players pb ON pb.id = m.black_player_id
     WHERE (m.white_player_id = ? OR m.black_player_id = ?) AND m.rating_applied = 1
     ORDER BY m.created_at DESC
-    LIMIT 10
+    LIMIT 20
 ");
 $stmt->execute([$playerId, $playerId]);
 $matches = $stmt->fetchAll();
@@ -262,6 +265,7 @@ $pendingMatches = $stmt->fetchAll();
             <h1><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></h1>
             <div class="circuit-meta" style="margin-top: 0.5rem;">
                 <span><?= __('form_club') ?>: <a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></span>
+                <span><?= $lang === 'it' ? 'Categoria' : 'Category' ?>: <strong><?= htmlspecialchars($player['category'] ?: 'NC') ?></strong></span>
             </div>
         </div>
     </div>
@@ -276,19 +280,23 @@ $pendingMatches = $stmt->fetchAll();
     <div class="alert alert-warning">
         <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
         <p><?= $lang === 'it' ? 'Questo giocatore non è ancora attivo. Sono necessarie le seguenti approvazioni:' : 'This player is not yet active. The following approvals are required:' ?></p>
-        <ul style="margin: 1rem 0;">
+        <ul class="pending-approvals-list">
             <?php foreach ($pendingConfirmations as $pending): ?>
-            <li style="margin: 0.5rem 0;">
+            <li>
                 <?= $pending['description'] ?>
                 <?php if ($pending['type'] === 'player'): ?>
                 <form method="POST" style="display: inline; margin-left: 1rem;">
                     <input type="hidden" name="action" value="resend_player">
-                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
                 </form>
                 <?php elseif ($pending['type'] === 'president'): ?>
                 <form method="POST" style="display: inline; margin-left: 1rem;">
                     <input type="hidden" name="action" value="resend_president">
-                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
                 </form>
                 <?php endif; ?>
             </li>
@@ -404,31 +412,67 @@ $pendingMatches = $stmt->fetchAll();
         </div>
         <?php endif; ?>
 
-        <!-- Recent Matches -->
+        <!-- Rating History -->
         <?php if (!empty($matches)): ?>
         <div class="create-section">
-            <h2><?= __('circuit_matches') ?></h2>
+            <h2>📊 <?= $lang === 'it' ? 'Storico Variazioni Rating' : 'Rating History' ?></h2>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th><?= __('form_white') ?></th>
-                            <th></th>
-                            <th><?= __('form_black') ?></th>
+                            <th><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
+                            <th><?= $lang === 'it' ? 'Avversario' : 'Opponent' ?></th>
                             <th><?= __('form_circuit') ?></th>
+                            <th><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
+                            <th><?= $lang === 'it' ? 'Rating' : 'Rating' ?></th>
+                            <th><?= $lang === 'it' ? 'Variazione' : 'Change' ?></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($matches as $m): ?>
+                        <?php foreach ($matches as $m):
+                            $isWhite = ($m['white_player_id'] == $playerId);
+                            $opponentName = $isWhite
+                                ? $m['black_first'] . ' ' . $m['black_last']
+                                : $m['white_first'] . ' ' . $m['white_last'];
+                            $ratingBefore = $isWhite ? $m['white_rating_before'] : $m['black_rating_before'];
+                            $ratingChange = $isWhite ? $m['white_rating_change'] : $m['black_rating_change'];
+                            $ratingAfter = $ratingBefore + $ratingChange;
+
+                            // Determine result from player's perspective
+                            if ($m['result'] === '0.5-0.5') {
+                                $playerResult = '=';
+                            } elseif (($isWhite && $m['result'] === '1-0') || (!$isWhite && $m['result'] === '0-1')) {
+                                $playerResult = 'W';
+                            } else {
+                                $playerResult = 'L';
+                            }
+                        ?>
                         <tr>
-                            <td <?= $m['white_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
-                                <?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?>
+                            <td style="font-size: 0.85rem; color: var(--text-secondary);">
+                                <?= date('d/m/Y', strtotime($m['created_at'])) ?>
                             </td>
-                            <td><strong><?= $m['result'] ?></strong></td>
-                            <td <?= $m['black_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
-                                <?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?>
+                            <td>
+                                <?= $isWhite ? '♚' : '♔' ?>
+                                <?= htmlspecialchars($opponentName) ?>
                             </td>
-                            <td><?= htmlspecialchars($m['circuit_name']) ?></td>
+                            <td>
+                                <a href="?page=circuit&id=<?= $m['circuit_id'] ?>">
+                                    <?= htmlspecialchars($m['circuit_name']) ?>
+                                </a>
+                            </td>
+                            <td style="text-align: center;">
+                                <strong style="color: <?= $playerResult === 'W' ? 'var(--success)' : ($playerResult === 'L' ? 'var(--error)' : 'var(--text-secondary)') ?>">
+                                    <?= $playerResult ?>
+                                </strong>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="color: var(--text-secondary); font-size: 0.9rem;"><?= $ratingBefore ?></span>
+                                →
+                                <strong><?= $ratingAfter ?></strong>
+                            </td>
+                            <td style="text-align: center; font-weight: bold; color: <?= $ratingChange > 0 ? 'var(--success)' : ($ratingChange < 0 ? 'var(--error)' : 'var(--text-secondary)') ?>">
+                                <?= $ratingChange > 0 ? '+' : '' ?><?= $ratingChange ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -460,11 +504,17 @@ $pendingMatches = $stmt->fetchAll();
 
     <!-- Deletion Request Link -->
     <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-        <details style="display: inline-block; text-align: left; max-width: 500px;">
-            <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.9rem;">
-                🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
-            </summary>
-            <form method="POST" action="?page=deletion" style="margin-top: 1rem; padding: 1rem; background: var(--bg-card); border-radius: 8px;">
+        <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
+            🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
+        </button>
+    </div>
+
+    <!-- Deletion Request Modal -->
+    <div id="deletion-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button onclick="closeModal('deletion-modal')" class="modal-close">&times;</button>
+            <h3 class="modal-title">🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?></h3>
+            <form method="POST" action="?page=deletion">
                 <input type="hidden" name="entity_type" value="player">
                 <input type="hidden" name="entity_id" value="<?= $playerId ?>">
                 <div class="form-group">
@@ -473,12 +523,17 @@ $pendingMatches = $stmt->fetchAll();
                 </div>
                 <div class="form-group">
                     <label><?= $lang === 'it' ? 'Motivo della richiesta' : 'Reason for request' ?></label>
-                    <textarea name="reason" rows="3" required></textarea>
+                    <textarea name="reason" rows="4" required style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"></textarea>
                 </div>
-                <button type="submit" name="request_deletion" class="btn btn-sm btn-secondary">
-                    <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
-                </button>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" name="request_deletion" class="btn btn-primary">
+                        <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
+                    </button>
+                    <button type="button" onclick="closeModal('deletion-modal')" class="btn btn-secondary">
+                        <?= $lang === 'it' ? 'Annulla' : 'Cancel' ?>
+                    </button>
+                </div>
             </form>
-        </details>
+        </div>
     </div>
 </div>

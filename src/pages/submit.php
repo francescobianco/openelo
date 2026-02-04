@@ -57,15 +57,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception(__('error_not_found'));
         }
 
-        // Determine which president to notify (use white player's club president)
-        $presidentEmail = $whitePlayer['president_email'];
+        // Determine approval authority based on whether players are from same club
+        $sameClub = ($whitePlayer['club_id'] === $blackPlayer['club_id']);
 
-        // Create match
+        if ($sameClub) {
+            // Same club: president approval
+            $approverEmail = $whitePlayer['president_email'];
+            $approverRole = 'president';
+        } else {
+            // Different clubs: circuit manager approval
+            $approverEmail = $circuitData['owner_email'];
+            $approverRole = 'circuit_manager';
+        }
+
+        // Calculate rating changes at match creation time (frozen values)
+        $ratingChanges = calculateRatingChanges($whiteId, $blackId, $circuitId, $result);
+
+        // Create match with frozen ratings and changes
         $stmt = $db->prepare("
-            INSERT INTO matches (circuit_id, white_player_id, black_player_id, result)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO matches (
+                circuit_id, white_player_id, black_player_id, result,
+                white_rating_before, black_rating_before,
+                white_rating_change, black_rating_change
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$circuitId, $whiteId, $blackId, $result]);
+        $stmt->execute([
+            $circuitId, $whiteId, $blackId, $result,
+            $ratingChanges['white_rating'], $ratingChanges['black_rating'],
+            $ratingChanges['white_change'], $ratingChanges['black_change']
+        ]);
         $matchId = $db->lastInsertId();
 
         // Prepare match details for emails
@@ -83,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tokenBlack = createConfirmation('match', $matchId, $blackPlayer['email'], 'black');
         sendMatchConfirmation($blackPlayer['email'], 'player', $matchDetails, $tokenBlack);
 
-        $tokenPresident = createConfirmation('match', $matchId, $presidentEmail, 'president');
-        sendMatchConfirmation($presidentEmail, 'president', $matchDetails, $tokenPresident);
+        $tokenApprover = createConfirmation('match', $matchId, $approverEmail, 'president');
+        sendMatchConfirmation($approverEmail, $approverRole === 'president' ? 'president' : 'circuit_manager', $matchDetails, $tokenApprover);
 
         // Redirect to match page
         header('Location: ?page=match&id=' . $matchId);

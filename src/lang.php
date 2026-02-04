@@ -227,7 +227,7 @@ $translations = [
         'confirm_waiting' => 'In attesa di altre conferme',
 
         // Rankings
-        'rankings_title' => 'Classifiche',
+        'rankings_title' => 'Classifica',
         'rankings_position' => '#',
         'rankings_player' => 'Giocatore',
         'rankings_club' => 'Circolo',

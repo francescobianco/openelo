@@ -41,19 +41,19 @@ $circuits = $db->query("
 <section class="stats">
     <div class="stat-card">
         <div class="number"><?= $stats['circuits'] ?></div>
-        <div class="label"><span class="chess-icon">♔</span> <?= __('nav_circuits') ?></div>
+        <div class="label"><?= __('nav_circuits') ?></div>
     </div>
     <div class="stat-card">
         <div class="number"><?= $stats['clubs'] ?></div>
-        <div class="label"><span class="chess-icon">♜</span> <?= __('circuit_clubs') ?></div>
+        <div class="label"><?= __('circuit_clubs') ?></div>
     </div>
     <div class="stat-card">
         <div class="number"><?= $stats['players'] ?></div>
-        <div class="label"><span class="chess-icon">♟</span> <?= __('circuit_players') ?></div>
+        <div class="label"><?= __('circuit_players') ?></div>
     </div>
     <div class="stat-card">
         <div class="number"><?= $stats['matches'] ?></div>
-        <div class="label"><span class="chess-icon">♞</span> <?= __('circuit_matches') ?></div>
+        <div class="label"><?= __('circuit_matches') ?></div>
     </div>
 </section>
 

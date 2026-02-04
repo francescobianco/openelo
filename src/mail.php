@@ -173,7 +173,11 @@ function sendMatchConfirmation(string $email, string $role, array $matchDetails,
     $circuit = $matchDetails['circuit_name'];
 
     if ($lang === 'it') {
-        $roleText = $role === 'president' ? 'presidente del circolo' : 'giocatore';
+        $roleText = [
+            'president' => 'presidente del circolo',
+            'circuit_manager' => 'responsabile del circuito',
+            'player' => 'giocatore'
+        ][$role] ?? 'giocatore';
         $subject = "♔♕ Conferma partita: {$white} vs {$black}";
         $message = "♟ Come <strong>{$roleText}</strong>, ti viene chiesto di confermare il seguente risultato:<br><br>
             <strong>Circuito:</strong> {$circuit}<br>
@@ -182,7 +186,11 @@ function sendMatchConfirmation(string $email, string $role, array $matchDetails,
             <strong>Risultato:</strong> {$result}<br><br>
             Clicca il pulsante qui sotto per confermare.";
     } else {
-        $roleText = $role === 'president' ? 'club president' : 'player';
+        $roleText = [
+            'president' => 'club president',
+            'circuit_manager' => 'circuit manager',
+            'player' => 'player'
+        ][$role] ?? 'player';
         $subject = "♔♕ Confirm match: {$white} vs {$black}";
         $message = "♟ As <strong>{$roleText}</strong>, you are asked to confirm the following result:<br><br>
             <strong>Circuit:</strong> {$circuit}<br>

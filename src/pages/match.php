@@ -18,8 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $stmt = $db->prepare("
         SELECT m.*,
             pw.email as white_email, pw.first_name as white_first, pw.last_name as white_last,
+            pw.club_id as white_club_id,
             pb.email as black_email, pb.first_name as black_first, pb.last_name as black_last,
-            c.name as circuit_name,
+            pb.club_id as black_club_id,
+            c.name as circuit_name, c.owner_email as circuit_owner_email,
             cl.president_email
         FROM matches m
         JOIN players pw ON pw.id = m.white_player_id
@@ -32,6 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $matchData = $stmt->fetch();
 
     if ($matchData) {
+        // Determine if players are from the same club
+        $sameClub = ($matchData['white_club_id'] === $matchData['black_club_id']);
+
         $matchDetails = [
             'white_name' => $matchData['white_first'] . ' ' . $matchData['white_last'],
             'black_name' => $matchData['black_first'] . ' ' . $matchData['black_last'],
@@ -48,8 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         } elseif ($role === 'black' && !$matchData['black_confirmed']) {
             $email = $matchData['black_email'];
             $confirmRole = 'black';
-        } elseif ($role === 'president' && !$matchData['president_confirmed']) {
+        } elseif ($role === 'president' && !$matchData['president_confirmed'] && $sameClub) {
             $email = $matchData['president_email'];
+            $confirmRole = 'president';
+        } elseif ($role === 'circuit_manager' && !$matchData['president_confirmed'] && !$sameClub) {
+            $email = $matchData['circuit_owner_email'];
             $confirmRole = 'president';
         }
 
@@ -65,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Get match details
 $stmt = $db->prepare("
     SELECT m.*,
-        pw.id as white_id, pw.first_name as white_first, pw.last_name as white_last, pw.email as white_email,
-        pb.id as black_id, pb.first_name as black_first, pb.last_name as black_last, pb.email as black_email,
-        c.name as circuit_name, c.id as circuit_id,
+        pw.id as white_id, pw.first_name as white_first, pw.last_name as white_last, pw.email as white_email, pw.club_id as white_club_id,
+        pb.id as black_id, pb.first_name as black_first, pb.last_name as black_last, pb.email as black_email, pb.club_id as black_club_id,
+        c.name as circuit_name, c.id as circuit_id, c.owner_email as circuit_owner_email,
         clw.name as white_club, clw.president_email as president_email,
         clb.name as black_club
     FROM matches m
@@ -85,6 +93,9 @@ if (!$match) {
     header('Location: ?page=circuits');
     exit;
 }
+
+// Determine if players are from the same club
+$sameClub = ($match['white_club_id'] === $match['black_club_id']);
 
 // Check pending confirmations
 $pendingConfirmations = [];
@@ -105,12 +116,21 @@ if (!$match['black_confirmed']) {
     ];
 }
 if (!$match['president_confirmed']) {
-    $pendingConfirmations[] = [
-        'type' => 'president',
-        'description' => $lang === 'it'
-            ? 'Conferma del presidente del circolo (' . htmlspecialchars($match['president_email']) . ')'
-            : 'Club president confirmation (' . htmlspecialchars($match['president_email']) . ')'
-    ];
+    if ($sameClub) {
+        $pendingConfirmations[] = [
+            'type' => 'president',
+            'description' => $lang === 'it'
+                ? 'Conferma del presidente del circolo (' . htmlspecialchars($match['president_email']) . ')'
+                : 'Club president confirmation (' . htmlspecialchars($match['president_email']) . ')'
+        ];
+    } else {
+        $pendingConfirmations[] = [
+            'type' => 'circuit_manager',
+            'description' => $lang === 'it'
+                ? 'Conferma del responsabile del circuito (' . htmlspecialchars($match['circuit_owner_email']) . ')'
+                : 'Circuit manager confirmation (' . htmlspecialchars($match['circuit_owner_email']) . ')'
+        ];
+    }
 }
 
 $isApplied = $match['rating_applied'] == 1;
@@ -127,14 +147,16 @@ $isApplied = $match['rating_applied'] == 1;
     <div class="alert alert-warning">
         <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
         <p><?= $lang === 'it' ? 'Questa partita non è ancora stata validata. Sono necessarie le seguenti approvazioni:' : 'This match has not been validated yet. The following approvals are required:' ?></p>
-        <ul style="margin: 1rem 0;">
+        <ul class="pending-approvals-list">
             <?php foreach ($pendingConfirmations as $pending): ?>
-            <li style="margin: 0.5rem 0;">
+            <li>
                 <?= $pending['description'] ?>
                 <form method="POST" style="display: inline; margin-left: 1rem;">
                     <input type="hidden" name="action" value="resend_match">
                     <input type="hidden" name="role" value="<?= $pending['type'] ?>">
-                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
                 </form>
             </li>
             <?php endforeach; ?>
@@ -157,9 +179,9 @@ $isApplied = $match['rating_applied'] == 1;
     </div>
 
     <div class="card" style="max-width: 600px; margin: 2rem auto;">
-        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: center; text-align: center;">
+        <div class="match-display">
             <!-- White -->
-            <div>
+            <div class="match-white">
                 <div style="font-size: 3rem; margin-bottom: 0.5rem;">♔</div>
                 <h3 style="margin: 0.5rem 0;">
                     <a href="?page=player&id=<?= $match['white_id'] ?>">
@@ -177,12 +199,12 @@ $isApplied = $match['rating_applied'] == 1;
             </div>
 
             <!-- Result -->
-            <div style="font-size: 2rem; font-weight: bold; min-width: 80px;">
+            <div class="match-vs" style="font-size: 2rem; font-weight: bold; min-width: 80px;">
                 <?= htmlspecialchars($match['result']) ?>
             </div>
 
             <!-- Black -->
-            <div>
+            <div class="match-black">
                 <div style="font-size: 3rem; margin-bottom: 0.5rem;">♚</div>
                 <h3 style="margin: 0.5rem 0;">
                     <a href="?page=player&id=<?= $match['black_id'] ?>">
@@ -203,7 +225,13 @@ $isApplied = $match['rating_applied'] == 1;
         <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
 
         <div style="text-align: center;">
-            <h4><?= $lang === 'it' ? 'Validazione Presidente' : 'President Validation' ?></h4>
+            <h4><?php
+                if ($sameClub) {
+                    echo $lang === 'it' ? 'Validazione Presidente' : 'President Validation';
+                } else {
+                    echo $lang === 'it' ? 'Validazione Responsabile Circuito' : 'Circuit Manager Validation';
+                }
+            ?></h4>
             <?php if ($match['president_confirmed']): ?>
             <div style="color: var(--success); margin-top: 0.5rem;">✓ <?= $lang === 'it' ? 'Confermato' : 'Confirmed' ?></div>
             <?php else: ?>
@@ -214,11 +242,17 @@ $isApplied = $match['rating_applied'] == 1;
 
     <!-- Deletion Request Link -->
     <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-        <details style="display: inline-block; text-align: left; max-width: 500px;">
-            <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.9rem;">
-                🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
-            </summary>
-            <form method="POST" action="?page=deletion" style="margin-top: 1rem; padding: 1rem; background: var(--bg-card); border-radius: 8px;">
+        <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
+            🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
+        </button>
+    </div>
+
+    <!-- Deletion Request Modal -->
+    <div id="deletion-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button onclick="closeModal('deletion-modal')" class="modal-close">&times;</button>
+            <h3 class="modal-title">🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?></h3>
+            <form method="POST" action="?page=deletion">
                 <input type="hidden" name="entity_type" value="match">
                 <input type="hidden" name="entity_id" value="<?= $matchId ?>">
                 <div class="form-group">
@@ -227,12 +261,17 @@ $isApplied = $match['rating_applied'] == 1;
                 </div>
                 <div class="form-group">
                     <label><?= $lang === 'it' ? 'Motivo della richiesta' : 'Reason for request' ?></label>
-                    <textarea name="reason" rows="3" required></textarea>
+                    <textarea name="reason" rows="4" required style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"></textarea>
                 </div>
-                <button type="submit" name="request_deletion" class="btn btn-sm btn-secondary">
-                    <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
-                </button>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" name="request_deletion" class="btn btn-primary">
+                        <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
+                    </button>
+                    <button type="button" onclick="closeModal('deletion-modal')" class="btn btn-secondary">
+                        <?= $lang === 'it' ? 'Annulla' : 'Cancel' ?>
+                    </button>
+                </div>
             </form>
-        </details>
+        </div>
     </div>
 </div>

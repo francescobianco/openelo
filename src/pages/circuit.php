@@ -101,14 +101,16 @@ $tab = $_GET['tab'] ?? 'rankings';
     <div class="alert alert-warning">
         <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
         <p><?= $lang === 'it' ? 'Questo circuito non è ancora visibile pubblicamente. Sono necessarie le seguenti approvazioni:' : 'This circuit is not yet publicly visible. The following approvals are required:' ?></p>
-        <ul style="margin: 1rem 0;">
+        <ul class="pending-approvals-list">
             <?php foreach ($pendingConfirmations as $pending): ?>
-            <li style="margin: 0.5rem 0;">
+            <li>
                 <?= $pending['description'] ?>
                 <?php if ($pending['type'] === 'circuit'): ?>
                 <form method="POST" style="display: inline; margin-left: 1rem;">
                     <input type="hidden" name="action" value="resend_circuit">
-                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
                 </form>
                 <?php endif; ?>
             </li>
@@ -151,6 +153,7 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <th><?= __('rankings_position') ?></th>
                         <th><?= __('rankings_player') ?></th>
                         <th><?= __('rankings_club') ?></th>
+                        <th><?= $lang === 'it' ? 'Categoria' : 'Category' ?></th>
                         <th><?= __('rankings_rating') ?></th>
                         <th><?= __('rankings_games') ?></th>
                     </tr>
@@ -161,6 +164,7 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <td class="rank <?= $i < 3 ? 'rank-' . ($i + 1) : '' ?>"><?= $i + 1 ?></td>
                         <td><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a></td>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
+                        <td><strong><?= htmlspecialchars($player['category'] ?: 'NC') ?></strong></td>
                         <td class="rating"><?= $player['rating'] ?></td>
                         <td><?= $player['games_played'] ?></td>
                     </tr>
@@ -225,11 +229,17 @@ $tab = $_GET['tab'] ?? 'rankings';
 
     <!-- Deletion Request Link -->
     <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-        <details style="display: inline-block; text-align: left; max-width: 500px;">
-            <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.9rem;">
-                🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
-            </summary>
-            <form method="POST" action="?page=deletion" style="margin-top: 1rem; padding: 1rem; background: var(--bg-card); border-radius: 8px;">
+        <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
+            🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
+        </button>
+    </div>
+
+    <!-- Deletion Request Modal -->
+    <div id="deletion-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button onclick="closeModal('deletion-modal')" class="modal-close">&times;</button>
+            <h3 class="modal-title">🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?></h3>
+            <form method="POST" action="?page=deletion">
                 <input type="hidden" name="entity_type" value="circuit">
                 <input type="hidden" name="entity_id" value="<?= $circuitId ?>">
                 <div class="form-group">
@@ -238,12 +248,17 @@ $tab = $_GET['tab'] ?? 'rankings';
                 </div>
                 <div class="form-group">
                     <label><?= $lang === 'it' ? 'Motivo della richiesta' : 'Reason for request' ?></label>
-                    <textarea name="reason" rows="3" required></textarea>
+                    <textarea name="reason" rows="4" required style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"></textarea>
                 </div>
-                <button type="submit" name="request_deletion" class="btn btn-sm btn-secondary">
-                    <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
-                </button>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" name="request_deletion" class="btn btn-primary">
+                        <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
+                    </button>
+                    <button type="button" onclick="closeModal('deletion-modal')" class="btn btn-secondary">
+                        <?= $lang === 'it' ? 'Annulla' : 'Cancel' ?>
+                    </button>
+                </div>
             </form>
-        </details>
+        </div>
     </div>
 </div>

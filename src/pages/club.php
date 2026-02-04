@@ -202,20 +202,24 @@ $isActive = $club['active_circuits'] > 0;
     <div class="alert alert-warning">
         <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
         <p><?= $lang === 'it' ? 'Questo circolo non è ancora completamente attivo. Sono necessarie le seguenti approvazioni:' : 'This club is not yet fully active. The following approvals are required:' ?></p>
-        <ul style="margin: 1rem 0;">
+        <ul class="pending-approvals-list">
             <?php foreach ($pendingConfirmations as $pending): ?>
-            <li style="margin: 0.5rem 0;">
+            <li>
                 <?= $pending['description'] ?>
                 <?php if ($pending['type'] === 'president'): ?>
                 <form method="POST" style="display: inline; margin-left: 1rem;">
                     <input type="hidden" name="action" value="resend_president">
-                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
                 </form>
                 <?php elseif ($pending['type'] === 'circuit_manager'): ?>
                 <form method="POST" style="display: inline; margin-left: 1rem;">
                     <input type="hidden" name="action" value="resend_circuit">
                     <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
-                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
                 </form>
                 <?php endif; ?>
             </li>
@@ -287,11 +291,17 @@ $isActive = $club['active_circuits'] > 0;
 
     <!-- Deletion Request Link -->
     <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-        <details style="display: inline-block; text-align: left; max-width: 500px;">
-            <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.9rem;">
-                🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
-            </summary>
-            <form method="POST" action="?page=deletion" style="margin-top: 1rem; padding: 1rem; background: var(--bg-card); border-radius: 8px;">
+        <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
+            🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
+        </button>
+    </div>
+
+    <!-- Deletion Request Modal -->
+    <div id="deletion-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button onclick="closeModal('deletion-modal')" class="modal-close">&times;</button>
+            <h3 class="modal-title">🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?></h3>
+            <form method="POST" action="?page=deletion">
                 <input type="hidden" name="entity_type" value="club">
                 <input type="hidden" name="entity_id" value="<?= $clubId ?>">
                 <div class="form-group">
@@ -300,12 +310,17 @@ $isActive = $club['active_circuits'] > 0;
                 </div>
                 <div class="form-group">
                     <label><?= $lang === 'it' ? 'Motivo della richiesta' : 'Reason for request' ?></label>
-                    <textarea name="reason" rows="3" required></textarea>
+                    <textarea name="reason" rows="4" required style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"></textarea>
                 </div>
-                <button type="submit" name="request_deletion" class="btn btn-sm btn-secondary">
-                    <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
-                </button>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" name="request_deletion" class="btn btn-primary">
+                        <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
+                    </button>
+                    <button type="button" onclick="closeModal('deletion-modal')" class="btn btn-secondary">
+                        <?= $lang === 'it' ? 'Annulla' : 'Cancel' ?>
+                    </button>
+                </div>
             </form>
-        </details>
+        </div>
     </div>
 </div>
