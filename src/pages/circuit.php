@@ -3,18 +3,47 @@
  * OpenElo - Circuit Detail & Rankings
  */
 
+require_once SRC_PATH . '/mail.php';
+
 $db = Database::get();
 
 $circuitId = (int)($_GET['id'] ?? 0);
+$message = null;
+$messageType = null;
 
-// Get circuit
-$stmt = $db->prepare("SELECT * FROM circuits WHERE id = ? AND confirmed = 1");
+// Handle resend request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resend_circuit') {
+    $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
+    $stmt->execute([$circuitId]);
+    $circuitData = $stmt->fetch();
+
+    if ($circuitData && !$circuitData['confirmed']) {
+        $token = createConfirmation('circuit', $circuitId, $circuitData['owner_email']);
+        sendCircuitConfirmation($circuitData['owner_email'], $circuitData['name'], $token);
+        $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+        $messageType = 'success';
+    }
+}
+
+// Get circuit (allow access even if not confirmed)
+$stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
 $stmt->execute([$circuitId]);
 $circuit = $stmt->fetch();
 
 if (!$circuit) {
     header('Location: ?page=circuits');
     exit;
+}
+
+// Check pending confirmations
+$pendingConfirmations = [];
+if (!$circuit['confirmed']) {
+    $pendingConfirmations[] = [
+        'type' => 'circuit',
+        'description' => $lang === 'it'
+            ? 'Conferma del responsabile circuito (' . htmlspecialchars($circuit['owner_email']) . ')'
+            : 'Circuit manager confirmation (' . htmlspecialchars($circuit['owner_email']) . ')'
+    ];
 }
 
 // Get clubs in circuit
@@ -62,6 +91,32 @@ $tab = $_GET['tab'] ?? 'rankings';
 ?>
 
 <div class="container">
+    <?php if ($message): ?>
+    <div class="alert alert-<?= $messageType ?>">
+        <?= $message ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($pendingConfirmations)): ?>
+    <div class="alert alert-warning">
+        <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
+        <p><?= $lang === 'it' ? 'Questo circuito non è ancora visibile pubblicamente. Sono necessarie le seguenti approvazioni:' : 'This circuit is not yet publicly visible. The following approvals are required:' ?></p>
+        <ul style="margin: 1rem 0;">
+            <?php foreach ($pendingConfirmations as $pending): ?>
+            <li style="margin: 0.5rem 0;">
+                <?= $pending['description'] ?>
+                <?php if ($pending['type'] === 'circuit'): ?>
+                <form method="POST" style="display: inline; margin-left: 1rem;">
+                    <input type="hidden" name="action" value="resend_circuit">
+                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+    <?php endif; ?>
+
     <div class="page-header">
         <div>
             <h1><?= htmlspecialchars($circuit['name']) ?></h1>
@@ -71,7 +126,9 @@ $tab = $_GET['tab'] ?? 'rankings';
                 <span><?= count($matches) ?> <?= __('circuit_matches') ?></span>
             </div>
         </div>
+        <?php if ($circuit['confirmed']): ?>
         <a href="?page=submit&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= __('nav_submit_result') ?></a>
+        <?php endif; ?>
     </div>
 
     <div class="tabs">

@@ -66,7 +66,7 @@ if (empty($token)) {
                         }
                     }
                     $messageType = 'success';
-                    $redirectUrl = '?page=circuits';
+                    $redirectUrl = '?page=club&id=' . $membership['club_id'];
                     break;
 
                 case 'club_circuit':
@@ -87,7 +87,7 @@ if (empty($token)) {
                         $message = __('confirm_success') . ' ' . __('status_pending_president');
                     }
                     $messageType = 'success';
-                    $redirectUrl = '?page=circuit&id=' . $updated['circuit_id'] . '&tab=clubs';
+                    $redirectUrl = '?page=club&id=' . $updated['club_id'];
                     break;
 
                 case 'membership_club':
@@ -125,7 +125,7 @@ if (empty($token)) {
                         $message = __('confirm_success') . ' ' . __('status_pending_president');
                     }
                     $messageType = 'success';
-                    $redirectUrl = '?page=circuit&id=' . $updated['circuit_id'] . '&tab=clubs';
+                    $redirectUrl = '?page=club&id=' . $updated['club_id'];
                     break;
 
                 case 'player_self':
@@ -149,6 +149,7 @@ if (empty($token)) {
                         $message = __('confirm_success') . ' ' . __('status_pending_president');
                     }
                     $messageType = 'success';
+                    $redirectUrl = '?page=player&id=' . $playerId;
                     break;
 
                 case 'player_president':
@@ -172,6 +173,7 @@ if (empty($token)) {
                         $message = __('confirm_success') . ' ' . __('status_pending_player');
                     }
                     $messageType = 'success';
+                    $redirectUrl = '?page=player&id=' . $playerId;
                     break;
 
                 case 'transfer_player':
@@ -198,6 +200,7 @@ if (empty($token)) {
                         $message = __('confirm_success') . ' ' . __('status_pending_president');
                     }
                     $messageType = 'success';
+                    $redirectUrl = '?page=player&id=' . $transfer['player_id'];
                     break;
 
                 case 'transfer_president':
@@ -224,6 +227,7 @@ if (empty($token)) {
                         $message = __('confirm_success') . ' ' . __('status_pending_player');
                     }
                     $messageType = 'success';
+                    $redirectUrl = '?page=player&id=' . $transfer['player_id'];
                     break;
 
                 case 'match':
@@ -265,7 +269,7 @@ if (empty($token)) {
                     }
 
                     $messageType = 'success';
-                    $redirectUrl = '?page=circuit&id=' . $match['circuit_id'];
+                    $redirectUrl = '?page=match&id=' . $matchId;
                     break;
 
                 default:

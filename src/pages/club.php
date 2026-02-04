@@ -11,12 +11,48 @@ $clubId = (int)($_GET['id'] ?? 0);
 $message = null;
 $messageType = null;
 
-// Get club
+// Handle resend requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'resend_president') {
+        $stmt = $db->prepare("SELECT c.*, cc.id as membership_id, ci.name as circuit_name
+            FROM clubs c
+            JOIN circuit_clubs cc ON cc.club_id = c.id
+            JOIN circuits ci ON ci.id = cc.circuit_id
+            WHERE c.id = ? AND cc.is_primary = 1");
+        $stmt->execute([$clubId]);
+        $data = $stmt->fetch();
+
+        if ($data && !$data['president_confirmed']) {
+            $token = createConfirmation('club_president', $data['membership_id'], $data['president_email']);
+            sendClubPresidentConfirmation($data['president_email'], $data['name'], $data['circuit_name'], $token);
+            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+            $messageType = 'success';
+        }
+    } elseif ($_POST['action'] === 'resend_circuit' && isset($_POST['membership_id'])) {
+        $membershipId = (int)$_POST['membership_id'];
+        $stmt = $db->prepare("SELECT c.name as club_name, ci.name as circuit_name, ci.owner_email, cc.*
+            FROM circuit_clubs cc
+            JOIN clubs c ON c.id = cc.club_id
+            JOIN circuits ci ON ci.id = cc.circuit_id
+            WHERE cc.id = ?");
+        $stmt->execute([$membershipId]);
+        $data = $stmt->fetch();
+
+        if ($data && !$data['circuit_confirmed']) {
+            $token = createConfirmation($data['is_primary'] ? 'club_circuit' : 'membership_circuit', $membershipId, $data['owner_email']);
+            sendClubCircuitConfirmation($data['owner_email'], $data['club_name'], $data['circuit_name'], $token);
+            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+            $messageType = 'success';
+        }
+    }
+}
+
+// Get club (allow access even if not fully confirmed)
 $stmt = $db->prepare("
     SELECT c.*,
         (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as active_circuits
     FROM clubs c
-    WHERE c.id = ? AND c.president_confirmed = 1
+    WHERE c.id = ?
 ");
 $stmt->execute([$clubId]);
 $club = $stmt->fetch();
@@ -24,6 +60,17 @@ $club = $stmt->fetch();
 if (!$club) {
     header('Location: ?page=circuits');
     exit;
+}
+
+// Check pending confirmations
+$pendingConfirmations = [];
+if (!$club['president_confirmed']) {
+    $pendingConfirmations[] = [
+        'type' => 'president',
+        'description' => $lang === 'it'
+            ? 'Conferma del presidente (' . htmlspecialchars($club['president_email']) . ')'
+            : 'President confirmation (' . htmlspecialchars($club['president_email']) . ')'
+    ];
 }
 
 // Handle join circuit request
@@ -75,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Get club's circuits
 $stmt = $db->prepare("
-    SELECT ci.*, cc.club_confirmed, cc.circuit_confirmed
+    SELECT ci.*, cc.id as membership_id, cc.club_confirmed, cc.circuit_confirmed
     FROM circuit_clubs cc
     JOIN circuits ci ON ci.id = cc.circuit_id
     WHERE cc.club_id = ?
@@ -83,6 +130,27 @@ $stmt = $db->prepare("
 ");
 $stmt->execute([$clubId]);
 $clubCircuits = $stmt->fetchAll();
+
+// Check for circuit approval pending
+foreach ($clubCircuits as $cc) {
+    if (!$cc['club_confirmed']) {
+        $pendingConfirmations[] = [
+            'type' => 'club_circuit',
+            'description' => $lang === 'it'
+                ? 'Conferma del presidente per il circuito "' . htmlspecialchars($cc['name']) . '"'
+                : 'President confirmation for circuit "' . htmlspecialchars($cc['name']) . '"'
+        ];
+    }
+    if (!$cc['circuit_confirmed']) {
+        $pendingConfirmations[] = [
+            'type' => 'circuit_manager',
+            'membership_id' => $cc['membership_id'],
+            'description' => $lang === 'it'
+                ? 'Conferma del responsabile del circuito "' . htmlspecialchars($cc['name']) . '"'
+                : 'Circuit manager confirmation for "' . htmlspecialchars($cc['name']) . '"'
+        ];
+    }
+}
 
 // Get players in this club
 $stmt = $db->prepare("
@@ -127,6 +195,32 @@ $isActive = $club['active_circuits'] > 0;
     <?php if ($message): ?>
     <div class="alert alert-<?= $messageType ?>">
         <?= htmlspecialchars($message) ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($pendingConfirmations)): ?>
+    <div class="alert alert-warning">
+        <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
+        <p><?= $lang === 'it' ? 'Questo circolo non è ancora completamente attivo. Sono necessarie le seguenti approvazioni:' : 'This club is not yet fully active. The following approvals are required:' ?></p>
+        <ul style="margin: 1rem 0;">
+            <?php foreach ($pendingConfirmations as $pending): ?>
+            <li style="margin: 0.5rem 0;">
+                <?= $pending['description'] ?>
+                <?php if ($pending['type'] === 'president'): ?>
+                <form method="POST" style="display: inline; margin-left: 1rem;">
+                    <input type="hidden" name="action" value="resend_president">
+                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                </form>
+                <?php elseif ($pending['type'] === 'circuit_manager'): ?>
+                <form method="POST" style="display: inline; margin-left: 1rem;">
+                    <input type="hidden" name="action" value="resend_circuit">
+                    <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
+                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
     </div>
     <?php endif; ?>
 

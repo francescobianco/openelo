@@ -34,9 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $token = createConfirmation('circuit', $circuitId, $email);
                 sendCircuitConfirmation($email, $name, $token);
 
-                $message = __('circuit_created');
-                $messageType = 'success';
-                break;
+                // Redirect to circuit page
+                header('Location: ?page=circuit&id=' . $circuitId);
+                exit;
 
             case 'create_club':
                 $name = trim($_POST['name'] ?? '');
@@ -77,9 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tokenCircuit = createConfirmation('club_circuit', $membershipId, $circuit['owner_email']);
                 sendClubCircuitConfirmation($circuit['owner_email'], $name, $circuit['name'], $tokenCircuit);
 
-                $message = __('club_created');
-                $messageType = 'success';
-                break;
+                // Redirect to club page
+                header('Location: ?page=club&id=' . $clubId);
+                exit;
 
             case 'register_player':
                 $firstName = trim($_POST['first_name'] ?? '');
@@ -127,9 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tokenPresident = createConfirmation('player_president', $playerId, $club['president_email']);
                 sendPlayerPresidentConfirmation($club['president_email'], $playerName, $club['name'], $tokenPresident);
 
-                $message = __('player_registered');
-                $messageType = 'success';
-                break;
+                // Redirect to player page
+                header('Location: ?page=player&id=' . $playerId);
+                exit;
         }
     } catch (Exception $e) {
         $message = $e->getMessage();

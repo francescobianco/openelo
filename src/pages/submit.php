@@ -86,8 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tokenPresident = createConfirmation('match', $matchId, $presidentEmail, 'president');
         sendMatchConfirmation($presidentEmail, 'president', $matchDetails, $tokenPresident);
 
-        $message = __('match_submitted');
-        $messageType = 'success';
+        // Redirect to match page
+        header('Location: ?page=match&id=' . $matchId);
+        exit;
 
     } catch (Exception $e) {
         $message = $e->getMessage();

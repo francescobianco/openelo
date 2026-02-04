@@ -11,12 +11,47 @@ $playerId = (int)($_GET['id'] ?? 0);
 $message = null;
 $messageType = null;
 
-// Get player with club
+// Handle resend requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'resend_player') {
+        $stmt = $db->prepare("SELECT p.*, c.name as club_name
+            FROM players p
+            JOIN clubs c ON c.id = p.club_id
+            WHERE p.id = ?");
+        $stmt->execute([$playerId]);
+        $playerData = $stmt->fetch();
+
+        if ($playerData && !$playerData['player_confirmed']) {
+            $playerName = $playerData['first_name'] . ' ' . $playerData['last_name'];
+            $token = createConfirmation('player_self', $playerId, $playerData['email']);
+            sendPlayerSelfConfirmation($playerData['email'], $playerName, $playerData['club_name'], $token);
+            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+            $messageType = 'success';
+        }
+    } elseif ($_POST['action'] === 'resend_president') {
+        $stmt = $db->prepare("SELECT p.*, c.name as club_name, c.president_email
+            FROM players p
+            JOIN clubs c ON c.id = p.club_id
+            WHERE p.id = ?");
+        $stmt->execute([$playerId]);
+        $playerData = $stmt->fetch();
+
+        if ($playerData && !$playerData['president_confirmed']) {
+            $playerName = $playerData['first_name'] . ' ' . $playerData['last_name'];
+            $token = createConfirmation('player_president', $playerId, $playerData['president_email']);
+            sendPlayerPresidentConfirmation($playerData['president_email'], $playerName, $playerData['club_name'], $token);
+            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+            $messageType = 'success';
+        }
+    }
+}
+
+// Get player with club (allow access even if not confirmed)
 $stmt = $db->prepare("
-    SELECT p.*, c.name as club_name, c.id as club_id
+    SELECT p.*, c.name as club_name, c.id as club_id, c.president_email
     FROM players p
     JOIN clubs c ON c.id = p.club_id
-    WHERE p.id = ? AND p.confirmed = 1
+    WHERE p.id = ?
 ");
 $stmt->execute([$playerId]);
 $player = $stmt->fetch();
@@ -24,6 +59,25 @@ $player = $stmt->fetch();
 if (!$player) {
     header('Location: ?page=circuits');
     exit;
+}
+
+// Check pending confirmations
+$pendingConfirmations = [];
+if (!$player['player_confirmed']) {
+    $pendingConfirmations[] = [
+        'type' => 'player',
+        'description' => $lang === 'it'
+            ? 'Conferma del giocatore (' . htmlspecialchars($player['email']) . ')'
+            : 'Player confirmation (' . htmlspecialchars($player['email']) . ')'
+    ];
+}
+if (!$player['president_confirmed']) {
+    $pendingConfirmations[] = [
+        'type' => 'president',
+        'description' => $lang === 'it'
+            ? 'Conferma del presidente del circolo (' . htmlspecialchars($player['president_email']) . ')'
+            : 'Club president confirmation (' . htmlspecialchars($player['president_email']) . ')'
+    ];
 }
 
 // Handle transfer request
@@ -124,6 +178,21 @@ $stmt = $db->prepare("
 ");
 $stmt->execute([$playerId, $playerId]);
 $matches = $stmt->fetchAll();
+
+// Get pending matches (not yet fully confirmed)
+$stmt = $db->prepare("
+    SELECT m.*, ci.name as circuit_name,
+        pw.first_name as white_first, pw.last_name as white_last,
+        pb.first_name as black_first, pb.last_name as black_last
+    FROM matches m
+    JOIN circuits ci ON ci.id = m.circuit_id
+    JOIN players pw ON pw.id = m.white_player_id
+    JOIN players pb ON pb.id = m.black_player_id
+    WHERE (m.white_player_id = ? OR m.black_player_id = ?) AND m.rating_applied = 0
+    ORDER BY m.created_at DESC
+");
+$stmt->execute([$playerId, $playerId]);
+$pendingMatches = $stmt->fetchAll();
 ?>
 
 <div class="container">
@@ -139,6 +208,31 @@ $matches = $stmt->fetchAll();
     <?php if ($message): ?>
     <div class="alert alert-<?= $messageType ?>">
         <?= htmlspecialchars($message) ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($pendingConfirmations)): ?>
+    <div class="alert alert-warning">
+        <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
+        <p><?= $lang === 'it' ? 'Questo giocatore non è ancora attivo. Sono necessarie le seguenti approvazioni:' : 'This player is not yet active. The following approvals are required:' ?></p>
+        <ul style="margin: 1rem 0;">
+            <?php foreach ($pendingConfirmations as $pending): ?>
+            <li style="margin: 0.5rem 0;">
+                <?= $pending['description'] ?>
+                <?php if ($pending['type'] === 'player'): ?>
+                <form method="POST" style="display: inline; margin-left: 1rem;">
+                    <input type="hidden" name="action" value="resend_player">
+                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                </form>
+                <?php elseif ($pending['type'] === 'president'): ?>
+                <form method="POST" style="display: inline; margin-left: 1rem;">
+                    <input type="hidden" name="action" value="resend_president">
+                    <button type="submit" class="btn btn-sm"><?= $lang === 'it' ? 'Invia di nuovo richiesta' : 'Resend request' ?></button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
     </div>
     <?php endif; ?>
 
@@ -171,6 +265,45 @@ $matches = $stmt->fetchAll();
             </div>
             <?php endif; ?>
         </div>
+
+        <!-- Pending Matches -->
+        <?php if (!empty($pendingMatches)): ?>
+        <div class="create-section">
+            <h2>⏳ <?= $lang === 'it' ? 'Partite in attesa di approvazione' : 'Matches Pending Approval' ?></h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><?= __('form_white') ?></th>
+                            <th></th>
+                            <th><?= __('form_black') ?></th>
+                            <th><?= __('form_circuit') ?></th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($pendingMatches as $m): ?>
+                        <tr>
+                            <td <?= $m['white_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
+                                <?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?>
+                            </td>
+                            <td><strong><?= $m['result'] ?></strong></td>
+                            <td <?= $m['black_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
+                                <?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?>
+                            </td>
+                            <td><?= htmlspecialchars($m['circuit_name']) ?></td>
+                            <td>
+                                <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm">
+                                    <?= $lang === 'it' ? 'Vedi dettagli' : 'View details' ?>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Change Club -->
         <?php if (!empty($availableClubs)): ?>
