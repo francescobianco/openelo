@@ -78,22 +78,31 @@ a:hover {
 .logo {
     display: flex;
     align-items: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    gap: 0.5rem;
+    position: relative;
+    margin-left: -0.5rem;
 }
 
 .logo:hover {
     text-decoration: none;
 }
 
-.logo span {
-    color: var(--accent);
+.logo-img {
+    height: 50px;
+    width: auto;
+    position: relative;
+    z-index: 1;
 }
 
-.logo-img {
-    height: 40px;
-    width: auto;
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.logo-text span {
+    color: var(--accent);
 }
 
 .nav {
@@ -125,7 +134,6 @@ a:hover {
 .nav-submit-btn:hover {
     background: var(--accent-hover) !important;
     color: white !important;
-    transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
 }
 
@@ -178,8 +186,12 @@ a:hover {
 
 .mobile-actions {
     display: none;
-    align-items: center;
-    gap: 1rem;
+}
+
+@media (min-width: 769px) {
+    .mobile-actions {
+        display: none !important;
+    }
 }
 
 /* Hero */
@@ -776,8 +788,16 @@ tr:hover {
         align-items: center;
     }
 
+    .logo {
+        margin-left: 0;
+    }
+
     .logo-img {
-        height: 32px;
+        height: 40px;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
     }
 
     .hamburger {

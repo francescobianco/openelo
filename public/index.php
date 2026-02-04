@@ -54,7 +54,8 @@ $content = ob_get_clean();
     <header class="header">
         <div class="header-inner">
             <a href="?" class="logo">
-                <img src="<?= asset('logo.png') ?>" alt="OpenELO" class="logo-img">
+                <img src="<?= asset('logo.png') ?>" alt="OpenELO Logo" class="logo-img">
+                <span class="logo-text">Open<span>ELO</span></span>
             </a>
             <div class="mobile-actions">
                 <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
