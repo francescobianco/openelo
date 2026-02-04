@@ -668,7 +668,7 @@ tr:hover {
 }
 
 .create-section.glow-highlight {
-    animation: glow-pulse 2s ease-in-out 3 forwards;
+    animation: glow-pulse 2s ease-in-out 2 forwards;
 }
 
 @keyframes glow-pulse {
