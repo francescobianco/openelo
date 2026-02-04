@@ -224,7 +224,7 @@ $stmt = $db->prepare("
 $stmt->execute([$player['club_id']]);
 $availableClubs = $stmt->fetchAll();
 
-// Get recent matches with rating changes
+// Get recent matches with rating changes (only matches with stored rating data)
 $stmt = $db->prepare("
     SELECT m.*, ci.name as circuit_name, ci.id as circuit_id,
         pw.first_name as white_first, pw.last_name as white_last,
@@ -236,7 +236,10 @@ $stmt = $db->prepare("
     JOIN circuits ci ON ci.id = m.circuit_id
     JOIN players pw ON pw.id = m.white_player_id
     JOIN players pb ON pb.id = m.black_player_id
-    WHERE (m.white_player_id = ? OR m.black_player_id = ?) AND m.rating_applied = 1
+    WHERE (m.white_player_id = ? OR m.black_player_id = ?)
+        AND m.rating_applied = 1
+        AND m.white_rating_before IS NOT NULL
+        AND m.white_rating_before > 0
     ORDER BY m.created_at DESC
     LIMIT 20
 ");
@@ -277,31 +280,34 @@ $pendingMatches = $stmt->fetchAll();
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning">
-        <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-        <p><?= $lang === 'it' ? 'Questo giocatore non è ancora attivo. Sono necessarie le seguenti approvazioni:' : 'This player is not yet active. The following approvals are required:' ?></p>
-        <ul class="pending-approvals-list">
-            <?php foreach ($pendingConfirmations as $pending): ?>
-            <li>
-                <?= $pending['description'] ?>
-                <?php if ($pending['type'] === 'player'): ?>
-                <form method="POST" style="display: inline; margin-left: 1rem;">
-                    <input type="hidden" name="action" value="resend_player">
-                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                    </button>
-                </form>
-                <?php elseif ($pending['type'] === 'president'): ?>
-                <form method="POST" style="display: inline; margin-left: 1rem;">
-                    <input type="hidden" name="action" value="resend_president">
-                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                    </button>
-                </form>
-                <?php endif; ?>
-            </li>
-            <?php endforeach; ?>
-        </ul>
+    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
+        <div style="font-size: 2rem; line-height: 1; flex-shrink: 0;">⏳</div>
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
+            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo giocatore non è ancora attivo. Sono necessarie le seguenti approvazioni:' : 'This player is not yet active. The following approvals are required:' ?></p>
+            <ul class="pending-approvals-list">
+                <?php foreach ($pendingConfirmations as $pending): ?>
+                <li>
+                    <?= $pending['description'] ?>
+                    <?php if ($pending['type'] === 'player'): ?>
+                    <form method="POST" style="display: inline; margin-left: 1rem;">
+                        <input type="hidden" name="action" value="resend_player">
+                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                        </button>
+                    </form>
+                    <?php elseif ($pending['type'] === 'president'): ?>
+                    <form method="POST" style="display: inline; margin-left: 1rem;">
+                        <input type="hidden" name="action" value="resend_president">
+                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
     </div>
     <?php endif; ?>
 
@@ -319,6 +325,7 @@ $pendingMatches = $stmt->fetchAll();
                             <th><?= __('form_circuit') ?></th>
                             <th><?= __('rankings_rating') ?></th>
                             <th><?= __('rankings_games') ?></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -327,6 +334,11 @@ $pendingMatches = $stmt->fetchAll();
                             <td><a href="?page=circuit&id=<?= $r['circuit_id'] ?>"><?= htmlspecialchars($r['circuit_name']) ?></a></td>
                             <td class="rating"><?= $r['rating'] ?></td>
                             <td><?= $r['games_played'] ?></td>
+                            <td>
+                                <a href="?page=player_history&player=<?= $playerId ?>&circuit=<?= $r['circuit_id'] ?>" class="btn btn-sm btn-secondary">
+                                    <?= $lang === 'it' ? 'Storico' : 'History' ?>
+                                </a>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

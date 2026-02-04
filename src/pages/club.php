@@ -199,32 +199,35 @@ $isActive = $club['active_circuits'] > 0;
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning">
-        <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-        <p><?= $lang === 'it' ? 'Questo circolo non è ancora completamente attivo. Sono necessarie le seguenti approvazioni:' : 'This club is not yet fully active. The following approvals are required:' ?></p>
-        <ul class="pending-approvals-list">
-            <?php foreach ($pendingConfirmations as $pending): ?>
-            <li>
-                <?= $pending['description'] ?>
-                <?php if ($pending['type'] === 'president'): ?>
-                <form method="POST" style="display: inline; margin-left: 1rem;">
-                    <input type="hidden" name="action" value="resend_president">
-                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                    </button>
-                </form>
-                <?php elseif ($pending['type'] === 'circuit_manager'): ?>
-                <form method="POST" style="display: inline; margin-left: 1rem;">
-                    <input type="hidden" name="action" value="resend_circuit">
-                    <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
-                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                    </button>
-                </form>
-                <?php endif; ?>
-            </li>
-            <?php endforeach; ?>
-        </ul>
+    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
+        <div style="font-size: 2rem; line-height: 1; flex-shrink: 0;">⏳</div>
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
+            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo circolo non è ancora completamente attivo. Sono necessarie le seguenti approvazioni:' : 'This club is not yet fully active. The following approvals are required:' ?></p>
+            <ul class="pending-approvals-list">
+                <?php foreach ($pendingConfirmations as $pending): ?>
+                <li>
+                    <?= $pending['description'] ?>
+                    <?php if ($pending['type'] === 'president'): ?>
+                    <form method="POST" style="display: inline; margin-left: 1rem;">
+                        <input type="hidden" name="action" value="resend_president">
+                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                        </button>
+                    </form>
+                    <?php elseif ($pending['type'] === 'circuit_manager'): ?>
+                    <form method="POST" style="display: inline; margin-left: 1rem;">
+                        <input type="hidden" name="action" value="resend_circuit">
+                        <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
+                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
     </div>
     <?php endif; ?>
 

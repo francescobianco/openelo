@@ -691,7 +691,8 @@ tr:hover {
 }
 
 .deletion-link:hover {
-    text-decoration: underline;
+    text-decoration: none;
+    opacity: 0.8;
 }
 
 /* Pending approvals list */
@@ -814,15 +815,16 @@ tr:hover {
         left: -100%;
         width: 280px;
         height: 100vh;
-        background: var(--bg-secondary);
+        background: var(--bg-card);
         flex-direction: column;
         padding: 5rem 2rem 2rem;
         gap: 0;
         align-items: flex-start;
         transition: left 0.3s ease;
-        z-index: 999;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
         overflow-y: auto;
+        pointer-events: auto;
     }
 
     .nav.active {
@@ -862,8 +864,9 @@ tr:hover {
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 998;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 999;
+        pointer-events: auto;
     }
 
     .mobile-overlay.active {

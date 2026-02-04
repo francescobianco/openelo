@@ -144,23 +144,26 @@ $isApplied = $match['rating_applied'] == 1;
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning">
-        <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-        <p><?= $lang === 'it' ? 'Questa partita non è ancora stata validata. Sono necessarie le seguenti approvazioni:' : 'This match has not been validated yet. The following approvals are required:' ?></p>
-        <ul class="pending-approvals-list">
-            <?php foreach ($pendingConfirmations as $pending): ?>
-            <li>
-                <?= $pending['description'] ?>
-                <form method="POST" style="display: inline; margin-left: 1rem;">
-                    <input type="hidden" name="action" value="resend_match">
-                    <input type="hidden" name="role" value="<?= $pending['type'] ?>">
-                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                    </button>
-                </form>
-            </li>
-            <?php endforeach; ?>
-        </ul>
+    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
+        <div style="font-size: 2rem; line-height: 1; flex-shrink: 0;">⏳</div>
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
+            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questa partita non è ancora stata validata. Sono necessarie le seguenti approvazioni:' : 'This match has not been validated yet. The following approvals are required:' ?></p>
+            <ul class="pending-approvals-list">
+                <?php foreach ($pendingConfirmations as $pending): ?>
+                <li>
+                    <?= $pending['description'] ?>
+                    <form method="POST" style="display: inline; margin-left: 1rem;">
+                        <input type="hidden" name="action" value="resend_match">
+                        <input type="hidden" name="role" value="<?= $pending['type'] ?>">
+                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                        </button>
+                    </form>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
     </div>
     <?php elseif ($isApplied): ?>
     <div class="alert alert-success">
@@ -200,7 +203,7 @@ $isApplied = $match['rating_applied'] == 1;
 
             <!-- Result -->
             <div class="match-vs" style="font-size: 2rem; font-weight: bold; min-width: 80px;">
-                <?= htmlspecialchars($match['result']) ?>
+                <?= htmlspecialchars(str_replace('-', ' - ', $match['result'])) ?>
             </div>
 
             <!-- Black -->
@@ -221,6 +224,29 @@ $isApplied = $match['rating_applied'] == 1;
                 <?php endif; ?>
             </div>
         </div>
+
+        <!-- ELO Stakes -->
+        <?php if ($match['white_rating_before'] && $match['white_rating_change'] !== null): ?>
+        <div style="text-align: center; margin-top: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                <?= $lang === 'it' ? 'Posta ELO in gioco' : 'ELO at stake' ?>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                <div>
+                    <span style="color: var(--text-secondary);">♔</span>
+                    <strong style="color: <?= $match['white_rating_change'] > 0 ? 'var(--success)' : ($match['white_rating_change'] < 0 ? 'var(--error)' : 'var(--text-secondary)') ?>">
+                        <?= $match['white_rating_change'] > 0 ? '+' : '' ?><?= $match['white_rating_change'] ?>
+                    </strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-secondary);">♚</span>
+                    <strong style="color: <?= $match['black_rating_change'] > 0 ? 'var(--success)' : ($match['black_rating_change'] < 0 ? 'var(--error)' : 'var(--text-secondary)') ?>">
+                        <?= $match['black_rating_change'] > 0 ? '+' : '' ?><?= $match['black_rating_change'] ?>
+                    </strong>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
 

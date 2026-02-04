@@ -46,11 +46,15 @@ if (!$circuit['confirmed']) {
     ];
 }
 
-// Get clubs in circuit
+// Get clubs in circuit with player count
 $stmt = $db->prepare("
-    SELECT cl.* FROM clubs cl
+    SELECT cl.*,
+        COUNT(DISTINCT p.id) as player_count
+    FROM clubs cl
     JOIN circuit_clubs cc ON cc.club_id = cl.id
+    LEFT JOIN players p ON p.club_id = cl.id AND p.confirmed = 1
     WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
+    GROUP BY cl.id
     ORDER BY cl.name
 ");
 $stmt->execute([$circuitId]);
@@ -98,24 +102,27 @@ $tab = $_GET['tab'] ?? 'rankings';
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning">
-        <h3 style="margin-top: 0;">⏳ <?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-        <p><?= $lang === 'it' ? 'Questo circuito non è ancora visibile pubblicamente. Sono necessarie le seguenti approvazioni:' : 'This circuit is not yet publicly visible. The following approvals are required:' ?></p>
-        <ul class="pending-approvals-list">
-            <?php foreach ($pendingConfirmations as $pending): ?>
-            <li>
-                <?= $pending['description'] ?>
-                <?php if ($pending['type'] === 'circuit'): ?>
-                <form method="POST" style="display: inline; margin-left: 1rem;">
-                    <input type="hidden" name="action" value="resend_circuit">
-                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                    </button>
-                </form>
-                <?php endif; ?>
-            </li>
-            <?php endforeach; ?>
-        </ul>
+    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
+        <div style="font-size: 2rem; line-height: 1; flex-shrink: 0;">⏳</div>
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
+            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo circuito non è ancora visibile pubblicamente. Sono necessarie le seguenti approvazioni:' : 'This circuit is not yet publicly visible. The following approvals are required:' ?></p>
+            <ul class="pending-approvals-list">
+                <?php foreach ($pendingConfirmations as $pending): ?>
+                <li>
+                    <?= $pending['description'] ?>
+                    <?php if ($pending['type'] === 'circuit'): ?>
+                    <form method="POST" style="display: inline; margin-left: 1rem;">
+                        <input type="hidden" name="action" value="resend_circuit">
+                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
     </div>
     <?php endif; ?>
 
@@ -184,6 +191,9 @@ $tab = $_GET['tab'] ?? 'rankings';
         <?php foreach ($clubs as $club): ?>
         <div class="circuit-card">
             <h3><a href="?page=club&id=<?= $club['id'] ?>"><?= htmlspecialchars($club['name']) ?></a></h3>
+            <div class="circuit-meta">
+                <span><?= $club['player_count'] ?> <?= $club['player_count'] == 1 ? ($lang === 'it' ? 'giocatore' : 'player') : ($lang === 'it' ? 'giocatori' : 'players') ?></span>
+            </div>
         </div>
         <?php endforeach; ?>
         <?php endif; ?>
@@ -203,6 +213,7 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <th><?= __('form_result') ?></th>
                         <th><?= __('form_black') ?></th>
                         <th>Data</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -212,12 +223,17 @@ $tab = $_GET['tab'] ?? 'rankings';
                             <a href="?page=player&id=<?= $match['white_id'] ?>"><?= htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) ?></a>
                             <small style="color: var(--text-secondary);">(<?= htmlspecialchars($match['white_club']) ?>)</small>
                         </td>
-                        <td><strong><?= $match['result'] ?></strong></td>
+                        <td><strong><?= str_replace('-', ' - ', $match['result']) ?></strong></td>
                         <td>
                             <a href="?page=player&id=<?= $match['black_id'] ?>"><?= htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) ?></a>
                             <small style="color: var(--text-secondary);">(<?= htmlspecialchars($match['black_club']) ?>)</small>
                         </td>
                         <td><?= date('d/m/Y', strtotime($match['created_at'])) ?></td>
+                        <td>
+                            <a href="?page=match&id=<?= $match['id'] ?>" class="btn btn-sm btn-secondary">
+                                <?= $lang === 'it' ? 'Dettagli' : 'Details' ?>
+                            </a>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
