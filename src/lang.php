@@ -13,6 +13,7 @@ $translations = [
         // Navigation
         'nav_home' => 'Home',
         'nav_circuits' => 'Circuits',
+        'nav_clubs' => 'Clubs',
         'nav_rankings' => 'Rankings',
         'nav_submit_result' => 'Submit Result',
         'nav_create' => 'Create',
@@ -138,6 +139,7 @@ $translations = [
         // Navigation
         'nav_home' => 'Home',
         'nav_circuits' => 'Circuiti',
+        'nav_clubs' => 'Circoli',
         'nav_rankings' => 'Classifiche',
         'nav_submit_result' => 'Inserisci Risultato',
         'nav_create' => 'Crea',

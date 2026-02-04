@@ -37,18 +37,20 @@ $clubs = $db->query("
     <?php else: ?>
     <div class="circuits-grid">
         <?php foreach ($clubs as $club): ?>
-        <div class="circuit-card">
-            <h3><a href="?page=club&id=<?= $club['id'] ?>"><?= htmlspecialchars($club['name']) ?></a></h3>
-            <div class="circuit-meta">
-                <span>♔ <?= $club['circuit_count'] ?> <?= __('nav_circuits') ?></span>
-                <span>♟ <?= $club['player_count'] ?> <?= __('circuit_players') ?></span>
+        <a href="?page=club&id=<?= $club['id'] ?>" class="circuit-card-link">
+            <div class="circuit-card">
+                <h3><?= htmlspecialchars($club['name']) ?></h3>
+                <div class="circuit-meta">
+                    <span>♔ <?= $club['circuit_count'] ?> <?= __('nav_circuits') ?></span>
+                    <span>♟ <?= $club['player_count'] ?> <?= __('circuit_players') ?></span>
+                </div>
+                <?php if ($club['circuit_names']): ?>
+                <div class="club-circuits">
+                    <?= htmlspecialchars($club['circuit_names']) ?>
+                </div>
+                <?php endif; ?>
             </div>
-            <?php if ($club['circuit_names']): ?>
-            <div class="club-circuits">
-                <?= htmlspecialchars($club['circuit_names']) ?>
-            </div>
-            <?php endif; ?>
-        </div>
+        </a>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>

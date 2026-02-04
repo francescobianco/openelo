@@ -334,23 +334,27 @@ a:hover {
     gap: 1.5rem;
 }
 
+.circuit-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 .circuit-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, transform 0.2s;
 }
 
-.circuit-card:hover {
+.circuit-card-link:hover .circuit-card {
     border-color: var(--accent);
+    transform: translateY(-2px);
 }
 
 .circuit-card h3 {
     margin-bottom: 0.5rem;
-}
-
-.circuit-card h3 a {
     color: var(--text-primary);
 }
 
@@ -362,7 +366,8 @@ a:hover {
     margin-bottom: 0.5rem;
 }
 
-.circuit-date {
+.circuit-date,
+.club-circuits {
     font-size: 0.85rem;
     color: var(--text-secondary);
 }

@@ -31,17 +31,19 @@ $circuits = $db->query("
     <?php else: ?>
     <div class="circuits-grid">
         <?php foreach ($circuits as $circuit): ?>
-        <div class="circuit-card">
-            <h3><a href="?page=circuit&id=<?= $circuit['id'] ?>"><?= htmlspecialchars($circuit['name']) ?></a></h3>
-            <div class="circuit-meta">
-                <span><?= $circuit['club_count'] ?> <?= __('circuit_clubs') ?></span>
-                <span><?= $circuit['player_count'] ?> <?= __('circuit_players') ?></span>
-                <span><?= $circuit['match_count'] ?> <?= __('circuit_matches') ?></span>
+        <a href="?page=circuit&id=<?= $circuit['id'] ?>" class="circuit-card-link">
+            <div class="circuit-card">
+                <h3><?= htmlspecialchars($circuit['name']) ?></h3>
+                <div class="circuit-meta">
+                    <span><?= $circuit['club_count'] ?> <?= __('circuit_clubs') ?></span>
+                    <span><?= $circuit['player_count'] ?> <?= __('circuit_players') ?></span>
+                    <span><?= $circuit['match_count'] ?> <?= __('circuit_matches') ?></span>
+                </div>
+                <div class="circuit-date">
+                    <?= date('d/m/Y', strtotime($circuit['created_at'])) ?>
+                </div>
             </div>
-            <div class="circuit-date">
-                <?= date('d/m/Y', strtotime($circuit['created_at'])) ?>
-            </div>
-        </div>
+        </a>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
