@@ -44,6 +44,7 @@ $content = ob_get_clean();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= __('site_title') ?> - <?= __('site_tagline') ?></title>
     <meta name="description" content="<?= __('site_description') ?>">
+    <link rel="icon" type="image/x-icon" href="<?= asset('favicon.ico') ?>">
     <link rel="stylesheet" href="<?= asset('style.css') ?>">
 </head>
 <body>
@@ -52,7 +53,9 @@ $content = ob_get_clean();
 
     <header class="header">
         <div class="header-inner">
-            <a href="?" class="logo">♞ Open<span>ELO</span></a>
+            <a href="?" class="logo">
+                <img src="<?= asset('logo.png') ?>" alt="OpenELO" class="logo-img">
+            </a>
             <div class="mobile-actions">
                 <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
                 <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
@@ -65,7 +68,7 @@ $content = ob_get_clean();
                 <div class="nav-links">
                     <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
                     <a href="?page=clubs" <?= $page === 'clubs' || $page === 'club' ? 'class="active"' : '' ?>><?= __('nav_clubs') ?></a>
-                    <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>" style="display: none;"><?= __('nav_submit_result') ?></a>
+                    <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
                     <a href="?page=create" <?= $page === 'create' ? 'class="active"' : '' ?>><?= __('nav_create') ?></a>
                 </div>
                 <select class="lang-select" onchange="changeLang(this.value)">
