@@ -138,13 +138,12 @@ function runMigrations(): void {
                 }
 
                 try {
-                    $db->beginTransaction();
+                    // MySQL DDL statements cause implicit commit, so we can't use transactions
+                    // SQLite supports transactional DDL, but for consistency we don't use transactions for migrations
                     $migrationCode['up']($db, DB_TYPE);
                     markMigrationExecuted($db, $migration);
-                    $db->commit();
                     output("✓ Success: $migration", 'success');
                 } catch (Exception $e) {
-                    $db->rollBack();
                     output("✗ Failed: $migration - " . $e->getMessage(), 'error');
                     throw $e;
                 }
