@@ -193,7 +193,6 @@ $tab = $_GET['tab'] ?? 'rankings';
         <?php endif; ?>
     </div>
     <?php elseif ($tab === 'clubs'): ?>
-    <div class="circuits-grid">
         <?php if (empty($clubs)): ?>
         <div class="empty-state">
             <p><?= $lang === 'it' ? 'Nessun circolo ancora.' : 'No clubs yet.' ?></p>
@@ -202,6 +201,7 @@ $tab = $_GET['tab'] ?? 'rankings';
             </a>
         </div>
         <?php else: ?>
+    <div class="circuits-grid">
         <?php foreach ($clubs as $club): ?>
         <div class="circuit-card">
             <h3><a href="?page=club&id=<?= $club['id'] ?>"><?= htmlspecialchars($club['name']) ?></a></h3>
@@ -210,8 +210,8 @@ $tab = $_GET['tab'] ?? 'rankings';
             </div>
         </div>
         <?php endforeach; ?>
-        <?php endif; ?>
     </div>
+        <?php endif; ?>
     <?php elseif ($tab === 'matches'): ?>
     <div class="card">
         <?php if (empty($matches)): ?>
