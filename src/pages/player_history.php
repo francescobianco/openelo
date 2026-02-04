@@ -80,7 +80,7 @@ $stmt = $db->prepare("
     FROM manual_rating_requests
     WHERE player_id = ?
         AND circuit_id = ?
-        AND completed = 1
+        AND applied = 1
         AND player_confirmed = 1
         AND president_confirmed = 1
         AND circuit_confirmed = 1
@@ -112,7 +112,7 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
 <div class="container">
     <div class="page-header">
         <div>
-            <h1>📊 <?= $lang === 'it' ? 'Storico Partite' : 'Match History' ?></h1>
+            <h1>📊 <?= $lang === 'it' ? 'Storico Rating' : 'Rating History' ?></h1>
             <div style="margin-top: 0.5rem; color: var(--text-secondary);">
                 <a href="?page=player&id=<?= $playerId ?>"><?= htmlspecialchars($playerName) ?></a>
                 <span style="margin: 0 0.5rem;">•</span>
@@ -138,13 +138,13 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
     <?php endif; ?>
 
     <div class="card">
-        <?php if (empty($matches)): ?>
+        <?php if (empty($history)): ?>
         <div class="empty-state">
-            <p><?= $lang === 'it' ? 'Nessuna partita registrata con dati di rating.' : 'No matches recorded with rating data.' ?></p>
+            <p><?= $lang === 'it' ? 'Nessuna attività registrata con dati di rating.' : 'No activity recorded with rating data.' ?></p>
             <p style="font-size: 0.9rem; color: var(--text-secondary);">
                 <?= $lang === 'it'
-                    ? 'Solo le partite create dopo l\'attivazione del sistema di tracking mostrano i parziali ELO.'
-                    : 'Only matches created after the tracking system was activated show ELO changes.' ?>
+                    ? 'Solo le partite e le variazioni manuali approvate mostrano i parziali ELO.'
+                    : 'Only approved matches and manual adjustments show ELO changes.' ?>
             </p>
         </div>
         <?php else: ?>
@@ -154,8 +154,8 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
                     <tr>
                         <th>#</th>
                         <th><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
-                        <th><?= $lang === 'it' ? 'Avversario' : 'Opponent' ?></th>
-                        <th><?= $lang === 'it' ? 'Circolo' : 'Club' ?></th>
+                        <th><?= $lang === 'it' ? 'Tipo' : 'Type' ?></th>
+                        <th><?= $lang === 'it' ? 'Dettagli' : 'Details' ?></th>
                         <th><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
                         <th><?= $lang === 'it' ? 'Rating' : 'Rating' ?></th>
                         <th><?= $lang === 'it' ? 'Variazione' : 'Change' ?></th>
@@ -163,44 +163,50 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
                 </thead>
                 <tbody>
                     <?php
-                    $matchNumber = 1;
-                    foreach ($matches as $m):
-                        $isWhite = ($m['white_id'] == $playerId);
-                        $opponentId = $isWhite ? $m['black_id'] : $m['white_id'];
-                        $opponentName = $isWhite
-                            ? $m['black_first'] . ' ' . $m['black_last']
-                            : $m['white_first'] . ' ' . $m['white_last'];
-                        $opponentClub = $isWhite ? $m['black_club'] : $m['white_club'];
+                    $entryNumber = 1;
+                    $prevRating = null;
+                    foreach ($history as $entry):
+                        if ($entry['entry_type'] === 'match'):
+                            // Match entry
+                            $m = $entry;
+                            $isWhite = ($m['white_id'] == $playerId);
+                            $opponentId = $isWhite ? $m['black_id'] : $m['white_id'];
+                            $opponentName = $isWhite
+                                ? $m['black_first'] . ' ' . $m['black_last']
+                                : $m['white_first'] . ' ' . $m['white_last'];
+                            $opponentClub = $isWhite ? $m['black_club'] : $m['white_club'];
 
-                        $ratingBefore = $isWhite ? $m['white_rating_before'] : $m['black_rating_before'];
-                        $ratingChange = $isWhite ? $m['white_rating_change'] : $m['black_rating_change'];
-                        $ratingAfter = $ratingBefore + $ratingChange;
+                            $ratingBefore = $isWhite ? $m['white_rating_before'] : $m['black_rating_before'];
+                            $ratingChange = $isWhite ? $m['white_rating_change'] : $m['black_rating_change'];
+                            $ratingAfter = $ratingBefore + $ratingChange;
 
-                        // Determine result from player's perspective
-                        if ($m['result'] === '0.5-0.5') {
-                            $playerResult = '=';
-                            $resultColor = 'var(--text-secondary)';
-                        } elseif (($isWhite && $m['result'] === '1-0') || (!$isWhite && $m['result'] === '0-1')) {
-                            $playerResult = 'W';
-                            $resultColor = 'var(--success)';
-                        } else {
-                            $playerResult = 'L';
-                            $resultColor = 'var(--error)';
-                        }
+                            // Determine result from player's perspective
+                            if ($m['result'] === '0.5-0.5') {
+                                $playerResult = '=';
+                                $resultColor = 'var(--text-secondary)';
+                            } elseif (($isWhite && $m['result'] === '1-0') || (!$isWhite && $m['result'] === '0-1')) {
+                                $playerResult = 'W';
+                                $resultColor = 'var(--success)';
+                            } else {
+                                $playerResult = 'L';
+                                $resultColor = 'var(--error)';
+                            }
                     ?>
                     <tr>
-                        <td style="color: var(--text-secondary);"><?= $matchNumber++ ?></td>
+                        <td style="color: var(--text-secondary);"><?= $entryNumber++ ?></td>
                         <td style="font-size: 0.85rem; color: var(--text-secondary);">
                             <?= date('d/m/Y', strtotime($m['created_at'])) ?>
                         </td>
                         <td>
-                            <?= $isWhite ? '♚' : '♔' ?>
+                            <span style="font-size: 1.2rem;"><?= $isWhite ? '♚' : '♔' ?></span>
+                        </td>
+                        <td>
                             <a href="?page=player&id=<?= $opponentId ?>">
                                 <?= htmlspecialchars($opponentName) ?>
                             </a>
-                        </td>
-                        <td style="font-size: 0.85rem; color: var(--text-secondary);">
-                            <?= htmlspecialchars($opponentClub) ?>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                <?= htmlspecialchars($opponentClub) ?>
+                            </div>
                         </td>
                         <td style="text-align: center;">
                             <strong style="color: <?= $resultColor ?>">
@@ -216,7 +222,52 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
                             <?= $ratingChange > 0 ? '+' : '' ?><?= $ratingChange ?>
                         </td>
                     </tr>
-                    <?php endforeach; ?>
+                    <?php
+                            $prevRating = $ratingAfter;
+                        elseif ($entry['entry_type'] === 'manual'):
+                            // Manual rating adjustment
+                            $newRating = $entry['new_rating'];
+                            $ratingChange = $prevRating !== null ? ($newRating - $prevRating) : 0;
+                    ?>
+                    <tr style="background: var(--bg-secondary);">
+                        <td style="color: var(--text-secondary);"><?= $entryNumber++ ?></td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">
+                            <?= date('d/m/Y', strtotime($entry['created_at'])) ?>
+                        </td>
+                        <td>
+                            <span style="font-size: 1.2rem;">⭐</span>
+                        </td>
+                        <td>
+                            <strong><?= $lang === 'it' ? 'Variazione Manuale' : 'Manual Adjustment' ?></strong>
+                            <?php if ($entry['requested_category']): ?>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                <?= $lang === 'it' ? 'Categoria: ' : 'Category: ' ?><?= htmlspecialchars($entry['requested_category']) ?>
+                            </div>
+                            <?php endif; ?>
+                        </td>
+                        <td style="text-align: center;">
+                            <span style="color: var(--text-secondary);">-</span>
+                        </td>
+                        <td style="text-align: center; font-size: 0.9rem;">
+                            <?php if ($prevRating !== null): ?>
+                            <span style="color: var(--text-secondary);"><?= $prevRating ?></span>
+                            <span style="margin: 0 0.25rem;">→</span>
+                            <?php endif; ?>
+                            <strong><?= $newRating ?></strong>
+                        </td>
+                        <td style="text-align: center; font-weight: bold; font-size: 1.1rem; color: <?= $ratingChange > 0 ? 'var(--success)' : ($ratingChange < 0 ? 'var(--error)' : 'var(--text-secondary)') ?>">
+                            <?php if ($prevRating !== null): ?>
+                                <?= $ratingChange > 0 ? '+' : '' ?><?= $ratingChange ?>
+                            <?php else: ?>
+                                <span style="color: var(--text-secondary);">-</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php
+                            $prevRating = $newRating;
+                        endif;
+                    endforeach;
+                    ?>
                 </tbody>
             </table>
         </div>

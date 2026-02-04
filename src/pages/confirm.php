@@ -300,7 +300,7 @@ if (empty($token)) {
                         }
 
                         // Mark request as completed
-                        $stmt = $db->prepare("UPDATE manual_rating_requests SET completed = 1 WHERE id = ?");
+                        $stmt = $db->prepare("UPDATE manual_rating_requests SET applied = 1 WHERE id = ?");
                         $stmt->execute([$requestId]);
 
                         $message = $lang === 'it'
@@ -345,7 +345,7 @@ if (empty($token)) {
                         }
 
                         // Mark request as completed
-                        $stmt = $db->prepare("UPDATE manual_rating_requests SET completed = 1 WHERE id = ?");
+                        $stmt = $db->prepare("UPDATE manual_rating_requests SET applied = 1 WHERE id = ?");
                         $stmt->execute([$requestId]);
 
                         $message = $lang === 'it'
@@ -390,7 +390,7 @@ if (empty($token)) {
                         }
 
                         // Mark request as completed
-                        $stmt = $db->prepare("UPDATE manual_rating_requests SET completed = 1 WHERE id = ?");
+                        $stmt = $db->prepare("UPDATE manual_rating_requests SET applied = 1 WHERE id = ?");
                         $stmt->execute([$requestId]);
 
                         $message = $lang === 'it'

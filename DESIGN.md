@@ -194,7 +194,7 @@ La reputazione emerge naturalmente.
 
 ---
 
-## 8. Cosa OpenElo NON è
+## 8. Cosa OpenELO NON è
 
 * non è un rating FIDE
 * non genera titoli

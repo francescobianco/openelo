@@ -1,4 +1,4 @@
-# OpenElo - Apache Configuration
+# OpenELO - Apache Configuration
 
 # Enable rewrite engine
 RewriteEngine On
