@@ -211,4 +211,28 @@ $isApplied = $match['rating_applied'] == 1;
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Deletion Request Link -->
+    <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+        <details style="display: inline-block; text-align: left; max-width: 500px;">
+            <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.9rem;">
+                🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
+            </summary>
+            <form method="POST" action="?page=deletion" style="margin-top: 1rem; padding: 1rem; background: var(--bg-card); border-radius: 8px;">
+                <input type="hidden" name="entity_type" value="match">
+                <input type="hidden" name="entity_id" value="<?= $matchId ?>">
+                <div class="form-group">
+                    <label><?= $lang === 'it' ? 'Tua Email' : 'Your Email' ?></label>
+                    <input type="email" name="requester_email" required>
+                </div>
+                <div class="form-group">
+                    <label><?= $lang === 'it' ? 'Motivo della richiesta' : 'Reason for request' ?></label>
+                    <textarea name="reason" rows="3" required></textarea>
+                </div>
+                <button type="submit" name="request_deletion" class="btn btn-sm btn-secondary">
+                    <?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?>
+                </button>
+            </form>
+        </details>
+    </div>
 </div>

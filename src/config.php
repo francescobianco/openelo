@@ -25,6 +25,7 @@ define('SMTP_USER', getenv('SMTP_USER') ?: '');
 define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@openelo.org');
 define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'OpenELO');
+define('ADMIN_EMAIL', getenv('ADMIN_EMAIL') ?: 'admin@openelo.org');
 
 // App settings
 define('BASE_URL', getenv('BASE_URL') ?: 'http://localhost:8080');

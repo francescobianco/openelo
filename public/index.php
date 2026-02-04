@@ -20,7 +20,7 @@ $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'clubs', 'circuit', 'club', 'player', 'create', 'submit', 'confirm', 'match', 'api'];
+$validPages = ['home', 'circuits', 'clubs', 'circuit', 'club', 'player', 'create', 'submit', 'confirm', 'match', 'deletion', 'api'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';

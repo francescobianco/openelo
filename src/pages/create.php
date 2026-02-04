@@ -4,6 +4,7 @@
  */
 
 require_once SRC_PATH . '/mail.php';
+require_once SRC_PATH . '/utils.php';
 
 $db = Database::get();
 
@@ -25,6 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     throw new Exception(__('error_email'));
+                }
+
+                // Check for similar names
+                $similar = checkSimilarName($db, 'circuits', $name);
+                if ($similar) {
+                    throw new Exception(($lang === 'it'
+                        ? 'Esiste già un circuito con nome simile: "'
+                        : 'A circuit with a similar name already exists: "')
+                        . htmlspecialchars($similar['name']) . '"');
                 }
 
                 $stmt = $db->prepare("INSERT INTO circuits (name, owner_email) VALUES (?, ?)");
@@ -57,6 +67,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (!$circuit) {
                     throw new Exception(__('error_not_found'));
+                }
+
+                // Check for similar names
+                $similar = checkSimilarName($db, 'clubs', $name);
+                if ($similar) {
+                    throw new Exception(($lang === 'it'
+                        ? 'Esiste già un circolo con nome simile: "'
+                        : 'A club with a similar name already exists: "')
+                        . htmlspecialchars($similar['name']) . '"');
                 }
 
                 // Create club

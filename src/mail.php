@@ -230,3 +230,34 @@ function sendTransferPresidentConfirmation(string $presidentEmail, string $playe
 
     return sendConfirmationEmail($presidentEmail, $subject, $message, $url);
 }
+
+/**
+ * Send deletion request notification
+ */
+function sendDeletionRequest(string $to, string $entityType, string $entityName, string $requesterEmail, string $reason, int $requestId): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=deletion&id=' . $requestId;
+
+    $entityTypeText = [
+        'circuit' => $lang === 'it' ? 'circuito' : 'circuit',
+        'club' => $lang === 'it' ? 'circolo' : 'club',
+        'player' => $lang === 'it' ? 'giocatore' : 'player',
+        'match' => $lang === 'it' ? 'partita' : 'match',
+    ];
+
+    if ($lang === 'it') {
+        $subject = "🗑 Richiesta eliminazione: {$entityName}";
+        $message = "È stata ricevuta una richiesta di eliminazione per il {$entityTypeText[$entityType]} <strong>{$entityName}</strong>.<br><br>
+            <strong>Richiedente:</strong> {$requesterEmail}<br>
+            <strong>Motivo:</strong> {$reason}<br><br>
+            Clicca il pulsante qui sotto per approvare o rifiutare la richiesta.";
+    } else {
+        $subject = "🗑 Deletion request: {$entityName}";
+        $message = "A deletion request has been received for the {$entityTypeText[$entityType]} <strong>{$entityName}</strong>.<br><br>
+            <strong>Requester:</strong> {$requesterEmail}<br>
+            <strong>Reason:</strong> {$reason}<br><br>
+            Click the button below to approve or reject the request.";
+    }
+
+    return sendConfirmationEmail($to, $subject, $message, $url);
+}

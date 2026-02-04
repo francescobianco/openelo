@@ -13,4 +13,6 @@ if (!defined('SRC_PATH')) {
 return [
     '20240101000000_create_migrations_table',
     '20240101000001_create_initial_schema',
+    '20240101000002_create_deletion_requests',
+    '20240101000003_add_soft_delete',
 ];
