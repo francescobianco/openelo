@@ -22,8 +22,9 @@ return [
             )$engine
         ");
 
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_deletion_entity ON deletion_requests(entity_type, entity_id)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_deletion_status ON deletion_requests(status)");
+        // MySQL doesn't support IF NOT EXISTS for indexes, but since we just created the table, indexes don't exist yet
+        $db->exec("CREATE INDEX idx_deletion_entity ON deletion_requests(entity_type, entity_id)");
+        $db->exec("CREATE INDEX idx_deletion_status ON deletion_requests(status)");
     },
 
     'down' => function(PDO $db, string $dbType) {

@@ -19,7 +19,14 @@ return [
 
         // Add index for faster queries
         foreach ($tables as $table) {
-            $db->exec("CREATE INDEX IF NOT EXISTS idx_{$table}_deleted ON $table(deleted_at)");
+            try {
+                $db->exec("CREATE INDEX idx_{$table}_deleted ON $table(deleted_at)");
+            } catch (PDOException $e) {
+                // Index might already exist, ignore error 1061 (Duplicate key name)
+                if ($e->getCode() != '42000' || strpos($e->getMessage(), '1061') === false) {
+                    throw $e;
+                }
+            }
         }
     },
 
