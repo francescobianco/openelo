@@ -154,7 +154,7 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
                     <tr>
                         <th>#</th>
                         <th><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
-                        <th><?= $lang === 'it' ? 'Tipo' : 'Type' ?></th>
+                        <th><?= $lang === 'it' ? 'Colore' : 'Color' ?></th>
                         <th><?= $lang === 'it' ? 'Dettagli' : 'Details' ?></th>
                         <th><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
                         <th><?= $lang === 'it' ? 'Rating' : 'Rating' ?></th>
@@ -197,8 +197,8 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
                         <td style="font-size: 0.85rem; color: var(--text-secondary);">
                             <?= date('d/m/Y', strtotime($m['created_at'])) ?>
                         </td>
-                        <td>
-                            <span style="font-size: 1.2rem;"><?= $isWhite ? '♚' : '♔' ?></span>
+                        <td style="text-align: center;">
+                            <span style="font-size: 1.2rem;"><?= $isWhite ? '⚪' : '⚫' ?></span>
                         </td>
                         <td>
                             <a href="?page=player&id=<?= $opponentId ?>">
