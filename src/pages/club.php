@@ -28,6 +28,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
+    } elseif ($_POST['action'] === 'resend_club_circuit' && isset($_POST['membership_id'])) {
+        $membershipId = (int)$_POST['membership_id'];
+        $stmt = $db->prepare("SELECT c.name as club_name, c.president_email, ci.name as circuit_name, cc.*
+            FROM circuit_clubs cc
+            JOIN clubs c ON c.id = cc.club_id
+            JOIN circuits ci ON ci.id = cc.circuit_id
+            WHERE cc.id = ?");
+        $stmt->execute([$membershipId]);
+        $data = $stmt->fetch();
+
+        if ($data && !$data['club_confirmed']) {
+            $token = createConfirmation('membership_club', $membershipId, $data['president_email']);
+            sendClubPresidentConfirmation($data['president_email'], $data['club_name'], $data['circuit_name'], $token);
+            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+            $messageType = 'success';
+        }
     } elseif ($_POST['action'] === 'resend_circuit' && isset($_POST['membership_id'])) {
         $membershipId = (int)$_POST['membership_id'];
         $stmt = $db->prepare("SELECT c.name as club_name, ci.name as circuit_name, ci.owner_email, cc.*
@@ -136,6 +152,7 @@ foreach ($clubCircuits as $cc) {
     if (!$cc['club_confirmed']) {
         $pendingConfirmations[] = [
             'type' => 'club_circuit',
+            'membership_id' => $cc['membership_id'],
             'description' => $lang === 'it'
                 ? 'Conferma del presidente del circolo per l\'adesione al circuito "' . htmlspecialchars($cc['name']) . '"'
                 : 'Club president confirmation for joining circuit "' . htmlspecialchars($cc['name']) . '"'
@@ -211,6 +228,14 @@ $isActive = $club['active_circuits'] > 0;
                     <?php if ($pending['type'] === 'president'): ?>
                     <form method="POST" style="display: inline; margin-left: 1rem;">
                         <input type="hidden" name="action" value="resend_president">
+                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                        </button>
+                    </form>
+                    <?php elseif ($pending['type'] === 'club_circuit'): ?>
+                    <form method="POST" style="display: inline; margin-left: 1rem;">
+                        <input type="hidden" name="action" value="resend_club_circuit">
+                        <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
                         <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
                             <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
                         </button>
