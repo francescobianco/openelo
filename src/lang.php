@@ -254,7 +254,7 @@ $translations = [
         'error_already_member' => 'Già membro di questo circuito.',
 
         // Footer
-        'footer_text' => 'è software open source.',
+        'footer_text' => 'è un software open source.',
         'footer_github' => 'Vedi su GitHub',
     ],
 ];
