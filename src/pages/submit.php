@@ -144,7 +144,7 @@ $selectedCircuit = (int)($_GET['circuit'] ?? 0);
     </div>
     <?php endif; ?>
 
-    <div class="card" style="max-width: 600px;">
+    <div class="card<?= $selectedCircuit ? ' glow-highlight' : '' ?>" style="max-width: 600px; margin: 0 auto;"<?= $selectedCircuit ? ' id="submit-match"' : '' ?>>
         <form method="POST" id="matchForm">
             <div class="form-group">
                 <label for="circuit"><?= __('form_circuit') ?></label>
@@ -218,4 +218,11 @@ function loadCircuitPlayers() {
 if (document.getElementById('circuit').value) {
     loadCircuitPlayers();
 }
+
+<?php if ($selectedCircuit): ?>
+var el = document.getElementById('submit-match');
+if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+<?php endif; ?>
 </script>

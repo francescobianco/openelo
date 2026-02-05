@@ -33,10 +33,10 @@ $players = $db->query("
                 <thead>
                     <tr>
                         <th><?= $lang === 'it' ? 'Giocatore' : 'Player' ?></th>
-                        <th><?= $lang === 'it' ? 'Categoria' : 'Category' ?></th>
-                        <th><?= __('nav_clubs') ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Categoria' : 'Category' ?></th>
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Miglior Rating' : 'Best Rating' ?></th>
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Partite' : 'Games' ?></th>
+                        <th><?= $lang === 'it' ? 'Circolo' : 'Club' ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,12 +45,12 @@ $players = $db->query("
                         <td>
                             <a href="?page=player&id=<?= $p['id'] ?>"><?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?></a>
                         </td>
-                        <td><strong><?= htmlspecialchars($p['category'] ?: 'NC') ?></strong></td>
+                        <td style="text-align: center;"><strong><?= htmlspecialchars($p['category'] ?? 'NC') ?></strong></td>
+                        <td style="text-align: center;" class="rating"><?= $p['best_rating'] ?? '-' ?></td>
+                        <td style="text-align: center;"><?= $p['total_games'] ?? 0 ?></td>
                         <td>
                             <a href="?page=club&id=<?= $p['club_id'] ?>"><?= htmlspecialchars($p['club_name']) ?></a>
                         </td>
-                        <td style="text-align: center;" class="rating"><?= $p['best_rating'] ?? '-' ?></td>
-                        <td style="text-align: center;"><?= $p['total_games'] ?? 0 ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

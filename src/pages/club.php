@@ -219,6 +219,9 @@ $isActive = $club['active_circuits'] > 0;
                 <span><?= count($players) ?> <?= __('circuit_players') ?></span>
             </div>
         </div>
+        <?php if ($isActive): ?>
+        <a href="?page=create&club=<?= $clubId ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Giocatore' : 'Register Player' ?></a>
+        <?php endif; ?>
     </div>
 
     <?php if ($message): ?>
@@ -322,7 +325,7 @@ $isActive = $club['active_circuits'] > 0;
                 <?php foreach ($players as $p): ?>
                 <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
                     <a href="?page=player&id=<?= $p['id'] ?>"><?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?></a>
-                    <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?: 'NC') ?></span>
+                    <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
                 </li>
                 <?php endforeach; ?>
             </ul>

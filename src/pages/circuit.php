@@ -182,7 +182,7 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <td class="rank <?= $i < 3 ? 'rank-' . ($i + 1) : '' ?>"><?= $i + 1 ?></td>
                         <td><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a></td>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
-                        <td><strong><?= htmlspecialchars($player['category'] ?: 'NC') ?></strong></td>
+                        <td><strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></td>
                         <td class="rating"><?= $player['rating'] ?></td>
                         <td><?= $player['games_played'] ?></td>
                     </tr>

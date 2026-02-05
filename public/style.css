@@ -451,6 +451,7 @@ a:hover {
 
 .circuit-meta {
     display: flex;
+    align-items: center;
     gap: 1.5rem;
     color: var(--text-secondary);
     font-size: 0.9rem;
@@ -667,7 +668,8 @@ tr:hover {
     border-bottom: 1px solid var(--border);
 }
 
-.create-section.glow-highlight {
+.create-section.glow-highlight,
+.card.glow-highlight {
     animation: glow-pulse 2s ease-in-out 2 forwards;
 }
 

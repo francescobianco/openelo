@@ -127,7 +127,7 @@ $translations = [
         'error_already_member' => 'Already member of this circuit.',
 
         // Footer
-        'footer_text' => 'OpenELO is open source software.',
+        'footer_text' => 'is open source software.',
         'footer_github' => 'View on GitHub',
     ],
 
@@ -254,7 +254,7 @@ $translations = [
         'error_already_member' => 'Già membro di questo circuito.',
 
         // Footer
-        'footer_text' => 'OpenELO è software open source.',
+        'footer_text' => 'è software open source.',
         'footer_github' => 'Vedi su GitHub',
     ],
 ];

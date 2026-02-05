@@ -158,6 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get data for forms
 $preselectedCircuit = (int)($_GET['circuit'] ?? 0);
+$preselectedClub = (int)($_GET['club'] ?? 0);
+$highlightCircuit = ($_GET['highlight'] ?? '') === 'circuit';
 $circuits = $db->query("SELECT * FROM circuits WHERE confirmed = 1 ORDER BY name")->fetchAll();
 
 // Get active clubs (president confirmed + at least one active circuit)
@@ -183,7 +185,7 @@ $clubs = $db->query("
 
     <div class="create-grid">
         <!-- Create Circuit -->
-        <div class="create-section">
+        <div class="create-section<?= $highlightCircuit ? ' glow-highlight' : '' ?>"<?= $highlightCircuit ? ' id="create-circuit"' : '' ?>>
             <h2><?= __('circuit_create') ?></h2>
             <form method="POST">
                 <input type="hidden" name="action" value="create_circuit">
@@ -229,7 +231,7 @@ $clubs = $db->query("
 
         <!-- Register Player (requires active club) -->
         <?php if (!empty($clubs)): ?>
-        <div class="create-section">
+        <div class="create-section<?= $preselectedClub ? ' glow-highlight' : '' ?>"<?= $preselectedClub ? ' id="register-player"' : '' ?>>
             <h2><?= __('player_register') ?></h2>
             <form method="POST">
                 <input type="hidden" name="action" value="register_player">
@@ -238,7 +240,7 @@ $clubs = $db->query("
                     <select id="player_club" name="club_id" required>
                         <option value="">-- <?= __('form_select') ?> --</option>
                         <?php foreach ($clubs as $club): ?>
-                        <option value="<?= $club['id'] ?>"><?= htmlspecialchars($club['name']) ?></option>
+                        <option value="<?= $club['id'] ?>" <?= $club['id'] == $preselectedClub ? 'selected' : '' ?>><?= htmlspecialchars($club['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -261,10 +263,16 @@ $clubs = $db->query("
     </div>
 </div>
 
-<?php if ($preselectedCircuit): ?>
+<?php
+$scrollTarget = null;
+if ($preselectedCircuit) $scrollTarget = 'create-club';
+elseif ($preselectedClub) $scrollTarget = 'register-player';
+elseif ($highlightCircuit) $scrollTarget = 'create-circuit';
+?>
+<?php if ($scrollTarget): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var el = document.getElementById('create-club');
+    var el = document.getElementById('<?= $scrollTarget ?>');
     if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }

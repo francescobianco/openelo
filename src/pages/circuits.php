@@ -20,13 +20,13 @@ $circuits = $db->query("
 <div class="container">
     <div class="page-header">
         <h1><?= __('nav_circuits') ?></h1>
-        <a href="?page=create" class="btn btn-primary"><?= __('hero_create') ?></a>
+        <a href="?page=create&highlight=circuit" class="btn btn-primary"><?= __('hero_create') ?></a>
     </div>
 
     <?php if (empty($circuits)): ?>
     <div class="empty-state">
         <p><?= $lang === 'it' ? 'Nessun circuito ancora. Crea il primo!' : 'No circuits yet. Create the first one!' ?></p>
-        <a href="?page=create" class="btn btn-primary"><?= __('hero_create') ?></a>
+        <a href="?page=create&highlight=circuit" class="btn btn-primary"><?= __('hero_create') ?></a>
     </div>
     <?php else: ?>
     <div class="circuits-grid">

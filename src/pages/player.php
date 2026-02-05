@@ -257,7 +257,7 @@ $pendingMatches = $stmt->fetchAll();
             <h1><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></h1>
             <div class="circuit-meta" style="margin-top: 0.5rem;">
                 <span><?= __('form_club') ?>: <a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></span>
-                <span><?= $lang === 'it' ? 'Categoria' : 'Category' ?>: <strong><?= htmlspecialchars($player['category'] ?: 'NC') ?></strong></span>
+                <span><?= $lang === 'it' ? 'Categoria' : 'Category' ?>: <strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></span>
             </div>
         </div>
     </div>
@@ -405,8 +405,8 @@ $pendingMatches = $stmt->fetchAll();
                 </div>
                 <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 1rem 0;">
                     <?= $lang === 'it'
-                        ? 'Categoria attuale: <strong>' . htmlspecialchars($player['category']) . '</strong>. Le categorie possono solo salire, non retrocedere.'
-                        : 'Current category: <strong>' . htmlspecialchars($player['category']) . '</strong>. Categories can only go up, not down.' ?>
+                        ? 'Categoria attuale: <strong>' . htmlspecialchars($player['category'] ?? 'NC') . '</strong>. Le categorie possono solo salire, non retrocedere.'
+                        : 'Current category: <strong>' . htmlspecialchars($player['category'] ?? 'NC') . '</strong>. Categories can only go up, not down.' ?>
                 </p>
                 <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
             </form>

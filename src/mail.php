@@ -12,8 +12,6 @@ require_once __DIR__ . '/lang.php';
 function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl): bool {
     $lang = getCurrentLang();
 
-    $logoBase64 = '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';
-
     $htmlMessage = "
     <!DOCTYPE html>
     <html lang='{$lang}'>
@@ -23,7 +21,7 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; color: #333; margin: 0; padding: 0; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: #1a1a2e; color: white; padding: 24px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-            .header img { height: 48px; width: 48px; vertical-align: middle; margin-right: 10px; }
+            .header img { height: 40px; width: 40px; vertical-align: middle; margin-right: 10px; }
             .header-title { display: inline-block; vertical-align: middle; font-size: 1.6rem; font-weight: 700; letter-spacing: 0.5px; }
             .header-title span { color: #4361ee; }
             .content { background: #f8f9fa; padding: 32px; border-radius: 0 0 8px 8px; font-size: 16px; }
@@ -35,7 +33,7 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
     <body>
         <div class='container'>
             <div class='header'>
-                <img src='data:image/png;base64,{$logoBase64}' alt='OpenELO'>
+                <img src='https://raw.githubusercontent.com/francescobianco/openelo/main/public/logo.png' alt='OpenELO' width='40' height='40'>
                 <span class='header-title'>Open<span>ELO</span></span>
             </div>
             <div class='content'>
