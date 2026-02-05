@@ -11,6 +11,98 @@ $circuitId = (int)($_GET['id'] ?? 0);
 $message = null;
 $messageType = null;
 
+// Handle contact form
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'contact_manager') {
+    $senderEmail = trim($_POST['sender_email'] ?? '');
+    $contactMessage = trim($_POST['message'] ?? '');
+
+    if (empty($senderEmail) || empty($contactMessage)) {
+        $message = __('error_required');
+        $messageType = 'error';
+    } elseif (!filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
+        $message = __('error_email');
+        $messageType = 'error';
+    } else {
+        // Get circuit
+        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
+        $stmt->execute([$circuitId]);
+        $circuitData = $stmt->fetch();
+
+        if ($circuitData) {
+            // Send email to circuit manager
+            $subject = ($lang === 'it' ? 'Messaggio dal circuito: ' : 'Message from circuit: ') . $circuitData['name'];
+            $body = ($lang === 'it' ? 'Hai ricevuto un messaggio da: ' : 'You received a message from: ') . $senderEmail . "\n\n" . $contactMessage;
+
+            $headers = [
+                'MIME-Version: 1.0',
+                'Content-type: text/plain; charset=UTF-8',
+                'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM . '>',
+                'Reply-To: ' . $senderEmail
+            ];
+
+            if (DEV_MODE) {
+                // Save to file in dev mode
+                $emailDir = DATA_PATH . '/emails';
+                if (!is_dir($emailDir)) mkdir($emailDir, 0755, true);
+                $filename = date('Y-m-d_H-i-s') . '_contact_' . md5($circuitData['owner_email']) . '.txt';
+                file_put_contents($emailDir . '/' . $filename, "To: {$circuitData['owner_email']}\nSubject: $subject\n\n$body");
+            } else {
+                mail($circuitData['owner_email'], $subject, $body, implode("\r\n", $headers));
+            }
+
+            $message = $lang === 'it' ? 'Messaggio inviato!' : 'Message sent!';
+            $messageType = 'success';
+        }
+    }
+}
+
+// Handle change manager request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_manager_change') {
+    $requesterEmail = trim($_POST['requester_email'] ?? '');
+    $newManagerEmail = trim($_POST['new_manager_email'] ?? '');
+    $reason = trim($_POST['reason'] ?? '');
+
+    if (empty($requesterEmail) || empty($newManagerEmail)) {
+        $message = __('error_required');
+        $messageType = 'error';
+    } elseif (!filter_var($requesterEmail, FILTER_VALIDATE_EMAIL) || !filter_var($newManagerEmail, FILTER_VALIDATE_EMAIL)) {
+        $message = __('error_email');
+        $messageType = 'error';
+    } else {
+        // Get circuit
+        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
+        $stmt->execute([$circuitId]);
+        $circuitData = $stmt->fetch();
+
+        if ($circuitData) {
+            // Send notification to current manager
+            $subject = ($lang === 'it' ? 'Richiesta cambio responsabile: ' : 'Manager change request: ') . $circuitData['name'];
+            $body = ($lang === 'it'
+                ? "È stata richiesta una modifica del responsabile per il circuito \"{$circuitData['name']}\".\n\nRichiesta da: $requesterEmail\nNuovo responsabile proposto: $newManagerEmail\n\nMotivo:\n$reason"
+                : "A manager change has been requested for circuit \"{$circuitData['name']}\".\n\nRequested by: $requesterEmail\nProposed new manager: $newManagerEmail\n\nReason:\n$reason");
+
+            $headers = [
+                'MIME-Version: 1.0',
+                'Content-type: text/plain; charset=UTF-8',
+                'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM . '>',
+                'Reply-To: ' . $requesterEmail
+            ];
+
+            if (DEV_MODE) {
+                $emailDir = DATA_PATH . '/emails';
+                if (!is_dir($emailDir)) mkdir($emailDir, 0755, true);
+                $filename = date('Y-m-d_H-i-s') . '_manager_change_' . md5($circuitData['owner_email']) . '.txt';
+                file_put_contents($emailDir . '/' . $filename, "To: {$circuitData['owner_email']}\nSubject: $subject\n\n$body");
+            } else {
+                mail($circuitData['owner_email'], $subject, $body, implode("\r\n", $headers));
+            }
+
+            $message = $lang === 'it' ? 'Richiesta inviata!' : 'Request sent!';
+            $messageType = 'success';
+        }
+    }
+}
+
 // Handle resend request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resend_circuit') {
     // Check rate limit
@@ -155,6 +247,7 @@ $tab = $_GET['tab'] ?? 'rankings';
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=rankings" class="tab <?= $tab === 'rankings' ? 'active' : '' ?>"><?= __('rankings_title') ?></a>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=clubs" class="tab <?= $tab === 'clubs' ? 'active' : '' ?>"><?= __('circuit_clubs') ?></a>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=matches" class="tab <?= $tab === 'matches' ? 'active' : '' ?>"><?= __('circuit_matches') ?></a>
+        <a href="?page=circuit&id=<?= $circuitId ?>&tab=manager" class="tab <?= $tab === 'manager' ? 'active' : '' ?>"><?= $lang === 'it' ? 'Responsabile' : 'Manager' ?></a>
     </div>
 
     <?php if ($tab === 'rankings'): ?>
@@ -254,6 +347,51 @@ $tab = $_GET['tab'] ?? 'rankings';
             </table>
         </div>
         <?php endif; ?>
+    </div>
+    <?php elseif ($tab === 'manager'): ?>
+    <div class="create-grid">
+        <!-- Contact Manager -->
+        <div class="create-section">
+            <h2><?= $lang === 'it' ? 'Contatta il Responsabile' : 'Contact Manager' ?></h2>
+            <form method="POST">
+                <input type="hidden" name="action" value="contact_manager">
+                <div class="form-group">
+                    <label for="sender_email"><?= $lang === 'it' ? 'Tua Email' : 'Your Email' ?></label>
+                    <input type="email" id="sender_email" name="sender_email" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact_message"><?= $lang === 'it' ? 'Messaggio' : 'Message' ?></label>
+                    <textarea id="contact_message" name="message" rows="4" required style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Invia Messaggio' : 'Send Message' ?></button>
+            </form>
+        </div>
+
+        <!-- Request Manager Change -->
+        <div class="create-section">
+            <h2><?= $lang === 'it' ? 'Richiedi Cambio Responsabile' : 'Request Manager Change' ?></h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                <?= $lang === 'it'
+                    ? 'Usa questo modulo per richiedere il trasferimento della gestione del circuito a un nuovo responsabile.'
+                    : 'Use this form to request the transfer of circuit management to a new manager.' ?>
+            </p>
+            <form method="POST">
+                <input type="hidden" name="action" value="request_manager_change">
+                <div class="form-group">
+                    <label for="requester_email"><?= $lang === 'it' ? 'Tua Email' : 'Your Email' ?></label>
+                    <input type="email" id="requester_email" name="requester_email" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_manager_email"><?= $lang === 'it' ? 'Email Nuovo Responsabile' : 'New Manager Email' ?></label>
+                    <input type="email" id="new_manager_email" name="new_manager_email" required>
+                </div>
+                <div class="form-group">
+                    <label for="change_reason"><?= $lang === 'it' ? 'Motivo della richiesta' : 'Reason for request' ?></label>
+                    <textarea id="change_reason" name="reason" rows="3" style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?></button>
+            </form>
+        </div>
     </div>
     <?php endif; ?>
 
