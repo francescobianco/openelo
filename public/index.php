@@ -98,7 +98,7 @@ $content = ob_get_clean();
 
     <footer class="footer">
         <p>
-            <img src="<?= asset('logo.png') ?>" alt="OpenELO" style="height: 18px; width: 18px; vertical-align: middle; margin-right: 0; margin-top: -3px"> <strong style="color: #fff;">Open<span style="color: #4361ee;">ELO</span></strong> <?= __('footer_text') ?> <a href="https://github.com/openelo/openelo"><?= __('footer_github') ?></a>
+            <img src="<?= asset('logo.png') ?>" alt="OpenELO" style="height: 18px; width: 18px; vertical-align: middle; margin-right: 0; margin-top: -4px"> <strong style="color: #fff;">Open<span style="color: #4361ee;">ELO</span></strong> <?= __('footer_text') ?> <a href="https://github.com/openelo/openelo"><?= __('footer_github') ?></a>
             ~
             <a href="?page=about"><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
             ~
