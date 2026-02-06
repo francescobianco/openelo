@@ -7,11 +7,11 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lang.php';
 
 /**
- * Get email subject prefix based on APP_ENV
+ * Get email subject prefix: always "OpenELO - ", with env tag for non-production
  */
 function getEmailSubjectPrefix(): string {
-    if (APP_ENV === '') return '';
-    return '[' . strtoupper(APP_ENV) . '] ';
+    if (APP_ENV === '') return 'OpenELO - ';
+    return 'OpenELO [' . strtoupper(APP_ENV) . '] - ';
 }
 
 /**
