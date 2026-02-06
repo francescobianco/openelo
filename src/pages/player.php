@@ -312,8 +312,8 @@ $pendingMatches = $stmt->fetchAll();
                     <thead>
                         <tr>
                             <th><?= __('form_circuit') ?></th>
-                            <th><?= __('rankings_rating') ?></th>
-                            <th><?= __('rankings_games') ?></th>
+                            <th style="text-align: center;"><?= __('rankings_rating') ?></th>
+                            <th style="text-align: center;"><?= __('rankings_games') ?></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -321,8 +321,8 @@ $pendingMatches = $stmt->fetchAll();
                         <?php foreach ($ratings as $r): ?>
                         <tr>
                             <td><a href="?page=circuit&id=<?= $r['circuit_id'] ?>"><?= htmlspecialchars($r['circuit_name']) ?></a></td>
-                            <td class="rating"><?= $r['rating'] ?></td>
-                            <td><?= $r['games_played'] ?></td>
+                            <td class="rating" style="text-align: center;"><?= $r['rating'] ?></td>
+                            <td style="text-align: center;"><?= $r['games_played'] ?></td>
                             <td>
                                 <a href="?page=player_history&player=<?= $playerId ?>&circuit=<?= $r['circuit_id'] ?>" class="btn btn-sm btn-secondary">
                                     <?= $lang === 'it' ? 'Storico' : 'History' ?>
@@ -378,7 +378,7 @@ $pendingMatches = $stmt->fetchAll();
         <!-- Manual Rating Request -->
         <?php if (!empty($ratings)): ?>
         <div class="create-section">
-            <h2>⭐ <?= $lang === 'it' ? 'Richiedi Variazione Manuale' : 'Request Manual Rating Change' ?></h2>
+            <h2><?= $lang === 'it' ? 'Richiedi Variazione Manuale' : 'Request Manual Rating Change' ?></h2>
             <form method="POST">
                 <input type="hidden" name="action" value="request_manual_rating">
                 <div class="form-group">

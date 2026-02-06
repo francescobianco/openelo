@@ -128,11 +128,11 @@ function sendClubCircuitConfirmation(string $ownerEmail, string $clubName, strin
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
-        $subject = "♖ Richiesta adesione circolo: {$clubName}";
-        $message = "♟ Il circolo <strong>{$clubName}</strong> ha richiesto di aderire al circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per approvare l'adesione.";
+        $subject = "Richiesta adesione circolo: {$clubName}";
+        $message = "Il circolo <strong>{$clubName}</strong> ha richiesto di aderire al circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per approvare l'adesione.";
     } else {
-        $subject = "♖ Club membership request: {$clubName}";
-        $message = "♟ The club <strong>{$clubName}</strong> has requested to join the circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to approve the membership.";
+        $subject = "Club membership request: {$clubName}";
+        $message = "The club <strong>{$clubName}</strong> has requested to join the circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to approve the membership.";
     }
 
     return sendConfirmationEmail($ownerEmail, $subject, $message, $url);
@@ -146,11 +146,11 @@ function sendPlayerSelfConfirmation(string $email, string $playerName, string $c
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
-        $subject = "♟ Conferma registrazione giocatore";
-        $message = "♟ È stata richiesta la tua registrazione come giocatore <strong>{$playerName}</strong> nel circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il presidente del circolo dovrà anche approvare.";
+        $subject = "Conferma registrazione giocatore";
+        $message = "È stata richiesta la tua registrazione come giocatore <strong>{$playerName}</strong> nel circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il presidente del circolo dovrà anche approvare.";
     } else {
-        $subject = "♟ Confirm player registration";
-        $message = "♟ Registration has been requested for you as player <strong>{$playerName}</strong> in club <strong>{$clubName}</strong>.<br><br>Click the button below to confirm. The club president will also need to approve.";
+        $subject = "Confirm player registration";
+        $message = "Registration has been requested for you as player <strong>{$playerName}</strong> in club <strong>{$clubName}</strong>.<br><br>Click the button below to confirm. The club president will also need to approve.";
     }
 
     return sendConfirmationEmail($email, $subject, $message, $url);
@@ -164,11 +164,11 @@ function sendPlayerPresidentConfirmation(string $presidentEmail, string $playerN
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
-        $subject = "♟ Approvazione nuovo giocatore: {$playerName}";
-        $message = "♟ Il giocatore <strong>{$playerName}</strong> ha richiesto di unirsi al circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per approvare l'iscrizione.";
+        $subject = "Approvazione nuovo giocatore: {$playerName}";
+        $message = "Il giocatore <strong>{$playerName}</strong> ha richiesto di unirsi al circolo <strong>{$clubName}</strong>.<br><br>Clicca il pulsante qui sotto per approvare l'iscrizione.";
     } else {
-        $subject = "♟ Approve new player: {$playerName}";
-        $message = "♟ Player <strong>{$playerName}</strong> has requested to join club <strong>{$clubName}</strong>.<br><br>Click the button below to approve the registration.";
+        $subject = "Approve new player: {$playerName}";
+        $message = "Player <strong>{$playerName}</strong> has requested to join club <strong>{$clubName}</strong>.<br><br>Click the button below to approve the registration.";
     }
 
     return sendConfirmationEmail($presidentEmail, $subject, $message, $url);
