@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Send email to admin
-        $emailSubject = "📧 OpenELO Contact: " . $subject;
+        $emailSubject = getEmailSubjectPrefix() . "📧 OpenELO Contact: " . $subject;
         $emailMessage = "
         <!DOCTYPE html>
         <html lang='{$lang}'>

@@ -7,9 +7,18 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lang.php';
 
 /**
+ * Get email subject prefix based on APP_ENV
+ */
+function getEmailSubjectPrefix(): string {
+    if (APP_ENV === '') return '';
+    return '[' . strtoupper(APP_ENV) . '] ';
+}
+
+/**
  * Send confirmation email
  */
 function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl): bool {
+    $subject = getEmailSubjectPrefix() . $subject;
     $lang = getCurrentLang();
 
     $htmlMessage = "

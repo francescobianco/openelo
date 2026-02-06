@@ -57,6 +57,20 @@ a:hover {
     font-size: 2rem;
 }
 
+/* Environment banner */
+.env-banner {
+    background: var(--error);
+    color: #fff;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 3px 0;
+    position: sticky;
+    top: 0;
+    z-index: 101;
+}
+
 /* Header */
 .header {
     background: var(--bg-secondary);
@@ -64,6 +78,10 @@ a:hover {
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.env-banner + .header {
+    top: 24px;
 }
 
 .header-inner {

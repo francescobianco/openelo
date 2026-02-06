@@ -51,6 +51,10 @@ $content = ob_get_clean();
     <!-- Mobile menu overlay -->
     <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
 
+    <?php if (APP_ENV !== ''): ?>
+    <div class="env-banner"><?= strtoupper(APP_ENV) ?> — <?= $lang === 'it' ? 'Questo è un ambiente di ' . APP_ENV . ', non la produzione' : 'This is a ' . APP_ENV . ' environment, not production' ?></div>
+    <?php endif; ?>
+
     <header class="header">
         <div class="header-inner">
             <a href="?" class="logo">

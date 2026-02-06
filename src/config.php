@@ -28,6 +28,7 @@ define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'OpenELO');
 define('ADMIN_EMAIL', getenv('ADMIN_EMAIL') ?: 'admin@openelo.org');
 
 // App settings
+define('APP_ENV', getenv('APP_ENV') ?: '');
 define('BASE_URL', getenv('BASE_URL') ?: 'http://localhost:8080');
 define('TOKEN_EXPIRY_HOURS', getenv('TOKEN_EXPIRY_HOURS') ?: 72);
 
