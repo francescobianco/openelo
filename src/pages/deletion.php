@@ -219,7 +219,7 @@ if ($requestId && $token) {
         </div>
         <?php endif; ?>
     </div>
-    <?php else: ?>
+    <?php elseif ($requestId): ?>
     <p style="text-align: center; color: var(--text-secondary);">
         <?= $lang === 'it' ? 'Richiesta non trovata.' : 'Request not found.' ?>
     </p>
