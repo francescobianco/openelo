@@ -57,6 +57,13 @@ a:hover {
     font-size: 2rem;
 }
 
+/* Sticky top wrapper */
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
 /* Environment banner */
 .env-banner {
     background: linear-gradient(135deg, #dc2626, #b91c1c);
@@ -66,10 +73,8 @@ a:hover {
     font-weight: 600;
     letter-spacing: 0.3px;
     padding: 4px 0;
-    position: sticky;
-    top: 0;
-    z-index: 101;
-    border-bottom: 2px solid #991b1b;
+    border-top: 1px solid #fca5a5;
+    border-bottom: 1px solid #991b1b;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -77,13 +82,6 @@ a:hover {
 .header {
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.env-banner + .header {
-    top: 24px;
 }
 
 .header-inner {

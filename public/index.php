@@ -51,6 +51,7 @@ $content = ob_get_clean();
     <!-- Mobile menu overlay -->
     <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
 
+    <div class="sticky-top">
     <?php if (APP_ENV !== ''): ?>
     <div class="env-banner"><?= $lang === 'it'
         ? 'Ambiente di ' . APP_ENV . ' identificato dalla chiave "' . strtoupper(APP_ENV) . '" — I dati potranno essere persi o cancellati senza preavviso'
@@ -89,6 +90,7 @@ $content = ob_get_clean();
             </nav>
         </div>
     </header>
+    </div>
 
     <main>
         <?= $content ?>
