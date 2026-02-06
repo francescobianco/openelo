@@ -249,6 +249,87 @@ $stmt = $db->prepare("
 ");
 $stmt->execute([$playerId, $playerId]);
 $pendingMatches = $stmt->fetchAll();
+
+// Get pending transfer
+$stmt = $db->prepare("
+    SELECT ct.*, c.name as to_club_name
+    FROM club_transfers ct
+    JOIN clubs c ON c.id = ct.to_club_id
+    WHERE ct.player_id = ? AND ct.completed = 0
+    ORDER BY ct.created_at DESC
+    LIMIT 1
+");
+$stmt->execute([$playerId]);
+$pendingTransfer = $stmt->fetch();
+
+// Get pending manual rating requests
+$stmt = $db->prepare("
+    SELECT mr.*, ci.name as circuit_name
+    FROM manual_rating_requests mr
+    JOIN circuits ci ON ci.id = mr.circuit_id
+    WHERE mr.player_id = ? AND mr.applied = 0
+    ORDER BY mr.created_at DESC
+");
+$stmt->execute([$playerId]);
+$pendingManualRatings = $stmt->fetchAll();
+
+// Handle resend for transfer
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $rateLimitError = in_array($_POST['action'], ['resend_transfer_player', 'resend_transfer_president', 'resend_manual_rating_player', 'resend_manual_rating_president', 'resend_manual_rating_circuit'])
+        ? checkReminderRateLimit() : null;
+
+    if ($rateLimitError) {
+        $message = $lang === 'it'
+            ? 'Stai mandando troppi solleciti! Potrai mandare il prossimo tra ' . $rateLimitError['minutes'] . ' minuti.'
+            : 'You are sending too many reminders! You can send the next one in ' . $rateLimitError['minutes'] . ' minutes.';
+        $messageType = 'error';
+    } elseif ($_POST['action'] === 'resend_transfer_player' && $pendingTransfer && !$pendingTransfer['player_confirmed']) {
+        $playerName = $player['first_name'] . ' ' . $player['last_name'];
+        $token = createConfirmation('transfer_player', $pendingTransfer['id'], $player['email']);
+        sendTransferPlayerConfirmation($player['email'], $playerName, $pendingTransfer['to_club_name'], $token);
+        logReminder();
+        $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+        $messageType = 'success';
+    } elseif ($_POST['action'] === 'resend_transfer_president' && $pendingTransfer && !$pendingTransfer['president_confirmed']) {
+        $playerName = $player['first_name'] . ' ' . $player['last_name'];
+        $stmt = $db->prepare("SELECT president_email FROM clubs WHERE id = ?");
+        $stmt->execute([$pendingTransfer['to_club_id']]);
+        $toClub = $stmt->fetch();
+        $token = createConfirmation('transfer_president', $pendingTransfer['id'], $toClub['president_email']);
+        sendTransferPresidentConfirmation($toClub['president_email'], $playerName, $pendingTransfer['to_club_name'], $token);
+        logReminder();
+        $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+        $messageType = 'success';
+    } elseif (str_starts_with($_POST['action'], 'resend_manual_rating_') && isset($_POST['request_id'])) {
+        $reqId = (int)$_POST['request_id'];
+        $stmt = $db->prepare("SELECT mr.*, ci.name as circuit_name, ci.owner_email as circuit_owner_email FROM manual_rating_requests mr JOIN circuits ci ON ci.id = mr.circuit_id WHERE mr.id = ? AND mr.player_id = ? AND mr.applied = 0");
+        $stmt->execute([$reqId, $playerId]);
+        $mrReq = $stmt->fetch();
+        if ($mrReq) {
+            $playerName = $player['first_name'] . ' ' . $player['last_name'];
+            $role = str_replace('resend_manual_rating_', '', $_POST['action']);
+            if ($role === 'player' && !$mrReq['player_confirmed']) {
+                $token = createConfirmation('manual_rating_player', $reqId, $player['email']);
+                sendManualRatingConfirmation($player['email'], 'player', $playerName, $mrReq['circuit_name'], $mrReq['requested_rating'], $mrReq['requested_category'], $token);
+                logReminder();
+                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+                $messageType = 'success';
+            } elseif ($role === 'president' && !$mrReq['president_confirmed']) {
+                $token = createConfirmation('manual_rating_president', $reqId, $player['president_email']);
+                sendManualRatingConfirmation($player['president_email'], 'president', $playerName, $mrReq['circuit_name'], $mrReq['requested_rating'], $mrReq['requested_category'], $token);
+                logReminder();
+                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+                $messageType = 'success';
+            } elseif ($role === 'circuit' && !$mrReq['circuit_confirmed']) {
+                $token = createConfirmation('manual_rating_circuit', $reqId, $mrReq['circuit_owner_email']);
+                sendManualRatingConfirmation($mrReq['circuit_owner_email'], 'circuit', $playerName, $mrReq['circuit_name'], $mrReq['requested_rating'], $mrReq['requested_category'], $token);
+                logReminder();
+                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
+                $messageType = 'success';
+            }
+        }
+    }
+}
 ?>
 
 <div class="container">
@@ -298,6 +379,104 @@ $pendingMatches = $stmt->fetchAll();
             </ul>
         </div>
     </div>
+    <?php endif; ?>
+
+    <?php if ($pendingTransfer): ?>
+    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
+        <div class="pending-icon">⏳</div>
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Trasferimento in attesa' : 'Pending Transfer' ?></h3>
+            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it'
+                ? 'Trasferimento verso <strong>' . htmlspecialchars($pendingTransfer['to_club_name']) . '</strong> in attesa di conferma.'
+                : 'Transfer to <strong>' . htmlspecialchars($pendingTransfer['to_club_name']) . '</strong> pending confirmation.' ?></p>
+            <ul class="pending-approvals-list">
+                <li>
+                    <?= $lang === 'it' ? 'Conferma del giocatore' : 'Player confirmation' ?>
+                    <?php if ($pendingTransfer['player_confirmed']): ?>
+                        <span style="color: var(--success);">&#10003;</span>
+                    <?php else: ?>
+                        <form method="POST" style="display: inline; margin-left: 1rem;">
+                            <input type="hidden" name="action" value="resend_transfer_player">
+                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </li>
+                <li>
+                    <?= $lang === 'it' ? 'Conferma del presidente del nuovo circolo' : 'New club president confirmation' ?>
+                    <?php if ($pendingTransfer['president_confirmed']): ?>
+                        <span style="color: var(--success);">&#10003;</span>
+                    <?php else: ?>
+                        <form method="POST" style="display: inline; margin-left: 1rem;">
+                            <input type="hidden" name="action" value="resend_transfer_president">
+                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($pendingManualRatings)): ?>
+    <?php foreach ($pendingManualRatings as $mr): ?>
+    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
+        <div class="pending-icon">⏳</div>
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Variazione manuale in attesa' : 'Pending Manual Rating Change' ?></h3>
+            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it'
+                ? 'Richiesta variazione a <strong>' . $mr['requested_rating'] . '</strong> (cat. ' . htmlspecialchars($mr['requested_category']) . ') nel circuito <strong>' . htmlspecialchars($mr['circuit_name']) . '</strong>.'
+                : 'Request to change rating to <strong>' . $mr['requested_rating'] . '</strong> (cat. ' . htmlspecialchars($mr['requested_category']) . ') in circuit <strong>' . htmlspecialchars($mr['circuit_name']) . '</strong>.' ?></p>
+            <ul class="pending-approvals-list">
+                <li>
+                    <?= $lang === 'it' ? 'Conferma del giocatore' : 'Player confirmation' ?>
+                    <?php if ($mr['player_confirmed']): ?>
+                        <span style="color: var(--success);">&#10003;</span>
+                    <?php else: ?>
+                        <form method="POST" style="display: inline; margin-left: 1rem;">
+                            <input type="hidden" name="action" value="resend_manual_rating_player">
+                            <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
+                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </li>
+                <li>
+                    <?= $lang === 'it' ? 'Conferma del presidente del circolo' : 'Club president confirmation' ?>
+                    <?php if ($mr['president_confirmed']): ?>
+                        <span style="color: var(--success);">&#10003;</span>
+                    <?php else: ?>
+                        <form method="POST" style="display: inline; margin-left: 1rem;">
+                            <input type="hidden" name="action" value="resend_manual_rating_president">
+                            <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
+                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </li>
+                <li>
+                    <?= $lang === 'it' ? 'Conferma del responsabile del circuito' : 'Circuit manager confirmation' ?>
+                    <?php if ($mr['circuit_confirmed']): ?>
+                        <span style="color: var(--success);">&#10003;</span>
+                    <?php else: ?>
+                        <form method="POST" style="display: inline; margin-left: 1rem;">
+                            <input type="hidden" name="action" value="resend_manual_rating_circuit">
+                            <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
+                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
+                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <?php endforeach; ?>
     <?php endif; ?>
 
     <div class="player-grid">
