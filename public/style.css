@@ -551,10 +551,18 @@ a:hover {
     text-align: center;
     padding: 4rem 2rem;
     color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
 }
 
 .empty-state p {
-    margin-bottom: 1rem;
+    margin: 0;
+}
+
+.empty-state p + * {
+    margin-top: 1rem;
 }
 
 /* Tables */
