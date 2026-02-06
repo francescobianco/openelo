@@ -59,16 +59,18 @@ a:hover {
 
 /* Environment banner */
 .env-banner {
-    background: var(--error);
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
     color: #fff;
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 3px 0;
+    letter-spacing: 0.3px;
+    padding: 4px 0;
     position: sticky;
     top: 0;
     z-index: 101;
+    border-bottom: 2px solid #991b1b;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Header */

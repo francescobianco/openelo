@@ -52,7 +52,10 @@ $content = ob_get_clean();
     <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
 
     <?php if (APP_ENV !== ''): ?>
-    <div class="env-banner"><?= strtoupper(APP_ENV) ?> — <?= $lang === 'it' ? 'Questo è un ambiente di ' . APP_ENV . ', non la produzione' : 'This is a ' . APP_ENV . ' environment, not production' ?></div>
+    <div class="env-banner"><?= $lang === 'it'
+        ? 'Ambiente di ' . APP_ENV . ' identificato dalla chiave "' . strtoupper(APP_ENV) . '" — I dati potranno essere persi o cancellati senza preavviso'
+        : ucfirst(APP_ENV) . ' environment identified by key "' . strtoupper(APP_ENV) . '" — Data may be lost or deleted without notice'
+    ?></div>
     <?php endif; ?>
 
     <header class="header">
