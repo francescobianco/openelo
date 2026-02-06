@@ -17,7 +17,7 @@ function getEmailSubjectPrefix(): string {
 /**
  * Send confirmation email
  */
-function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl): bool {
+function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl, string $buttonColor = '#4361ee'): bool {
     $subject = getEmailSubjectPrefix() . $subject;
     $lang = getCurrentLang();
 
@@ -35,7 +35,7 @@ function sendConfirmationEmail(string $to, string $subject, string $message, str
             .header-title span { color: #4361ee; }
             .content { background: #f8f9fa; padding: 32px; border-radius: 0 0 8px 8px; font-size: 16px; }
             .content p { margin: 0 0 16px 0; font-size: 16px; }
-            .button { display: inline-block; background: #4361ee; color: white !important; padding: 14px 36px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; font-size: 16px; }
+            .button { display: inline-block; background: {$buttonColor}; color: white !important; padding: 14px 36px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; font-size: 16px; }
             .footer { text-align: center; color: #666; font-size: 13px; margin-top: 20px; }
         </style>
     </head>
@@ -256,9 +256,9 @@ function sendTransferPresidentConfirmation(string $presidentEmail, string $playe
 /**
  * Send deletion request notification
  */
-function sendDeletionRequest(string $to, string $entityType, string $entityName, string $requesterEmail, string $reason, int $requestId): bool {
+function sendDeletionRequest(string $to, string $entityType, string $entityName, string $requesterEmail, string $reason, int $requestId, string $token): bool {
     $lang = getCurrentLang();
-    $url = BASE_URL . '/?page=deletion&id=' . $requestId;
+    $url = BASE_URL . '/?page=deletion&id=' . $requestId . '&token=' . $token;
 
     $entityTypeText = [
         'circuit' => $lang === 'it' ? 'circuito' : 'circuit',
@@ -281,7 +281,7 @@ function sendDeletionRequest(string $to, string $entityType, string $entityName,
             Click the button below to approve or reject the request.";
     }
 
-    return sendConfirmationEmail($to, $subject, $message, $url);
+    return sendConfirmationEmail($to, $subject, $message, $url, '#dc2626');
 }
 
 /**

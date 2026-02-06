@@ -12,7 +12,7 @@ $circuits = $db->query("
         (SELECT COUNT(DISTINCT r.player_id) FROM ratings r WHERE r.circuit_id = c.id) as player_count,
         (SELECT COUNT(*) FROM matches m WHERE m.circuit_id = c.id AND m.rating_applied = 1) as match_count
     FROM circuits c
-    WHERE c.confirmed = 1
+    WHERE c.confirmed = 1 AND c.deleted_at IS NULL
     ORDER BY c.created_at DESC
 ")->fetchAll();
 ?>

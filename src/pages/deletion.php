@@ -28,12 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_deletion'])) 
             throw new Exception(__('error_email'));
         }
 
-        // Create deletion request
+        // Create deletion request with token
+        $deletionToken = bin2hex(random_bytes(32));
         $stmt = $db->prepare("
-            INSERT INTO deletion_requests (entity_type, entity_id, requester_email, reason)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO deletion_requests (entity_type, entity_id, requester_email, reason, token)
+            VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$entityType, $entityId, $requesterEmail, $reason]);
+        $stmt->execute([$entityType, $entityId, $requesterEmail, $reason, $deletionToken]);
         $newRequestId = $db->lastInsertId();
 
         // Get entity details and send notifications
@@ -102,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_deletion'])) 
         // Send notifications to all recipients
         $recipients = array_unique($recipients);
         foreach ($recipients as $recipient) {
-            sendDeletionRequest($recipient, $entityType, $entityName, $requesterEmail, $reason, $newRequestId);
+            sendDeletionRequest($recipient, $entityType, $entityName, $requesterEmail, $reason, $newRequestId, $deletionToken);
         }
 
         $message = $lang === 'it'
@@ -116,13 +117,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_deletion'])) 
     }
 }
 
+// Validate token
+$token = $_GET['token'] ?? '';
+
 // Handle approval/rejection
 if ($requestId && $action !== 'view') {
-    $stmt = $db->prepare("SELECT * FROM deletion_requests WHERE id = ?");
-    $stmt->execute([$requestId]);
+    $stmt = $db->prepare("SELECT * FROM deletion_requests WHERE id = ? AND token = ?");
+    $stmt->execute([$requestId, $token]);
     $request = $stmt->fetch();
 
-    if ($request && $request['status'] === 'pending') {
+    if (!$request) {
+        $message = $lang === 'it' ? 'Token non valido o richiesta non trovata.' : 'Invalid token or request not found.';
+        $messageType = 'error';
+    } elseif ($request['status'] === 'pending') {
         try {
             if ($action === 'approve') {
                 // Soft delete the entity
@@ -159,11 +166,11 @@ if ($requestId && $action !== 'view') {
     }
 }
 
-// Show request details if viewing
+// Show request details if viewing (requires valid token)
 $request = null;
-if ($requestId) {
-    $stmt = $db->prepare("SELECT * FROM deletion_requests WHERE id = ?");
-    $stmt->execute([$requestId]);
+if ($requestId && $token) {
+    $stmt = $db->prepare("SELECT * FROM deletion_requests WHERE id = ? AND token = ?");
+    $stmt->execute([$requestId, $token]);
     $request = $stmt->fetch();
 }
 ?>
@@ -203,10 +210,10 @@ if ($requestId) {
 
         <?php if ($request['status'] === 'pending'): ?>
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <a href="?page=deletion&id=<?= $requestId ?>&action=approve" class="btn btn-primary" style="flex: 1;">
+            <a href="?page=deletion&id=<?= $requestId ?>&token=<?= htmlspecialchars($token) ?>&action=approve" class="btn btn-primary" style="flex: 1;">
                 <?= $lang === 'it' ? 'Approva Eliminazione' : 'Approve Deletion' ?>
             </a>
-            <a href="?page=deletion&id=<?= $requestId ?>&action=reject" class="btn btn-secondary" style="flex: 1;">
+            <a href="?page=deletion&id=<?= $requestId ?>&token=<?= htmlspecialchars($token) ?>&action=reject" class="btn btn-secondary" style="flex: 1;">
                 <?= $lang === 'it' ? 'Rifiuta' : 'Reject' ?>
             </a>
         </div>

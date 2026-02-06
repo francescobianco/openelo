@@ -204,6 +204,18 @@ $tab = $_GET['tab'] ?? 'rankings';
     </div>
     <?php endif; ?>
 
+    <?php if ($circuit['deleted_at']): ?>
+    <div class="alert alert-error" style="display: flex; gap: 1rem;">
+        <div class="pending-icon">🗑</div>
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Circuito in fase di eliminazione' : 'Circuit pending deletion' ?></h3>
+            <p style="margin: 0;"><?= $lang === 'it'
+                ? 'Questo circuito è stato contrassegnato per l\'eliminazione e sarà rimosso definitivamente dal sistema a breve.'
+                : 'This circuit has been marked for deletion and will be permanently removed from the system soon.' ?></p>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <?php if (!empty($pendingConfirmations)): ?>
     <div class="alert alert-warning" style="display: flex; gap: 1rem;">
         <div class="pending-icon">⏳</div>
