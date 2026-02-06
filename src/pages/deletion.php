@@ -210,7 +210,7 @@ if ($requestId && $token) {
 
         <?php if ($request['status'] === 'pending'): ?>
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <a href="?page=deletion&id=<?= $requestId ?>&token=<?= htmlspecialchars($token) ?>&action=approve" class="btn btn-primary" style="flex: 1;">
+            <a href="?page=deletion&id=<?= $requestId ?>&token=<?= htmlspecialchars($token) ?>&action=approve" class="btn" style="flex: 1; background: var(--error); color: white;">
                 <?= $lang === 'it' ? 'Approva Eliminazione' : 'Approve Deletion' ?>
             </a>
             <a href="?page=deletion&id=<?= $requestId ?>&token=<?= htmlspecialchars($token) ?>&action=reject" class="btn btn-secondary" style="flex: 1;">
