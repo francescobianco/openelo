@@ -61,7 +61,7 @@ $content = ob_get_clean();
 
     <header class="header">
         <div class="header-inner">
-            <a href="?" class="logo">
+            <a href="./" class="logo">
                 <img src="<?= asset('logo.png') ?>" alt="OpenELO Logo" class="logo-img">
                 <span class="logo-text">Open<span>ELO</span></span>
             </a>
