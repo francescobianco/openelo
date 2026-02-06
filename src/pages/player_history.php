@@ -112,7 +112,7 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
 <div class="container">
     <div class="page-header">
         <div>
-            <h1>📊 <?= $lang === 'it' ? 'Storico Rating' : 'Rating History' ?></h1>
+            <h1><?= $lang === 'it' ? 'Storico Rating' : 'Rating History' ?></h1>
             <div style="margin-top: 0.5rem; color: var(--text-secondary);">
                 <a href="?page=player&id=<?= $playerId ?>"><?= htmlspecialchars($playerName) ?></a>
                 <span style="margin: 0 0.5rem;">•</span>
