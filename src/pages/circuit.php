@@ -239,7 +239,13 @@ $tab = $_GET['tab'] ?? 'rankings';
             </div>
         </div>
         <?php if ($circuit['confirmed']): ?>
-        <a href="?page=submit&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= __('nav_submit_result') ?></a>
+            <?php if (empty($clubs)): ?>
+            <a href="?page=create&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Circolo' : 'Register Club' ?></a>
+            <?php elseif (count($rankings) < 2): ?>
+            <a href="?page=create&club=<?= count($clubs) === 1 ? $clubs[0]['id'] : '' ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Giocatori' : 'Register Players' ?></a>
+            <?php else: ?>
+            <a href="?page=submit&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= __('nav_submit_result') ?></a>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 
