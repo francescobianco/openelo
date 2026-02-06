@@ -92,11 +92,11 @@ function sendCircuitConfirmation(string $email, string $circuitName, string $tok
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
-        $subject = "♔ Conferma creazione circuito: {$circuitName}";
-        $message = "♚ Hai richiesto di creare il circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare e attivare il circuito.";
+        $subject = "Conferma creazione circuito: {$circuitName}";
+        $message = "Hai richiesto di creare il circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare e attivare il circuito.";
     } else {
-        $subject = "♔ Confirm circuit creation: {$circuitName}";
-        $message = "♚ You requested to create the circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to confirm and activate the circuit.";
+        $subject = "Confirm circuit creation: {$circuitName}";
+        $message = "You requested to create the circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to confirm and activate the circuit.";
     }
 
     return sendConfirmationEmail($email, $subject, $message, $url);
