@@ -678,6 +678,12 @@ tr:hover {
     gap: 2rem;
 }
 
+.create-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
 .create-section {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -953,6 +959,10 @@ tr:hover {
     }
 
     .circuits-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .create-grid-2 {
         grid-template-columns: 1fr;
     }
 
