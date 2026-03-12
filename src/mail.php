@@ -110,11 +110,11 @@ function sendClubPresidentConfirmation(string $email, string $clubName, string $
     $url = BASE_URL . '/?page=confirm&token=' . $token;
 
     if ($lang === 'it') {
-        $subject = "♖ Conferma creazione circolo: {$clubName}";
-        $message = "♟ Hai richiesto di creare il circolo <strong>{$clubName}</strong> nel circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il responsabile del circuito dovrà anche approvare l'adesione.";
+        $subject = "Conferma creazione circolo: {$clubName}";
+        $message = "Hai richiesto di creare il circolo <strong>{$clubName}</strong> nel circuito <strong>{$circuitName}</strong>.<br><br>Clicca il pulsante qui sotto per confermare. Il responsabile del circuito dovrà anche approvare l'adesione.";
     } else {
-        $subject = "♖ Confirm club creation: {$clubName}";
-        $message = "♟ You requested to create the club <strong>{$clubName}</strong> in circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to confirm. The circuit manager will also need to approve the membership.";
+        $subject = "Confirm club creation: {$clubName}";
+        $message = "You requested to create the club <strong>{$clubName}</strong> in circuit <strong>{$circuitName}</strong>.<br><br>Click the button below to confirm. The circuit manager will also need to approve the membership.";
     }
 
     return sendConfirmationEmail($email, $subject, $message, $url);
@@ -192,8 +192,8 @@ function sendMatchConfirmation(string $email, string $role, array $matchDetails,
             'circuit_manager' => 'responsabile del circuito',
             'player' => 'giocatore'
         ][$role] ?? 'giocatore';
-        $subject = "♔♕ Conferma partita: {$white} vs {$black}";
-        $message = "♟ Come <strong>{$roleText}</strong>, ti viene chiesto di confermare il seguente risultato:<br><br>
+        $subject = "Conferma partita: {$white} vs {$black}";
+        $message = "Come <strong>{$roleText}</strong>, ti viene chiesto di confermare il seguente risultato:<br><br>
             <strong>Circuito:</strong> {$circuit}<br>
             <strong>♔ Bianco:</strong> {$white}<br>
             <strong>♚ Nero:</strong> {$black}<br>
@@ -205,8 +205,8 @@ function sendMatchConfirmation(string $email, string $role, array $matchDetails,
             'circuit_manager' => 'circuit manager',
             'player' => 'player'
         ][$role] ?? 'player';
-        $subject = "♔♕ Confirm match: {$white} vs {$black}";
-        $message = "♟ As <strong>{$roleText}</strong>, you are asked to confirm the following result:<br><br>
+        $subject = "Confirm match: {$white} vs {$black}";
+        $message = "As <strong>{$roleText}</strong>, you are asked to confirm the following result:<br><br>
             <strong>Circuit:</strong> {$circuit}<br>
             <strong>♔ White:</strong> {$white}<br>
             <strong>♚ Black:</strong> {$black}<br>
