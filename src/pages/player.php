@@ -577,7 +577,6 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                             <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
                             <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
                             <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
-                            <th><?= __('form_circuit') ?></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -591,7 +590,6 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                                 <a href="?page=player&id=<?= $m['black_id'] ?>"><?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?></a>
                             </td>
                             <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
-                            <td><a href="?page=circuit&id=<?= $m['circuit_id'] ?>"><?= htmlspecialchars($m['circuit_name']) ?></a></td>
                             <td>
                                 <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm btn-secondary">
                                     <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
