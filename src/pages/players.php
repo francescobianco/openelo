@@ -48,7 +48,7 @@ $players = $db->query("
                             <?php if ($canView): ?>
                             <a href="?page=player&id=<?= $p['id'] ?>"><?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?></a>
                             <?php else: ?>
-                            <span style="color: var(--text-secondary);"><?= maskName($p['first_name'] . ' ' . $p['last_name']) ?></span>
+                            <a href="?page=player&id=<?= $p['id'] ?>" style="color: var(--text-secondary);"><?= maskName($p['first_name'] . ' ' . $p['last_name']) ?></a>
                             <?php endif; ?>
                         </td>
                         <td style="text-align: center;"><strong><?= htmlspecialchars($p['category'] ?? 'NC') ?></strong></td>

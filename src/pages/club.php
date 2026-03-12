@@ -358,7 +358,7 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                             <?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?>
                         </a>
                         <?php else: ?>
-                        <span style="color: var(--text-secondary); letter-spacing: 0.05em;"><?= maskName($p['first_name'] . ' ' . $p['last_name']) ?></span>
+                        <a href="?page=player&id=<?= $p['id'] ?>" style="color: var(--text-secondary); letter-spacing: 0.05em;"><?= maskName($p['first_name'] . ' ' . $p['last_name']) ?></a>
                         <?php endif; ?>
                         <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
                     </li>

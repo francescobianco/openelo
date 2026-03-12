@@ -59,7 +59,7 @@ $matches = $db->query("
                             <?php if ($canViewWhite): ?>
                             <a href="?page=player&id=<?= $m['white_id'] ?>"><?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?></a>
                             <?php else: ?>
-                            <span style="color: var(--text-secondary);"><?= maskName($m['white_first'] . ' ' . $m['white_last']) ?></span>
+                            <a href="?page=player&id=<?= $m['white_id'] ?>" style="color: var(--text-secondary);"><?= maskName($m['white_first'] . ' ' . $m['white_last']) ?></a>
                             <?php endif; ?>
                         </td>
                         <td style="text-align: center; font-weight: bold; font-size: 1.05rem;">
@@ -70,7 +70,7 @@ $matches = $db->query("
                             <?php if ($canViewBlack): ?>
                             <a href="?page=player&id=<?= $m['black_id'] ?>"><?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?></a>
                             <?php else: ?>
-                            <span style="color: var(--text-secondary);"><?= maskName($m['black_first'] . ' ' . $m['black_last']) ?></span>
+                            <a href="?page=player&id=<?= $m['black_id'] ?>" style="color: var(--text-secondary);"><?= maskName($m['black_first'] . ' ' . $m['black_last']) ?></a>
                             <?php endif; ?>
                         </td>
                         <td>
