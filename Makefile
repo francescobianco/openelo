@@ -1,5 +1,5 @@
 
-
+.PHONY: ftp-deploy
 
 push:
 	@git config credential.helper 'cache --timeout=3600'
@@ -9,13 +9,11 @@ push:
 
 start:
 	@docker compose up -d --build
+	@docker compose exec openelo bash -c "rm -fr /var/www/html/data/emails/* || true"
 	@echo "Visit http://localhost:8080 for the application."
 
 migrate:
 	@docker compose exec openelo php -f migrate.php
-
-
-.PHONY: ftp-deploy
 
 # Usage:
 #   make ftp-deploy file=prod.lftp
