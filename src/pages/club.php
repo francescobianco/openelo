@@ -293,7 +293,7 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
             <?= $lang === 'it' ? 'Circuiti e Giocatori' : 'Circuits & Players' ?>
         </a>
         <a href="?page=club&id=<?= $clubId ?>&tab=management" class="tab <?= $tab === 'management' ? 'active' : '' ?>">
-            &#9881; <?= $lang === 'it' ? 'Gestione' : 'Management' ?>
+            <?= $lang === 'it' ? 'Gestione' : 'Management' ?>
         </a>
     </div>
 
