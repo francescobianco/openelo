@@ -176,11 +176,15 @@ a:hover {
 .hamburger {
     display: none;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
     gap: 4px;
     background: none;
     border: none;
     cursor: pointer;
     padding: 0.5rem;
+    margin-left: 1rem;
+    align-self: center;
 }
 
 .hamburger span {
