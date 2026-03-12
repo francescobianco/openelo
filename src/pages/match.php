@@ -164,8 +164,10 @@ $isApplied = $match['rating_applied'] == 1;
             <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it' ? 'questa partita non è ancora stata validata' : 'this match has not been validated yet' ?></span>
         </p>
         <ul style="list-style: none; padding: 0; margin: 0;">
-            <?php foreach ($pendingConfirmations as $pending): ?>
-            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+            <?php foreach ($pendingConfirmations as $i => $pending):
+                $isLast = $i === array_key_last($pendingConfirmations);
+            ?>
+            <li style="padding: 0.5rem 0 <?= $isLast ? '0' : '0.5rem' ?>; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
                 <span style="font-size: 0.9rem;"><?= $pending['description'] ?></span>
                 <form method="POST">
                     <input type="hidden" name="action" value="resend_match">
@@ -184,14 +186,11 @@ $isApplied = $match['rating_applied'] == 1;
     </div>
     <?php endif; ?>
 
-    <div class="page-header">
-        <div>
-            <h1><?= $lang === 'it' ? 'Dettaglio Partita' : 'Match Details' ?></h1>
-            <div class="circuit-meta" style="margin-top: 0.5rem;">
-                <span><?= __('form_circuit') ?>: <a href="?page=circuit&id=<?= $match['circuit_id'] ?>"><?= htmlspecialchars($match['circuit_name']) ?></a></span>
-                <span><?= date('d/m/Y H:i', strtotime($match['created_at'])) ?></span>
-            </div>
-        </div>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1><?= htmlspecialchars($match['circuit_name']) ?></h1>
+        <p style="margin: 0.5rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+            <?= $lang === 'it' ? 'Dettaglio partita del' : 'Match details of' ?> <?= date('d/m/Y', strtotime($match['created_at'])) ?> · <a href="?page=circuit&id=<?= $match['circuit_id'] ?>" style="color: var(--accent);"><?= $lang === 'it' ? 'Vai al circuito' : 'Go to circuit' ?></a>
+        </p>
     </div>
 
     <div class="card" style="max-width: 600px; margin: 2rem auto;">

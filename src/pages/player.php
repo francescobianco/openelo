@@ -264,7 +264,7 @@ $stmt = $db->prepare("
     JOIN circuits ci ON ci.id = m.circuit_id
     JOIN players pw ON pw.id = m.white_player_id
     JOIN players pb ON pb.id = m.black_player_id
-    WHERE (m.white_player_id = ? OR m.black_player_id = ?) AND m.rating_applied = 0
+    WHERE (m.white_player_id = ? OR m.black_player_id = ?) AND m.rating_applied = 0 AND m.deleted_at IS NULL
     ORDER BY m.created_at DESC
 ");
 $stmt->execute([$playerId, $playerId]);
