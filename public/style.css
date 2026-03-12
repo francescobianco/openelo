@@ -741,10 +741,18 @@ tr:hover {
     display: none;
 }
 
+.footer-break {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .footer-lang-select {
         display: block;
         margin-top: 1rem;
+    }
+
+    .footer-break {
+        display: block;
     }
 }
 
