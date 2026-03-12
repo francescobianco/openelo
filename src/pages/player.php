@@ -589,7 +589,7 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
 
     <!-- Tab: Management -->
     <?php elseif ($tab === 'management'): ?>
-    <div class="create-grid">
+    <div class="create-grid-2">
         <!-- Manual Rating Request -->
         <?php if (!empty($ratings)): ?>
         <div class="create-section">
