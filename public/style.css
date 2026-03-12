@@ -600,9 +600,6 @@ tr:hover {
     color: var(--accent);
 }
 
-.rank-1::before { content: '♔ '; }
-.rank-2::before { content: '♕ '; }
-.rank-3::before { content: '♖ '; }
 
 /* Chess icons */
 .chess-icon {
