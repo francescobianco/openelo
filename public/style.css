@@ -61,7 +61,7 @@ a:hover {
 .sticky-top {
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1001;
 }
 
 /* Environment banner */
@@ -99,6 +99,7 @@ a:hover {
     gap: 0.5rem;
     position: relative;
     margin-left: -0.5rem;
+    margin-right: 1rem;
 }
 
 .logo:hover {
@@ -901,7 +902,7 @@ tr:hover {
         gap: 0;
         align-items: flex-start;
         transition: left 0.3s ease;
-        z-index: 1000;
+        z-index: 1002;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
         overflow-y: auto;
         pointer-events: auto;
