@@ -13,7 +13,7 @@ $players = $db->query("
         (SELECT SUM(r.games_played) FROM ratings r WHERE r.player_id = p.id) as total_games
     FROM players p
     JOIN clubs c ON c.id = p.club_id
-    WHERE p.confirmed = 1 AND p.deleted_at IS NULL
+    WHERE p.confirmed = 1 AND p.deleted_at IS NULL AND c.deleted_at IS NULL
     ORDER BY p.last_name, p.first_name
 ")->fetchAll();
 ?>

@@ -229,7 +229,7 @@ $stmt = $db->prepare("
     SELECT ci.name as circuit_name, ci.id as circuit_id, r.rating, r.games_played
     FROM ratings r
     JOIN circuits ci ON ci.id = r.circuit_id
-    WHERE r.player_id = ?
+    WHERE r.player_id = ? AND ci.deleted_at IS NULL
     ORDER BY r.rating DESC
 ");
 $stmt->execute([$playerId]);
@@ -557,10 +557,10 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 <table>
                     <thead>
                         <tr>
-                            <th><?= __('form_white') ?></th>
+                            <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
+                            <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
                             <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
-                            <th><?= __('form_black') ?></th>
-                            <th>Stato</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -569,13 +569,13 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                             <td <?= $m['white_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
                                 <?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?>
                             </td>
-                            <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
                             <td <?= $m['black_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
                                 <?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?>
                             </td>
+                            <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
                             <td>
-                                <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm">
-                                    <?= $lang === 'it' ? 'Vedi dettagli' : 'View details' ?>
+                                <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm btn-secondary">
+                                    <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
                                 </a>
                             </td>
                         </tr>

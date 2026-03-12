@@ -20,6 +20,11 @@ $matches = $db->query("
     JOIN clubs cw ON cw.id = pw.club_id
     JOIN clubs cb ON cb.id = pb.club_id
     WHERE m.deleted_at IS NULL
+    AND ci.deleted_at IS NULL
+    AND pw.deleted_at IS NULL
+    AND pb.deleted_at IS NULL
+    AND cw.deleted_at IS NULL
+    AND cb.deleted_at IS NULL
     ORDER BY m.created_at DESC
     LIMIT 200
 ")->fetchAll();
@@ -46,6 +51,7 @@ $matches = $db->query("
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
                         <th><?= __('form_circuit') ?></th>
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Stato' : 'Status' ?></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,8 +76,8 @@ $matches = $db->query("
                             <a href="?page=player&id=<?= $m['black_id'] ?>" style="color: var(--text-secondary);"><?= maskName($m['black_first'] . ' ' . $m['black_last']) ?></a>
                             <?php endif; ?>
                         </td>
-                        <td style="text-align: center; font-weight: bold; font-size: 1.05rem;">
-                            <a href="?page=match&id=<?= $m['id'] ?>"><?= htmlspecialchars($m['result']) ?></a>
+                        <td style="text-align: center; font-weight: bold; font-size: 1.05rem; white-space: nowrap;">
+                            <?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?>
                         </td>
                         <td>
                             <a href="?page=circuit&id=<?= $m['circuit_id'] ?>"><?= htmlspecialchars($m['circuit_name']) ?></a>
@@ -82,6 +88,11 @@ $matches = $db->query("
                             <?php else: ?>
                             <span class="badge badge-warning"><?= $lang === 'it' ? 'In attesa' : 'Pending' ?></span>
                             <?php endif; ?>
+                        </td>
+                        <td>
+                            <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm btn-secondary">
+                                <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
+                            </a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
