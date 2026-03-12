@@ -424,6 +424,22 @@ if (empty($token)) {
                     $messageType = 'success';
                     break;
 
+                case 'circuit_formula_change':
+                    $requestId = $confirmation['target_id'];
+                    $stmt = $db->prepare("SELECT * FROM circuit_formula_requests WHERE id = ? AND applied = 0");
+                    $stmt->execute([$requestId]);
+                    $req = $stmt->fetch();
+                    if ($req) {
+                        $stmt = $db->prepare("UPDATE circuits SET formula = ? WHERE id = ?");
+                        $stmt->execute([$req['formula'], $req['circuit_id']]);
+                        $stmt = $db->prepare("UPDATE circuit_formula_requests SET applied = 1 WHERE id = ?");
+                        $stmt->execute([$requestId]);
+                        $message = $lang === 'it' ? 'Formula del circuito aggiornata.' : 'Circuit formula updated.';
+                        $redirectUrl = '?page=circuit&id=' . $req['circuit_id'] . '&tab=settings';
+                    }
+                    $messageType = 'success';
+                    break;
+
                 case 'protected_mode_toggle':
                     $clubId = $confirmation['target_id'];
                     $desiredMode = $confirmation['role'] === 'enable' ? 1 : 0;

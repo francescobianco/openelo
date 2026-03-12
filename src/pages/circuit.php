@@ -104,6 +104,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Handle formula change request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_formula_change') {
+    $allowedFormulas = ['classic_elo', 'ladder_no_draw', 'knockout_no_draw'];
+    $formula = trim($_POST['formula'] ?? '');
+
+    if (!in_array($formula, $allowedFormulas)) {
+        $message = __('error_required');
+        $messageType = 'error';
+    } else {
+        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
+        $stmt->execute([$circuitId]);
+        $circuitData = $stmt->fetch();
+
+        if ($circuitData) {
+            $formulaLabels = [
+                'classic_elo'      => 'Lista ELO Classica',
+                'ladder_no_draw'   => 'Ladder No Draw',
+                'knockout_no_draw' => 'Knockout No Draw',
+            ];
+
+            $stmt = $db->prepare("INSERT INTO circuit_formula_requests (circuit_id, formula) VALUES (?, ?)");
+            $stmt->execute([$circuitId, $formula]);
+            $requestId = $db->lastInsertId();
+
+            $token = createConfirmation('circuit_formula_change', $requestId, $circuitData['owner_email']);
+            sendCircuitFormulaConfirmation($circuitData['owner_email'], $circuitData['name'], $formulaLabels[$formula], $token);
+
+            $message = $lang === 'it' ? 'Richiesta inviata! Il responsabile riceverà una email di conferma.' : 'Request sent! The manager will receive a confirmation email.';
+            $messageType = 'success';
+        }
+    }
+}
+
 // Handle resend request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resend_circuit') {
     // Check rate limit
@@ -271,6 +304,7 @@ $tab = $_GET['tab'] ?? 'rankings';
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=clubs" class="tab <?= $tab === 'clubs' ? 'active' : '' ?>"><?= __('circuit_clubs') ?></a>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=matches" class="tab <?= $tab === 'matches' ? 'active' : '' ?>"><?= __('circuit_matches') ?></a>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=manager" class="tab <?= $tab === 'manager' ? 'active' : '' ?>"><?= $lang === 'it' ? 'Responsabile' : 'Manager' ?></a>
+        <a href="?page=circuit&id=<?= $circuitId ?>&tab=settings" class="tab <?= $tab === 'settings' ? 'active' : '' ?>"><?= $lang === 'it' ? 'Impostazioni' : 'Settings' ?></a>
     </div>
 
     <?php if ($tab === 'rankings'): ?>
@@ -414,6 +448,43 @@ $tab = $_GET['tab'] ?? 'rankings';
                     <textarea id="change_reason" name="reason" rows="3" style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Invia Richiesta' : 'Submit Request' ?></button>
+            </form>
+        </div>
+    </div>
+    <?php elseif ($tab === 'settings'): ?>
+    <div class="create-grid">
+        <!-- Formula Change -->
+        <div class="create-section">
+            <h2><?= $lang === 'it' ? 'Formula del Circuito' : 'Circuit Formula' ?></h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                <?php
+                $formulaLabels = [
+                    'classic_elo'      => 'Lista ELO Classica',
+                    'ladder_no_draw'   => 'Ladder No Draw',
+                    'knockout_no_draw' => 'Knockout No Draw',
+                ];
+                $currentFormula = $circuit['formula'] ?? 'classic_elo';
+                ?>
+                <?= $lang === 'it' ? 'Formula attuale:' : 'Current formula:' ?>
+                <strong><?= htmlspecialchars($formulaLabels[$currentFormula] ?? $currentFormula) ?></strong>
+            </p>
+            <form method="POST">
+                <input type="hidden" name="action" value="request_formula_change">
+                <div class="form-group">
+                    <label for="formula"><?= $lang === 'it' ? 'Nuova Formula' : 'New Formula' ?></label>
+                    <select id="formula" name="formula" required>
+                        <option value="">-- <?= __('form_select') ?> --</option>
+                        <?php foreach ($formulaLabels as $key => $label): ?>
+                        <option value="<?= $key ?>" <?= $currentFormula === $key ? 'selected' : '' ?>><?= $label ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem;">
+                    <?= $lang === 'it'
+                        ? 'La richiesta verrà inviata al responsabile del circuito per approvazione via email.'
+                        : 'The request will be sent to the circuit manager for approval via email.' ?>
+                </p>
+                <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Richiedi Cambio' : 'Request Change' ?></button>
             </form>
         </div>
     </div>

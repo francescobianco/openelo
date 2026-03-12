@@ -22,4 +22,5 @@ return [
     '20240101000008_add_protected_mode',
     '20240101000009_add_club_access_tokens',
     '20240101000010_add_club_info',
+    '20240101000011_add_circuit_formula',
 ];
