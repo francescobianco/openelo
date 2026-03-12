@@ -153,7 +153,7 @@ $stmt = $db->prepare("
     SELECT ci.*, cc.id as membership_id, cc.club_confirmed, cc.circuit_confirmed
     FROM circuit_clubs cc
     JOIN circuits ci ON ci.id = cc.circuit_id
-    WHERE cc.club_id = ?
+    WHERE cc.club_id = ? AND ci.deleted_at IS NULL
     ORDER BY ci.name
 ");
 $stmt->execute([$clubId]);
