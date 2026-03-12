@@ -12,6 +12,14 @@ return [
                 FOREIGN KEY (club_id) REFERENCES clubs(id)
             )$engine
         ");
+        // Fix column type if table was previously created with TEXT (failed first run)
+        if ($dbType === 'mysql') {
+            try {
+                $db->exec("ALTER TABLE club_access_tokens MODIFY token VARCHAR(64) NOT NULL");
+            } catch (PDOException $e) {
+                // ignore if already correct type
+            }
+        }
         try {
             $db->exec("CREATE UNIQUE INDEX idx_club_access_tokens_token ON club_access_tokens(token)");
         } catch (PDOException $e) {
