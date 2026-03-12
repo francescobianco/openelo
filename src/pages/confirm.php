@@ -408,6 +408,22 @@ if (empty($token)) {
                     $redirectUrl = '?page=player&id=' . $request['player_id'];
                     break;
 
+                case 'club_update':
+                    $requestId = $confirmation['target_id'];
+                    $stmt = $db->prepare("SELECT * FROM club_update_requests WHERE id = ? AND applied = 0");
+                    $stmt->execute([$requestId]);
+                    $req = $stmt->fetch();
+                    if ($req) {
+                        $stmt = $db->prepare("UPDATE clubs SET name = ?, location = ?, website = ? WHERE id = ?");
+                        $stmt->execute([$req['name'], $req['location'], $req['website'], $req['club_id']]);
+                        $stmt = $db->prepare("UPDATE club_update_requests SET applied = 1 WHERE id = ?");
+                        $stmt->execute([$requestId]);
+                        $message = $lang === 'it' ? 'Dati del circolo aggiornati.' : 'Club info updated.';
+                        $redirectUrl = '?page=club&id=' . $req['club_id'];
+                    }
+                    $messageType = 'success';
+                    break;
+
                 case 'protected_mode_toggle':
                     $clubId = $confirmation['target_id'];
                     $desiredMode = $confirmation['role'] === 'enable' ? 1 : 0;

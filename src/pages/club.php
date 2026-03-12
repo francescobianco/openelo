@@ -100,6 +100,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             ? 'Email inviata al presidente! Controlla la casella e clicca il link per confermare.'
             : 'Email sent to the president! Check the inbox and click the link to confirm.';
         $messageType = 'success';
+    } elseif ($_POST['action'] === 'request_club_update') {
+        try {
+            $newName  = trim($_POST['name'] ?? '');
+            $location = trim($_POST['location'] ?? '');
+            $website  = trim($_POST['website'] ?? '');
+
+            if (empty($newName)) throw new Exception(__('error_required'));
+
+            $stmt = $db->prepare("INSERT INTO club_update_requests (club_id, name, location, website) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$clubId, $newName, $location ?: null, $website ?: null]);
+            $requestId = $db->lastInsertId();
+
+            $token = createConfirmation('club_update', $requestId, $club['president_email']);
+            sendClubUpdateConfirmation($club['president_email'], $club['name'], $newName, $location, $website, $token);
+
+            $message = $lang === 'it'
+                ? 'Richiesta inviata! Il presidente riceverà un\'email per approvare le modifiche.'
+                : 'Request sent! The president will receive an email to approve the changes.';
+            $messageType = 'success';
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            $messageType = 'error';
+        }
     } elseif ($_POST['action'] === 'join_circuit') {
         try {
             $circuitId = (int)($_POST['circuit_id'] ?? 0);
@@ -371,6 +394,32 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 </form>
             </div>
             <?php endif; ?>
+
+            <!-- Club Info Update -->
+            <div class="create-section">
+                <h2><?= $lang === 'it' ? 'Cambia Intestazione' : 'Update Club Info' ?></h2>
+                <form method="POST">
+                    <input type="hidden" name="action" value="request_club_update">
+                    <div class="form-group">
+                        <label for="club_name"><?= $lang === 'it' ? 'Nome circolo' : 'Club name' ?></label>
+                        <input type="text" id="club_name" name="name" value="<?= htmlspecialchars($club['name']) ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="club_location"><?= $lang === 'it' ? 'Località / Indirizzo' : 'Location / Address' ?></label>
+                        <input type="text" id="club_location" name="location" value="<?= htmlspecialchars($club['location'] ?? '') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="club_website"><?= $lang === 'it' ? 'Sito web pubblico' : 'Public website' ?></label>
+                        <input type="url" id="club_website" name="website" value="<?= htmlspecialchars($club['website'] ?? '') ?>" placeholder="https://...">
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.75rem 0;">
+                        <?= $lang === 'it'
+                            ? 'Le modifiche richiederanno la conferma via email del presidente del circolo.'
+                            : 'Changes will require email confirmation from the club president.' ?>
+                    </p>
+                    <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
+                </form>
+            </div>
 
             <!-- Protected Mode -->
             <div class="create-section">

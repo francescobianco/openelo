@@ -373,3 +373,30 @@ function sendManualRatingConfirmation(string $to, string $role, string $playerNa
 
     return sendConfirmationEmail($to, $subject, $message, $url);
 }
+
+/**
+ * Send club info update confirmation to president
+ */
+function sendClubUpdateConfirmation(string $presidentEmail, string $clubName, string $newName, string $location, string $website, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    $locLine = $location ? ($lang === 'it' ? "<strong>Località:</strong> {$location}" : "<strong>Location:</strong> {$location}") . '<br>' : '';
+    $webLine = $website  ? ($lang === 'it' ? "<strong>Sito web:</strong> {$website}"  : "<strong>Website:</strong> {$website}")   . '<br>' : '';
+
+    if ($lang === 'it') {
+        $subject = "Richiesta modifica intestazione: {$clubName}";
+        $message = "È stata ricevuta una richiesta di modifica dei dati del circolo <strong>{$clubName}</strong>.<br><br>
+            <strong>Nuovo nome:</strong> {$newName}<br>
+            {$locLine}{$webLine}<br>
+            Clicca il pulsante qui sotto per approvare le modifiche.";
+    } else {
+        $subject = "Club info update request: {$clubName}";
+        $message = "A request has been received to update the info for club <strong>{$clubName}</strong>.<br><br>
+            <strong>New name:</strong> {$newName}<br>
+            {$locLine}{$webLine}<br>
+            Click the button below to approve the changes.";
+    }
+
+    return sendConfirmationEmail($presidentEmail, $subject, $message, $url);
+}
