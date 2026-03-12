@@ -108,6 +108,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             if (empty($newName)) throw new Exception(__('error_required'));
 
+            // Sanitize website: force https
+            if ($website !== '') {
+                if (!preg_match('#^https?://#i', $website)) {
+                    $website = 'https://' . $website;
+                }
+                $website = preg_replace('#^http://#i', 'https://', $website);
+                if (!str_starts_with($website, 'https://')) {
+                    throw new Exception($lang === 'it' ? 'Il sito web deve usare HTTPS.' : 'Website must use HTTPS.');
+                }
+            }
+
             $stmt = $db->prepare("INSERT INTO club_update_requests (club_id, name, location, website) VALUES (?, ?, ?, ?)");
             $stmt->execute([$clubId, $newName, $location ?: null, $website ?: null]);
             $requestId = $db->lastInsertId();
