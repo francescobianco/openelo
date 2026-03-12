@@ -17,7 +17,7 @@ $clubs = $db->query("
         (SELECT COUNT(*) FROM players p WHERE p.club_id = c.id AND p.confirmed = 1) as player_count,
         (SELECT $groupConcat FROM circuit_clubs cc2
          JOIN circuits ci ON ci.id = cc2.circuit_id
-         WHERE cc2.club_id = c.id AND cc2.club_confirmed = 1 AND cc2.circuit_confirmed = 1) as circuit_names
+         WHERE cc2.club_id = c.id AND cc2.club_confirmed = 1 AND cc2.circuit_confirmed = 1 AND ci.deleted_at IS NULL) as circuit_names
     FROM clubs c
     WHERE c.president_confirmed = 1
     AND c.deleted_at IS NULL

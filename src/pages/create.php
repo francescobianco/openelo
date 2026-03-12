@@ -161,12 +161,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $preselectedCircuit = (int)($_GET['circuit'] ?? 0);
 $preselectedClub = (int)($_GET['club'] ?? 0);
 $highlightCircuit = ($_GET['highlight'] ?? '') === 'circuit';
-$circuits = $db->query("SELECT * FROM circuits WHERE confirmed = 1 ORDER BY name")->fetchAll();
+$circuits = $db->query("SELECT * FROM circuits WHERE confirmed = 1 AND deleted_at IS NULL ORDER BY name")->fetchAll();
 
 // Get active clubs (president confirmed + at least one active circuit)
 $clubs = $db->query("
     SELECT c.* FROM clubs c
     WHERE c.president_confirmed = 1
+    AND c.deleted_at IS NULL
     AND EXISTS (
         SELECT 1 FROM circuit_clubs cc
         WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1

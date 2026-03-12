@@ -157,7 +157,7 @@ $stmt = $db->prepare("
     FROM clubs cl
     JOIN circuit_clubs cc ON cc.club_id = cl.id
     LEFT JOIN players p ON p.club_id = cl.id AND p.confirmed = 1
-    WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
+    WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1 AND cl.deleted_at IS NULL
     GROUP BY cl.id
     ORDER BY cl.name
 ");
