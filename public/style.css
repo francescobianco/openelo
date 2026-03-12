@@ -494,6 +494,10 @@ a:hover {
     text-overflow: ellipsis;
 }
 
+.club-circuits-empty {
+    opacity: 0.5;
+}
+
 /* Forms */
 .form-group {
     margin-bottom: 1.5rem;

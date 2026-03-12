@@ -69,6 +69,7 @@ $translations = [
         'circuit_clubs' => 'Clubs',
         'circuit_players' => 'Players',
         'circuit_matches' => 'Matches',
+        'no_circuits_associated' => 'No circuits associated',
 
         // Club
         'club_create' => 'Register Club',
@@ -197,6 +198,7 @@ $translations = [
         'circuit_clubs' => 'Circoli',
         'circuit_players' => 'Giocatori',
         'circuit_matches' => 'Partite',
+        'no_circuits_associated' => 'Nessun circuito associato',
 
         // Club
         'club_create' => 'Registra Circolo',

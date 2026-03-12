@@ -50,11 +50,9 @@ $clubs = $db->query("
                     <span><?= $club['circuit_count'] ?> <?= __('nav_circuits') ?></span>
                     <span><?= $club['player_count'] ?> <?= __('circuit_players') ?></span>
                 </div>
-                <?php if ($club['circuit_names']): ?>
                 <div class="club-circuits">
-                    <?= htmlspecialchars($club['circuit_names']) ?>
+                    <?= $club['circuit_names'] ? htmlspecialchars($club['circuit_names']) : '<span class="club-circuits-empty">' . __('no_circuits_associated') . '</span>' ?>
                 </div>
-                <?php endif; ?>
             </div>
         </a>
         <?php endforeach; ?>
