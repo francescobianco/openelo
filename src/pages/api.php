@@ -18,16 +18,18 @@ switch ($action) {
 
         $db = Database::get();
 
-        // Get players in this circuit with their club names
+        // Get players in this circuit via club membership
         $stmt = $db->prepare("
-            SELECT p.id, p.first_name, p.last_name, c.name as club_name, r.rating
-            FROM ratings r
-            JOIN players p ON p.id = r.player_id
+            SELECT p.id, p.first_name, p.last_name, c.name as club_name,
+                (SELECT r.rating FROM ratings r WHERE r.player_id = p.id AND r.circuit_id = ?) as rating
+            FROM players p
             JOIN clubs c ON c.id = p.club_id
-            WHERE r.circuit_id = ? AND p.confirmed = 1
+            JOIN circuit_clubs cc ON cc.club_id = p.club_id
+            WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
+            AND p.confirmed = 1 AND p.deleted_at IS NULL AND c.deleted_at IS NULL
             ORDER BY p.last_name, p.first_name
         ");
-        $stmt->execute([$circuitId]);
+        $stmt->execute([$circuitId, $circuitId]);
         $players = $stmt->fetchAll();
 
         echo json_encode(['players' => $players]);
@@ -85,7 +87,7 @@ switch ($action) {
 
         $stmt = $db->prepare("
             SELECT c.* FROM circuits c
-            WHERE c.confirmed = 1
+            WHERE c.confirmed = 1 AND c.deleted_at IS NULL
             AND NOT EXISTS (
                 SELECT 1 FROM circuit_clubs cc
                 WHERE cc.circuit_id = c.id AND cc.club_id = ?
