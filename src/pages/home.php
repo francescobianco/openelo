@@ -122,8 +122,8 @@ $circuits = $db->query("
         <div class="circuit-card">
             <h3><a href="?page=circuit&id=<?= $circuit['id'] ?>"><?= htmlspecialchars($circuit['name']) ?></a></h3>
             <div class="circuit-meta">
-                <span>♜ <?= $circuit['club_count'] ?> <?= __('circuit_clubs') ?></span>
-                <span>♟ <?= $circuit['player_count'] ?> <?= __('circuit_players') ?></span>
+                <span><?= $circuit['club_count'] ?> <?= __('circuit_clubs') ?></span>
+                <span><?= $circuit['player_count'] ?> <?= __('circuit_players') ?></span>
             </div>
         </div>
         <?php endforeach; ?>

@@ -47,8 +47,8 @@ $clubs = $db->query("
             <div class="circuit-card">
                 <h3><?= htmlspecialchars($club['name']) ?></h3>
                 <div class="circuit-meta">
-                    <span>♔ <?= $club['circuit_count'] ?> <?= __('nav_circuits') ?></span>
-                    <span>♟ <?= $club['player_count'] ?> <?= __('circuit_players') ?></span>
+                    <span><?= $club['circuit_count'] ?> <?= __('nav_circuits') ?></span>
+                    <span><?= $club['player_count'] ?> <?= __('circuit_players') ?></span>
                 </div>
                 <?php if ($club['circuit_names']): ?>
                 <div class="club-circuits">
