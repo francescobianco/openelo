@@ -247,7 +247,11 @@ $tab = $_GET['tab'] ?? 'rankings';
             <h1><?= htmlspecialchars($circuit['name']) ?></h1>
             <div class="circuit-meta" style="margin-top: 0.5rem;">
                 <span><?= count($clubs) ?> <?= __('circuit_clubs') ?></span>
-                <span><?= count($rankings) ?> <?= __('circuit_players') ?></span>
+                <span><?php
+                    $stmtPc = $db->prepare("SELECT COUNT(DISTINCT p.id) FROM players p JOIN circuit_clubs cc ON cc.club_id = p.club_id WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1 AND p.confirmed = 1 AND p.deleted_at IS NULL");
+                    $stmtPc->execute([$circuitId]);
+                    echo $stmtPc->fetchColumn();
+                ?> <?= __('circuit_players') ?></span>
                 <span><?= count($matches) ?> <?= __('circuit_matches') ?></span>
             </div>
         </div>

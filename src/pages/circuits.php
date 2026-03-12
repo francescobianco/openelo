@@ -9,7 +9,7 @@ $db = Database::get();
 $circuits = $db->query("
     SELECT c.*,
         (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.circuit_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as club_count,
-        (SELECT COUNT(DISTINCT r.player_id) FROM ratings r WHERE r.circuit_id = c.id) as player_count,
+        (SELECT COUNT(DISTINCT p.id) FROM players p JOIN circuit_clubs cc2 ON cc2.club_id = p.club_id WHERE cc2.circuit_id = c.id AND cc2.club_confirmed = 1 AND cc2.circuit_confirmed = 1 AND p.confirmed = 1 AND p.deleted_at IS NULL) as player_count,
         (SELECT COUNT(*) FROM matches m WHERE m.circuit_id = c.id AND m.rating_applied = 1) as match_count
     FROM circuits c
     WHERE c.confirmed = 1 AND c.deleted_at IS NULL
