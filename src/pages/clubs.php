@@ -20,6 +20,7 @@ $clubs = $db->query("
          WHERE cc2.club_id = c.id AND cc2.club_confirmed = 1 AND cc2.circuit_confirmed = 1) as circuit_names
     FROM clubs c
     WHERE c.president_confirmed = 1
+    AND c.deleted_at IS NULL
     AND EXISTS (
         SELECT 1 FROM circuit_clubs cc
         WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
