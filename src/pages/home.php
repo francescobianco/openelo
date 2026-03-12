@@ -41,22 +41,22 @@ $circuits = $db->query("
 </section>
 
 <section class="stats">
-    <div class="stat-card">
+    <a href="?page=circuits" class="stat-card" style="text-decoration: none;">
         <div class="number"><?= $stats['circuits'] ?></div>
         <div class="label"><?= __('nav_circuits') ?></div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="?page=clubs" class="stat-card" style="text-decoration: none;">
         <div class="number"><?= $stats['clubs'] ?></div>
         <div class="label"><?= __('circuit_clubs') ?></div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="?page=players" class="stat-card" style="text-decoration: none;">
         <div class="number"><?= $stats['players'] ?></div>
         <div class="label"><?= __('circuit_players') ?></div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="?page=matches" class="stat-card" style="text-decoration: none;">
         <div class="number"><?= $stats['matches'] ?></div>
         <div class="label"><?= __('circuit_matches') ?></div>
-    </div>
+    </a>
 </section>
 
 <section class="features">

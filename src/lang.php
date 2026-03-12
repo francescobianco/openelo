@@ -18,6 +18,7 @@ $translations = [
         'nav_submit_result' => 'Submit Result',
         'nav_create' => 'Create/Register',
         'nav_players' => 'Players',
+        'nav_matches' => 'Matches',
 
         // Landing page
         'hero_title' => 'Your Rating, Your Circuit',
@@ -76,7 +77,7 @@ $translations = [
         'club_created' => 'Club registered! Both president and circuit manager will receive confirmation emails.',
         'club_join_circuit' => 'Join Another Circuit',
         'club_request_sent' => 'Request sent! Both president and circuit manager will receive emails.',
-        'club_pending' => 'Pending approval',
+        'club_pending' => 'Pending',
         'club_active' => 'Active',
         'club_view' => 'View Club',
 
@@ -145,6 +146,7 @@ $translations = [
         'nav_submit_result' => 'Inserisci Risultato',
         'nav_create' => 'Crea/Registra',
         'nav_players' => 'Giocatori',
+        'nav_matches' => 'Partite',
 
         // Landing page
         'hero_title' => 'Il Tuo Rating, Il Tuo Circuito',
@@ -203,7 +205,7 @@ $translations = [
         'club_created' => 'Circolo registrato! Sia il presidente che il responsabile del circuito riceveranno email di conferma.',
         'club_join_circuit' => 'Unisciti ad un Altro Circuito',
         'club_request_sent' => 'Richiesta inviata! Sia il presidente che il responsabile del circuito riceveranno email.',
-        'club_pending' => 'In attesa di approvazione',
+        'club_pending' => 'In attesa',
         'club_active' => 'Attivo',
         'club_view' => 'Vedi Circolo',
 

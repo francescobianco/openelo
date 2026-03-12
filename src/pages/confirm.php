@@ -408,6 +408,18 @@ if (empty($token)) {
                     $redirectUrl = '?page=player&id=' . $request['player_id'];
                     break;
 
+                case 'protected_mode_toggle':
+                    $clubId = $confirmation['target_id'];
+                    $desiredMode = $confirmation['role'] === 'enable' ? 1 : 0;
+                    $stmt = $db->prepare("UPDATE clubs SET protected_mode = ? WHERE id = ?");
+                    $stmt->execute([$desiredMode, $clubId]);
+                    $message = $desiredMode
+                        ? ($lang === 'it' ? 'Modalità protetta attivata.' : 'Protected mode enabled.')
+                        : ($lang === 'it' ? 'Modalità protetta disattivata.' : 'Protected mode disabled.');
+                    $messageType = 'success';
+                    $redirectUrl = '?page=club&id=' . $clubId;
+                    break;
+
                 default:
                     throw new Exception('Unknown confirmation type');
             }

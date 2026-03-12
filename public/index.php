@@ -20,7 +20,7 @@ $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'clubs', 'players', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'security', 'api'];
+$validPages = ['home', 'circuits', 'clubs', 'players', 'matches', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'security', 'api'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -79,6 +79,7 @@ $content = ob_get_clean();
                     <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
                     <a href="?page=clubs" <?= $page === 'clubs' || $page === 'club' ? 'class="active"' : '' ?>><?= __('nav_clubs') ?></a>
                     <a href="?page=players" <?= $page === 'players' || $page === 'player' ? 'class="active"' : '' ?>><?= __('nav_players') ?></a>
+                    <a href="?page=matches" <?= $page === 'matches' || $page === 'match' ? 'class="active"' : '' ?>><?= __('nav_matches') ?></a>
                     <a href="?page=create" <?= $page === 'create' ? 'class="active"' : '' ?>><?= __('nav_create') ?></a>
                     <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
                 </div>

@@ -7,16 +7,27 @@ require_once SRC_PATH . '/mail.php';
 
 $db = Database::get();
 
-// Protected mode: check if visitor is an authenticated club member
-function maskPlayerName(): string { return '●●● ●●●'; }
-
 $clubId = (int)($_GET['id'] ?? 0);
 $message = null;
 $messageType = null;
 
-// Handle resend requests
+// Load club first (needed by POST handlers too)
+$stmt = $db->prepare("
+    SELECT c.*,
+        (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as active_circuits
+    FROM clubs c
+    WHERE c.id = ? AND c.deleted_at IS NULL
+");
+$stmt->execute([$clubId]);
+$club = $stmt->fetch();
+
+if (!$club) {
+    header('Location: ?page=clubs');
+    exit;
+}
+
+// Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    // Check rate limit for reminder actions
     $isReminderAction = in_array($_POST['action'], ['resend_president', 'resend_club_circuit', 'resend_circuit']);
     $rateLimitError = $isReminderAction ? checkReminderRateLimit() : null;
 
@@ -33,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             WHERE c.id = ? AND cc.is_primary = 1");
         $stmt->execute([$clubId]);
         $data = $stmt->fetch();
-
         if ($data && !$data['president_confirmed']) {
             $token = createConfirmation('club_president', $data['membership_id'], $data['president_email']);
             sendClubPresidentConfirmation($data['president_email'], $data['name'], $data['circuit_name'], $token);
@@ -50,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             WHERE cc.id = ?");
         $stmt->execute([$membershipId]);
         $data = $stmt->fetch();
-
         if ($data && !$data['club_confirmed']) {
             $token = createConfirmation('membership_club', $membershipId, $data['president_email']);
             sendClubPresidentConfirmation($data['president_email'], $data['club_name'], $data['circuit_name'], $token);
@@ -67,7 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             WHERE cc.id = ?");
         $stmt->execute([$membershipId]);
         $data = $stmt->fetch();
-
         if ($data && !$data['circuit_confirmed']) {
             $token = createConfirmation($data['is_primary'] ? 'club_circuit' : 'membership_circuit', $membershipId, $data['owner_email']);
             sendClubCircuitConfirmation($data['owner_email'], $data['club_name'], $data['circuit_name'], $token);
@@ -75,41 +83,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
-    } elseif ($_POST['action'] === 'toggle_protected') {
-        $toggleToken = trim($_POST['token'] ?? '');
-        $stmt = $db->prepare("
-            SELECT id FROM players
-            WHERE view_token = ? AND club_id = ? AND confirmed = 1 AND deleted_at IS NULL
-        ");
-        $stmt->execute([$toggleToken, $clubId]);
-        if ($stmt->fetch()) {
-            $newMode = $club['protected_mode'] ? 0 : 1;
-            $db->prepare("UPDATE clubs SET protected_mode = ? WHERE id = ?")->execute([$newMode, $clubId]);
-            $club['protected_mode'] = $newMode;
-            $message = $newMode
-                ? ($lang === 'it' ? 'Modalità protetta attivata.' : 'Protected mode enabled.')
-                : ($lang === 'it' ? 'Modalità protetta disattivata.' : 'Protected mode disabled.');
+    } elseif ($_POST['action'] === 'request_protected_toggle') {
+        // Send email to president asking to confirm enabling/disabling protected mode
+        $desiredMode = $club['protected_mode'] ? 'disable' : 'enable';
+        $token = createConfirmation('protected_mode_toggle', $clubId, $club['president_email'], $desiredMode);
+        sendProtectedModeConfirmation($club['president_email'], $club['name'], $desiredMode, $token);
+        $message = $lang === 'it'
+            ? 'Email inviata al presidente del circolo per confermare il cambio di modalità.'
+            : 'Email sent to the club president to confirm the mode change.';
+        $messageType = 'success';
+    } elseif ($_POST['action'] === 'join_circuit') {
+        try {
+            $circuitId = (int)($_POST['circuit_id'] ?? 0);
+            if (!$circuitId) throw new Exception(__('error_required'));
+
+            $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ? AND confirmed = 1 AND deleted_at IS NULL");
+            $stmt->execute([$circuitId]);
+            $circuit = $stmt->fetch();
+            if (!$circuit) throw new Exception(__('error_not_found'));
+
+            $stmt = $db->prepare("SELECT * FROM circuit_clubs WHERE circuit_id = ? AND club_id = ?");
+            $stmt->execute([$circuitId, $clubId]);
+            if ($stmt->fetch()) throw new Exception(__('error_already_member'));
+
+            $stmt = $db->prepare("INSERT INTO circuit_clubs (circuit_id, club_id) VALUES (?, ?)");
+            $stmt->execute([$circuitId, $clubId]);
+            $membershipId = $db->lastInsertId();
+
+            $tokenPresident = createConfirmation('membership_club', $membershipId, $club['president_email']);
+            sendClubPresidentConfirmation($club['president_email'], $club['name'], $circuit['name'], $tokenPresident);
+
+            $tokenCircuit = createConfirmation('membership_circuit', $membershipId, $circuit['owner_email']);
+            sendClubCircuitConfirmation($circuit['owner_email'], $club['name'], $circuit['name'], $tokenCircuit);
+
+            $message = __('club_request_sent');
             $messageType = 'success';
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            $messageType = 'error';
         }
     }
 }
 
-// Get club (allow access even if not fully confirmed)
-$stmt = $db->prepare("
-    SELECT c.*,
-        (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as active_circuits
-    FROM clubs c
-    WHERE c.id = ?
-");
-$stmt->execute([$clubId]);
-$club = $stmt->fetch();
-
-if (!$club) {
-    header('Location: ?page=circuits');
-    exit;
-}
-
-// Protected mode access check (using view_token in URL)
+// Protected mode access check (view_token in URL, for player name display)
 $protectedToken = trim($_GET['token'] ?? '');
 $isProtectedMember = false;
 if ($protectedToken) {
@@ -132,53 +148,6 @@ if (!$club['president_confirmed']) {
     ];
 }
 
-// Handle join circuit request
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'join_circuit') {
-    try {
-        $circuitId = (int)($_POST['circuit_id'] ?? 0);
-
-        if (!$circuitId) {
-            throw new Exception(__('error_required'));
-        }
-
-        // Get circuit
-        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ? AND confirmed = 1");
-        $stmt->execute([$circuitId]);
-        $circuit = $stmt->fetch();
-
-        if (!$circuit) {
-            throw new Exception(__('error_not_found'));
-        }
-
-        // Check if already member
-        $stmt = $db->prepare("SELECT * FROM circuit_clubs WHERE circuit_id = ? AND club_id = ?");
-        $stmt->execute([$circuitId, $clubId]);
-        if ($stmt->fetch()) {
-            throw new Exception(__('error_already_member'));
-        }
-
-        // Create membership request
-        $stmt = $db->prepare("INSERT INTO circuit_clubs (circuit_id, club_id) VALUES (?, ?)");
-        $stmt->execute([$circuitId, $clubId]);
-        $membershipId = $db->lastInsertId();
-
-        // Send email to president
-        $tokenPresident = createConfirmation('membership_club', $membershipId, $club['president_email']);
-        sendClubPresidentConfirmation($club['president_email'], $club['name'], $circuit['name'], $tokenPresident);
-
-        // Send email to circuit manager
-        $tokenCircuit = createConfirmation('membership_circuit', $membershipId, $circuit['owner_email']);
-        sendClubCircuitConfirmation($circuit['owner_email'], $club['name'], $circuit['name'], $tokenCircuit);
-
-        $message = __('club_request_sent');
-        $messageType = 'success';
-
-    } catch (Exception $e) {
-        $message = $e->getMessage();
-        $messageType = 'error';
-    }
-}
-
 // Get club's circuits
 $stmt = $db->prepare("
     SELECT ci.*, cc.id as membership_id, cc.club_confirmed, cc.circuit_confirmed
@@ -190,7 +159,6 @@ $stmt = $db->prepare("
 $stmt->execute([$clubId]);
 $clubCircuits = $stmt->fetchAll();
 
-// Check for circuit approval pending
 foreach ($clubCircuits as $cc) {
     if (!$cc['club_confirmed']) {
         $pendingConfirmations[] = [
@@ -212,22 +180,21 @@ foreach ($clubCircuits as $cc) {
     }
 }
 
-// Get players in this club
+// Get players
 $stmt = $db->prepare("
     SELECT p.* FROM players p
-    WHERE p.club_id = ? AND p.confirmed = 1
+    WHERE p.club_id = ? AND p.confirmed = 1 AND p.deleted_at IS NULL
     ORDER BY p.last_name, p.first_name
 ");
 $stmt->execute([$clubId]);
 $players = $stmt->fetchAll();
 
-// Get circuits club can join
+// Get joinable circuits
 $stmt = $db->prepare("
     SELECT c.* FROM circuits c
-    WHERE c.confirmed = 1
+    WHERE c.confirmed = 1 AND c.deleted_at IS NULL
     AND NOT EXISTS (
-        SELECT 1 FROM circuit_clubs cc
-        WHERE cc.circuit_id = c.id AND cc.club_id = ?
+        SELECT 1 FROM circuit_clubs cc WHERE cc.circuit_id = c.id AND cc.club_id = ?
     )
     ORDER BY c.name
 ");
@@ -235,6 +202,8 @@ $stmt->execute([$clubId]);
 $availableCircuits = $stmt->fetchAll();
 
 $isActive = $club['active_circuits'] > 0;
+$tab = $_GET['tab'] ?? 'main';
+if (!in_array($tab, ['main', 'management'])) $tab = 'main';
 ?>
 
 <div class="container">
@@ -267,165 +236,175 @@ $isActive = $club['active_circuits'] > 0;
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div class="pending-icon">⏳</div>
-        <div style="flex: 1;">
-            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo circolo non è ancora completamente attivo. Sono necessarie le seguenti approvazioni:' : 'This club is not yet fully active. The following approvals are required:' ?></p>
-            <ul class="pending-approvals-list">
-                <?php foreach ($pendingConfirmations as $pending): ?>
-                <li>
-                    <?= $pending['description'] ?>
-                    <?php if ($pending['type'] === 'president'): ?>
-                    <form method="POST" style="display: inline; margin-left: 1rem;">
-                        <input type="hidden" name="action" value="resend_president">
-                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                        </button>
-                    </form>
-                    <?php elseif ($pending['type'] === 'club_circuit'): ?>
-                    <form method="POST" style="display: inline; margin-left: 1rem;">
-                        <input type="hidden" name="action" value="resend_club_circuit">
-                        <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
-                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                        </button>
-                    </form>
-                    <?php elseif ($pending['type'] === 'circuit_manager'): ?>
-                    <form method="POST" style="display: inline; margin-left: 1rem;">
-                        <input type="hidden" name="action" value="resend_circuit">
-                        <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
-                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+    <div class="alert alert-warning">
+        <p style="margin: 0 0 0.75rem 0;">
+            <strong><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></strong>
+            <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it' ? 'questo circolo non è ancora completamente attivo' : 'this club is not yet fully active' ?></span>
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <?php foreach ($pendingConfirmations as $pending): ?>
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $pending['description'] ?></span>
+                <?php if ($pending['type'] === 'president'): ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_president">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php elseif ($pending['type'] === 'club_circuit'): ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_club_circuit">
+                    <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php elseif ($pending['type'] === 'circuit_manager'): ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_circuit">
+                    <input type="hidden" name="membership_id" value="<?= $pending['membership_id'] ?>">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
     </div>
     <?php endif; ?>
 
-    <div class="create-grid">
-        <!-- Club's Circuits -->
-        <div class="create-section">
-            <h2><?= __('nav_circuits') ?></h2>
-            <?php if (empty($clubCircuits)): ?>
-            <p style="color: var(--text-secondary);"><?= $lang === 'it' ? 'Nessun circuito.' : 'No circuits.' ?></p>
-            <?php else: ?>
-            <ul style="list-style: none; padding: 0;">
-                <?php foreach ($clubCircuits as $cc): ?>
-                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                    <a href="?page=circuit&id=<?= $cc['id'] ?>"><?= htmlspecialchars($cc['name']) ?></a>
-                    <?php if ($cc['club_confirmed'] && $cc['circuit_confirmed']): ?>
-                    <span class="badge badge-success" style="margin-left: 0.5rem;"><?= __('status_active') ?></span>
-                    <?php elseif (!$cc['club_confirmed']): ?>
-                    <span class="badge badge-warning" style="margin-left: 0.5rem;"><?= __('status_pending_president') ?></span>
-                    <?php else: ?>
-                    <span class="badge badge-warning" style="margin-left: 0.5rem;"><?= __('status_pending_circuit') ?></span>
-                    <?php endif; ?>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-            <?php endif; ?>
-        </div>
-
-        <!-- Join Another Circuit -->
-        <?php if (!empty($availableCircuits)): ?>
-        <div class="create-section">
-            <h2><?= __('club_join_circuit') ?></h2>
-            <form method="POST">
-                <input type="hidden" name="action" value="join_circuit">
-                <div class="form-group">
-                    <label for="circuit_id"><?= __('form_circuit') ?></label>
-                    <select id="circuit_id" name="circuit_id" required>
-                        <option value="">-- <?= __('form_select') ?> --</option>
-                        <?php foreach ($availableCircuits as $c): ?>
-                        <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
-            </form>
-        </div>
-        <?php endif; ?>
-
-        <!-- Players -->
-        <div class="create-section">
-            <h2><?= __('circuit_players') ?></h2>
-            <?php if (empty($players)): ?>
-            <p style="color: var(--text-secondary);"><?= $lang === 'it' ? 'Nessun giocatore.' : 'No players.' ?></p>
-            <?php else: ?>
-            <ul style="list-style: none; padding: 0;">
-                <?php foreach ($players as $p): ?>
-                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                    <?php if (!$club['protected_mode'] || $isProtectedMember): ?>
-                    <a href="?page=player&id=<?= $p['id'] ?><?= $protectedToken ? '&token=' . urlencode($protectedToken) : '' ?>">
-                        <?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?>
-                    </a>
-                    <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
-                    <?php else: ?>
-                    <span style="color: var(--text-secondary); letter-spacing: 0.05em;">●●● ●●●</span>
-                    <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
-                    <?php endif; ?>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-            <?php endif; ?>
-        </div>
-
-        <!-- Protected Mode Toggle -->
-        <?php if ($isProtectedMember || !$club['protected_mode']): ?>
-        <div class="create-section">
-            <h2>&#128274; <?= $lang === 'it' ? 'Modalità Protetta' : 'Protected Mode' ?></h2>
-            <?php if ($club['protected_mode']): ?>
-            <p style="color: var(--text-secondary);">
-                <?= $lang === 'it'
-                    ? 'Attiva. I nomi dei giocatori sono visibili solo ai membri autenticati tramite il loro link personale.'
-                    : 'Active. Player names are visible only to members authenticated via their personal link.' ?>
-            </p>
-            <?php if ($isProtectedMember): ?>
-            <form method="POST">
-                <input type="hidden" name="action" value="toggle_protected">
-                <input type="hidden" name="token" value="<?= htmlspecialchars($protectedToken) ?>">
-                <button type="submit" class="btn btn-secondary">
-                    <?= $lang === 'it' ? 'Disattiva modalità protetta' : 'Disable protected mode' ?>
-                </button>
-            </form>
-            <?php endif; ?>
-            <?php else: ?>
-            <p style="color: var(--text-secondary);">
-                <?= $lang === 'it'
-                    ? 'Disattiva. Attivandola, i nomi dei giocatori saranno visibili solo ai membri del club tramite il loro link personale. Utile per proteggere la privacy dei minori o di chi non vuole che il proprio nome sia pubblico.'
-                    : 'Inactive. When enabled, player names will only be visible to club members via their personal link. Useful to protect the privacy of minors or anyone who prefers not to have their name public.' ?>
-            </p>
-            <?php if ($isProtectedMember): ?>
-            <form method="POST">
-                <input type="hidden" name="action" value="toggle_protected">
-                <input type="hidden" name="token" value="<?= htmlspecialchars($protectedToken) ?>">
-                <button type="submit" class="btn btn-primary">
-                    <?= $lang === 'it' ? 'Attiva modalità protetta' : 'Enable protected mode' ?>
-                </button>
-            </form>
-            <?php else: ?>
-            <p style="font-size: 0.9rem; color: var(--text-secondary);">
-                <?= $lang === 'it'
-                    ? 'Accedi con il tuo <a href="?page=player">link personale</a> per gestire questa impostazione.'
-                    : 'Use your <a href="?page=player">personal link</a> to manage this setting.' ?>
-            </p>
-            <?php endif; ?>
-            <?php endif; ?>
-        </div>
-        <?php endif; ?>
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <a href="?page=club&id=<?= $clubId ?>&tab=main" class="tab <?= $tab === 'main' ? 'active' : '' ?>">
+            <?= $lang === 'it' ? 'Circuiti e Giocatori' : 'Circuits & Players' ?>
+        </a>
+        <a href="?page=club&id=<?= $clubId ?>&tab=management" class="tab <?= $tab === 'management' ? 'active' : '' ?>">
+            &#9881; <?= $lang === 'it' ? 'Gestione' : 'Management' ?>
+        </a>
     </div>
 
-    <!-- Deletion Request Link -->
-    <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-        <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
-            🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
-        </button>
+    <!-- Tab: Circuits & Players -->
+    <?php if ($tab === 'main'): ?>
+    <div>
+        <div class="create-grid">
+            <!-- Club's Circuits -->
+            <div class="create-section">
+                <h2><?= __('nav_circuits') ?></h2>
+                <?php if (empty($clubCircuits)): ?>
+                <p style="color: var(--text-secondary);"><?= $lang === 'it' ? 'Nessun circuito.' : 'No circuits.' ?></p>
+                <?php else: ?>
+                <ul style="list-style: none; padding: 0;">
+                    <?php foreach ($clubCircuits as $cc): ?>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                        <a href="?page=circuit&id=<?= $cc['id'] ?>"><?= htmlspecialchars($cc['name']) ?></a>
+                        <?php if ($cc['club_confirmed'] && $cc['circuit_confirmed']): ?>
+                        <span class="badge badge-success" style="margin-left: 0.5rem;"><?= __('status_active') ?></span>
+                        <?php elseif (!$cc['club_confirmed']): ?>
+                        <span class="badge badge-warning" style="margin-left: 0.5rem;"><?= __('club_pending') ?></span>
+                        <?php else: ?>
+                        <span class="badge badge-warning" style="margin-left: 0.5rem;"><?= __('club_pending') ?></span>
+                        <?php endif; ?>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php endif; ?>
+            </div>
+
+            <!-- Join Another Circuit -->
+            <?php if (!empty($availableCircuits)): ?>
+            <div class="create-section">
+                <h2><?= __('club_join_circuit') ?></h2>
+                <form method="POST">
+                    <input type="hidden" name="action" value="join_circuit">
+                    <div class="form-group">
+                        <label for="circuit_id"><?= __('form_circuit') ?></label>
+                        <select id="circuit_id" name="circuit_id" required>
+                            <option value="">-- <?= __('form_select') ?> --</option>
+                            <?php foreach ($availableCircuits as $c): ?>
+                            <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
+                </form>
+            </div>
+            <?php endif; ?>
+
+            <!-- Players -->
+            <div class="create-section">
+                <h2><?= __('circuit_players') ?></h2>
+                <?php if (empty($players)): ?>
+                <p style="color: var(--text-secondary);"><?= $lang === 'it' ? 'Nessun giocatore.' : 'No players.' ?></p>
+                <?php else: ?>
+                <ul style="list-style: none; padding: 0;">
+                    <?php foreach ($players as $p): ?>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                        <?php if (!$club['protected_mode'] || $isProtectedMember): ?>
+                        <a href="?page=player&id=<?= $p['id'] ?><?= $protectedToken ? '&token=' . urlencode($protectedToken) : '' ?>">
+                            <?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?>
+                        </a>
+                        <?php else: ?>
+                        <span style="color: var(--text-secondary); letter-spacing: 0.05em;">●●● ●●●</span>
+                        <?php endif; ?>
+                        <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
+
+    <?php elseif ($tab === 'management'): ?>
+    <div>
+        <div class="create-grid">
+            <!-- Protected Mode -->
+            <div class="create-section">
+                <h2>&#128274; <?= $lang === 'it' ? 'Modalità Protetta' : 'Protected Mode' ?></h2>
+                <?php if ($club['protected_mode']): ?>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    <?= $lang === 'it'
+                        ? 'Attiva. I nomi dei giocatori sono nascosti ai visitatori anonimi e visibili solo ai membri del club tramite il loro link personale.'
+                        : 'Active. Player names are hidden from anonymous visitors and visible only to club members via their personal link.' ?>
+                </p>
+                <form method="POST">
+                    <input type="hidden" name="action" value="request_protected_toggle">
+                    <button type="submit" class="btn btn-secondary">
+                        <?= $lang === 'it' ? 'Disattiva modalità protetta' : 'Disable protected mode' ?>
+                    </button>
+                </form>
+                <?php else: ?>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    <?= $lang === 'it'
+                        ? 'Non attiva. Attivandola, i nomi dei giocatori saranno visibili solo ai membri del club tramite il loro link personale. Utile per proteggere la privacy dei minori o di chi non vuole che il proprio nome sia pubblico.'
+                        : 'Inactive. When enabled, player names will only be visible to club members via their personal link. Useful to protect the privacy of minors or anyone who prefers their name not to be public.' ?>
+                </p>
+                <form method="POST">
+                    <input type="hidden" name="action" value="request_protected_toggle">
+                    <button type="submit" class="btn btn-primary">
+                        <?= $lang === 'it' ? 'Attiva modalità protetta' : 'Enable protected mode' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 1rem;">
+                    <?= $lang === 'it'
+                        ? 'Il cambio di modalità richiede la conferma via email del presidente del circolo.'
+                        : 'Changing the mode requires email confirmation from the club president.' ?>
+                </p>
+            </div>
+        </div>
+
+        <!-- Deletion Request Link -->
+        <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+            <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
+                🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
+            </button>
+        </div>
+    </div>
+
+    <?php endif; ?>
 
     <!-- Deletion Request Modal -->
     <div id="deletion-modal" class="modal-overlay">
@@ -455,3 +434,4 @@ $isActive = $club['active_circuits'] > 0;
         </div>
     </div>
 </div>
+

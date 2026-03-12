@@ -285,6 +285,30 @@ function sendDeletionRequest(string $to, string $entityType, string $entityName,
 }
 
 /**
+ * Send protected mode toggle confirmation to president
+ */
+function sendProtectedModeConfirmation(string $presidentEmail, string $clubName, string $action, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    if ($lang === 'it') {
+        $actionText = $action === 'enable' ? 'attivare' : 'disattivare';
+        $subject = "&#128274; Richiesta modalità protetta: {$clubName}";
+        $message = "È stata richiesta la <strong>{$actionText} la modalità protetta</strong> per il circolo <strong>{$clubName}</strong>.<br><br>
+            Quando attiva, i nomi dei giocatori del circolo saranno visibili solo ai membri autenticati tramite il loro link personale.<br><br>
+            Clicca il pulsante qui sotto per confermare questa modifica.";
+    } else {
+        $actionText = $action === 'enable' ? 'enable' : 'disable';
+        $subject = "&#128274; Protected mode request: {$clubName}";
+        $message = "A request has been made to <strong>{$actionText} protected mode</strong> for club <strong>{$clubName}</strong>.<br><br>
+            When active, player names in the club will only be visible to authenticated members via their personal link.<br><br>
+            Click the button below to confirm this change.";
+    }
+
+    return sendConfirmationEmail($presidentEmail, $subject, $message, $url);
+}
+
+/**
  * Send manual rating request confirmation
  */
 function sendManualRatingConfirmation(string $to, string $role, string $playerName, string $circuitName, int $rating, string $category, string $token): bool {
