@@ -268,13 +268,13 @@ function sendDeletionRequest(string $to, string $entityType, string $entityName,
     ];
 
     if ($lang === 'it') {
-        $subject = "🗑 Richiesta eliminazione: {$entityName}";
+        $subject = "Richiesta eliminazione: {$entityName}";
         $message = "È stata ricevuta una richiesta di eliminazione per il {$entityTypeText[$entityType]} <strong>{$entityName}</strong>.<br><br>
             <strong>Richiedente:</strong> {$requesterEmail}<br>
             <strong>Motivo:</strong> {$reason}<br><br>
             Clicca il pulsante qui sotto per approvare o rifiutare la richiesta.";
     } else {
-        $subject = "🗑 Deletion request: {$entityName}";
+        $subject = "Deletion request: {$entityName}";
         $message = "A deletion request has been received for the {$entityTypeText[$entityType]} <strong>{$entityName}</strong>.<br><br>
             <strong>Requester:</strong> {$requesterEmail}<br>
             <strong>Reason:</strong> {$reason}<br><br>
