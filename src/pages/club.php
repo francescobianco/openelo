@@ -324,26 +324,6 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 <?php endif; ?>
             </div>
 
-            <!-- Join Another Circuit -->
-            <?php if (!empty($availableCircuits)): ?>
-            <div class="create-section">
-                <h2><?= __('club_join_circuit') ?></h2>
-                <form method="POST">
-                    <input type="hidden" name="action" value="join_circuit">
-                    <div class="form-group">
-                        <label for="circuit_id"><?= __('form_circuit') ?></label>
-                        <select id="circuit_id" name="circuit_id" required>
-                            <option value="">-- <?= __('form_select') ?> --</option>
-                            <?php foreach ($availableCircuits as $c): ?>
-                            <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
-                </form>
-            </div>
-            <?php endif; ?>
-
             <!-- Players -->
             <div class="create-section">
                 <h2><?= __('circuit_players') ?></h2>
@@ -372,6 +352,26 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
     <?php elseif ($tab === 'management'): ?>
     <div>
         <div class="create-grid">
+            <!-- Join Another Circuit -->
+            <?php if (!empty($availableCircuits)): ?>
+            <div class="create-section">
+                <h2><?= __('club_join_circuit') ?></h2>
+                <form method="POST">
+                    <input type="hidden" name="action" value="join_circuit">
+                    <div class="form-group">
+                        <label for="circuit_id"><?= __('form_circuit') ?></label>
+                        <select id="circuit_id" name="circuit_id" required>
+                            <option value="">-- <?= __('form_select') ?> --</option>
+                            <?php foreach ($availableCircuits as $c): ?>
+                            <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><?= __('form_submit') ?></button>
+                </form>
+            </div>
+            <?php endif; ?>
+
             <!-- Protected Mode -->
             <div class="create-section">
                 <h2>&#128274; <?= $lang === 'it' ? 'Modalità Protetta' : 'Protected Mode' ?></h2>
