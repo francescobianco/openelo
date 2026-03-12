@@ -183,8 +183,8 @@ if (!$circuit['confirmed']) {
     $pendingConfirmations[] = [
         'type' => 'circuit',
         'description' => $lang === 'it'
-            ? 'Conferma del responsabile circuito (' . htmlspecialchars($circuit['owner_email']) . ')'
-            : 'Circuit manager confirmation (' . htmlspecialchars($circuit['owner_email']) . ')'
+            ? 'Conferma del responsabile circuito'
+            : 'Circuit manager confirmation'
     ];
 }
 
@@ -277,27 +277,26 @@ $tab = $_GET['tab'] ?? 'rankings';
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div class="pending-icon">⏳</div>
-        <div style="flex: 1;">
-            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo circuito non è ancora visibile pubblicamente. Sono necessarie le seguenti approvazioni:' : 'This circuit is not yet publicly visible. The following approvals are required:' ?></p>
-            <ul class="pending-approvals-list">
-                <?php foreach ($pendingConfirmations as $pending): ?>
-                <li>
-                    <?= $pending['description'] ?>
-                    <?php if ($pending['type'] === 'circuit'): ?>
-                    <form method="POST" style="display: inline; margin-left: 1rem;">
-                        <input type="hidden" name="action" value="resend_circuit">
-                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+    <div class="alert alert-warning">
+        <p style="margin: 0 0 0.75rem 0;">
+            <strong><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></strong>
+            <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it' ? 'questo circuito non è ancora visibile pubblicamente' : 'this circuit is not yet publicly visible' ?></span>
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <?php foreach ($pendingConfirmations as $pending): ?>
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $pending['description'] ?></span>
+                <?php if ($pending['type'] === 'circuit'): ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_circuit">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
     </div>
     <?php endif; ?>
 
