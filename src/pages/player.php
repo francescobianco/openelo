@@ -97,16 +97,16 @@ if (!$player['player_confirmed']) {
     $pendingConfirmations[] = [
         'type' => 'player',
         'description' => $lang === 'it'
-            ? 'Conferma del giocatore (' . htmlspecialchars($player['email']) . ')'
-            : 'Player confirmation (' . htmlspecialchars($player['email']) . ')'
+            ? 'Conferma del giocatore'
+            : 'Player confirmation'
     ];
 }
 if (!$player['president_confirmed']) {
     $pendingConfirmations[] = [
         'type' => 'president',
         'description' => $lang === 'it'
-            ? 'Conferma del presidente del circolo (' . htmlspecialchars($player['president_email']) . ')'
-            : 'Club president confirmation (' . htmlspecialchars($player['president_email']) . ')'
+            ? 'Conferma del presidente del circolo'
+            : 'Club president confirmation'
     ];
 }
 

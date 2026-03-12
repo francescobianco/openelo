@@ -4,12 +4,14 @@
  */
 
 require_once SRC_PATH . '/mail.php';
+require_once SRC_PATH . '/utils.php';
 
 $db = Database::get();
 
 $matchId = (int)($_GET['id'] ?? 0);
-$message = null;
-$messageType = null;
+$flash = getFlash();
+$message = $flash['message'] ?? null;
+$messageType = $flash['type'] ?? null;
 
 // Handle resend requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resend_match') {
@@ -74,8 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $token = createConfirmation('match', $matchId, $email, $confirmRole);
                 sendMatchConfirmation($email, $confirmRole, $matchDetails, $token);
                 logReminder();
-                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-                $messageType = 'success';
+                setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+                header('Location: ' . $_SERVER['REQUEST_URI']);
+                exit;
             }
         }
     }
@@ -114,16 +117,16 @@ if (!$match['white_confirmed']) {
     $pendingConfirmations[] = [
         'type' => 'white',
         'description' => $lang === 'it'
-            ? 'Conferma del giocatore con il Bianco: ' . htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) . ' (' . htmlspecialchars($match['white_email']) . ')'
-            : 'White player confirmation: ' . htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) . ' (' . htmlspecialchars($match['white_email']) . ')'
+            ? 'Conferma del giocatore con il Bianco: ' . htmlspecialchars($match['white_first'] . ' ' . $match['white_last'])
+            : 'White player confirmation: ' . htmlspecialchars($match['white_first'] . ' ' . $match['white_last'])
     ];
 }
 if (!$match['black_confirmed']) {
     $pendingConfirmations[] = [
         'type' => 'black',
         'description' => $lang === 'it'
-            ? 'Conferma del giocatore con il Nero: ' . htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) . ' (' . htmlspecialchars($match['black_email']) . ')'
-            : 'Black player confirmation: ' . htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) . ' (' . htmlspecialchars($match['black_email']) . ')'
+            ? 'Conferma del giocatore con il Nero: ' . htmlspecialchars($match['black_first'] . ' ' . $match['black_last'])
+            : 'Black player confirmation: ' . htmlspecialchars($match['black_first'] . ' ' . $match['black_last'])
     ];
 }
 if (!$match['president_confirmed']) {
@@ -131,15 +134,15 @@ if (!$match['president_confirmed']) {
         $pendingConfirmations[] = [
             'type' => 'president',
             'description' => $lang === 'it'
-                ? 'Conferma del presidente del circolo (' . htmlspecialchars($match['president_email']) . ')'
-                : 'Club president confirmation (' . htmlspecialchars($match['president_email']) . ')'
+                ? 'Conferma del presidente del circolo'
+                : 'Club president confirmation'
         ];
     } else {
         $pendingConfirmations[] = [
             'type' => 'circuit_manager',
             'description' => $lang === 'it'
-                ? 'Conferma del responsabile del circuito (' . htmlspecialchars($match['circuit_owner_email']) . ')'
-                : 'Circuit manager confirmation (' . htmlspecialchars($match['circuit_owner_email']) . ')'
+                ? 'Conferma del responsabile del circuito'
+                : 'Circuit manager confirmation'
         ];
     }
 }
@@ -155,26 +158,25 @@ $isApplied = $match['rating_applied'] == 1;
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div class="pending-icon">⏳</div>
-        <div style="flex: 1;">
-            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questa partita non è ancora stata validata. Sono necessarie le seguenti approvazioni:' : 'This match has not been validated yet. The following approvals are required:' ?></p>
-            <ul class="pending-approvals-list">
-                <?php foreach ($pendingConfirmations as $pending): ?>
-                <li>
-                    <?= $pending['description'] ?>
-                    <form method="POST" style="display: inline; margin-left: 1rem;">
-                        <input type="hidden" name="action" value="resend_match">
-                        <input type="hidden" name="role" value="<?= $pending['type'] ?>">
-                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                        </button>
-                    </form>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+    <div class="alert alert-warning">
+        <p style="margin: 0 0 0.75rem 0;">
+            <strong><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></strong>
+            <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it' ? 'questa partita non è ancora stata validata' : 'this match has not been validated yet' ?></span>
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <?php foreach ($pendingConfirmations as $pending): ?>
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $pending['description'] ?></span>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_match">
+                    <input type="hidden" name="role" value="<?= $pending['type'] ?>">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+            </li>
+            <?php endforeach; ?>
+        </ul>
     </div>
     <?php elseif ($isApplied): ?>
     <div class="alert alert-success">
