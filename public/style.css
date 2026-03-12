@@ -877,6 +877,16 @@ tr:hover {
 
     .mobile-actions {
         display: flex;
+        align-items: center;
+        min-width: 0;
+    }
+
+    .mobile-actions .nav-submit-btn {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        max-width: 140px;
     }
 
     .nav {
