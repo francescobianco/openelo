@@ -344,6 +344,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 }
+
+$tab = $_GET['tab'] ?? 'main';
+if (!in_array($tab, ['main', 'management'])) $tab = 'main';
 ?>
 
 <div class="container">
@@ -501,7 +504,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <?php endforeach; ?>
     <?php endif; ?>
 
-    <div class="player-grid">
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <a href="?page=player&id=<?= $playerId ?>&tab=main" class="tab <?= $tab === 'main' ? 'active' : '' ?>">
+            <?= $lang === 'it' ? 'Rating e Partite' : 'Ratings & Matches' ?>
+        </a>
+        <a href="?page=player&id=<?= $playerId ?>&tab=management" class="tab <?= $tab === 'management' ? 'active' : '' ?>">
+            &#9881; <?= $lang === 'it' ? 'Gestione' : 'Management' ?>
+        </a>
+    </div>
+
+    <!-- Tab: Ratings & Matches -->
+    <?php if ($tab === 'main'): ?>
+    <div class="create-grid">
         <!-- Ratings -->
         <div class="create-section">
             <h2><?= __('rankings_title') ?></h2>
@@ -575,7 +590,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             </div>
         </div>
         <?php endif; ?>
+    </div>
 
+    <!-- Tab: Management -->
+    <?php elseif ($tab === 'management'): ?>
+    <div class="create-grid">
         <!-- Manual Rating Request -->
         <?php if (!empty($ratings)): ?>
         <div class="create-section">
@@ -633,14 +652,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             </form>
         </div>
         <?php endif; ?>
-    </div>
 
-    <!-- Deletion Request Link -->
-    <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-        <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
-            🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
-        </button>
+        <!-- Deletion Request Link -->
+        <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+            <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
+                🗑 <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
+            </button>
+        </div>
     </div>
+    <?php endif; ?>
 
     <!-- Deletion Request Modal -->
     <div id="deletion-modal" class="modal-overlay">
