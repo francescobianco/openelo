@@ -224,9 +224,9 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 <span><?= count($players) ?> <?= __('circuit_players') ?></span>
             </div>
         </div>
-        <?php if ($isActive || !$hasClubAccess): ?>
+        <?php if ($isActive || ($club['protected_mode'] && !$hasClubAccess)): ?>
         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-            <?php if (!$hasClubAccess): ?>
+            <?php if ($club['protected_mode'] && !$hasClubAccess): ?>
             <form method="POST">
                 <input type="hidden" name="action" value="sono_il_presidente">
                 <button type="submit" class="btn btn-secondary" style="font-size: 0.9rem;">
