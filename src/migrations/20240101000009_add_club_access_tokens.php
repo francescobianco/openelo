@@ -6,7 +6,7 @@ return [
         $db->exec("
             CREATE TABLE IF NOT EXISTS club_access_tokens (
                 id $intType PRIMARY KEY " . ($dbType === 'mysql' ? 'AUTO_INCREMENT' : 'AUTOINCREMENT') . ",
-                token TEXT NOT NULL,
+                token VARCHAR(64) NOT NULL,
                 club_id $intType NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (club_id) REFERENCES clubs(id)
