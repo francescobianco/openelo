@@ -214,7 +214,10 @@ $stmt = $db->prepare("
 $stmt->execute([$circuitId]);
 $rankings = $stmt->fetchAll();
 
-// Get recent matches
+// Get pending matches (not approved, not older than 30 days)
+$thirtyDaysAgo = DB_TYPE === 'mysql'
+    ? "DATE_SUB(NOW(), INTERVAL 30 DAY)"
+    : "datetime('now', '-30 days')";
 $stmt = $db->prepare("
     SELECT m.*,
         pw.id as white_id, pw.first_name as white_first, pw.last_name as white_last,
@@ -225,7 +228,25 @@ $stmt = $db->prepare("
     JOIN players pb ON pb.id = m.black_player_id
     JOIN clubs cw ON cw.id = pw.club_id
     JOIN clubs cb ON cb.id = pb.club_id
-    WHERE m.circuit_id = ? AND m.rating_applied = 1
+    WHERE m.circuit_id = ? AND m.rating_applied = 0 AND m.deleted_at IS NULL
+    AND m.created_at >= $thirtyDaysAgo
+    ORDER BY m.created_at ASC
+");
+$stmt->execute([$circuitId]);
+$pendingMatches = $stmt->fetchAll();
+
+// Get approved matches
+$stmt = $db->prepare("
+    SELECT m.*,
+        pw.id as white_id, pw.first_name as white_first, pw.last_name as white_last,
+        pb.id as black_id, pb.first_name as black_first, pb.last_name as black_last,
+        cw.name as white_club, cb.name as black_club
+    FROM matches m
+    JOIN players pw ON pw.id = m.white_player_id
+    JOIN players pb ON pb.id = m.black_player_id
+    JOIN clubs cw ON cw.id = pw.club_id
+    JOIN clubs cb ON cb.id = pb.club_id
+    WHERE m.circuit_id = ? AND m.rating_applied = 1 AND m.deleted_at IS NULL
     ORDER BY m.created_at DESC
     LIMIT 20
 ");
@@ -370,39 +391,82 @@ $tab = $_GET['tab'] ?? 'rankings';
     </div>
         <?php endif; ?>
     <?php elseif ($tab === 'matches'): ?>
-    <div class="card">
-        <?php if (empty($matches)): ?>
-        <div class="empty-state">
-            <p><?= $lang === 'it' ? 'Nessuna partita ancora.' : 'No matches yet.' ?></p>
-        </div>
-        <?php else: ?>
+
+    <?php if (!empty($pendingMatches)): ?>
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+            <?= $lang === 'it' ? 'In attesa di approvazione' : 'Pending Approval' ?>
+        </h3>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th><?= __('form_white') ?></th>
-                        <th><?= __('form_result') ?></th>
-                        <th><?= __('form_black') ?></th>
-                        <th>Data</th>
+                        <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
+                        <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'In attesa da' : 'Waiting since' ?></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($pendingMatches as $match):
+                        $diffSecs = time() - strtotime($match['created_at']);
+                        $diffDays = floor($diffSecs / 86400);
+                        $diffHours = floor($diffSecs / 3600);
+                        if ($diffDays >= 1) {
+                            $waitingLabel = $diffDays . ($lang === 'it' ? ' giorn' . ($diffDays == 1 ? 'o' : 'i') : ' day' . ($diffDays == 1 ? '' : 's'));
+                        } else {
+                            $waitingLabel = $diffHours . ($lang === 'it' ? ($diffHours == 1 ? ' ora' : ' ore') : ' hour' . ($diffHours == 1 ? '' : 's'));
+                        }
+                    ?>
+                    <tr>
+                        <td><a href="?page=player&id=<?= $match['white_id'] ?>"><?= htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) ?></a></td>
+                        <td><a href="?page=player&id=<?= $match['black_id'] ?>"><?= htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) ?></a></td>
+                        <td style="text-align: center; white-space: nowrap;"><strong><?= str_replace('-', ' - ', $match['result']) ?></strong></td>
+                        <td style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;"><?= $waitingLabel ?></td>
+                        <td>
+                            <a href="?page=match&id=<?= $match['id'] ?>" class="btn btn-sm btn-secondary">
+                                <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <div class="card">
+        <?php if (empty($matches)): ?>
+        <div class="empty-state">
+            <p><?= $lang === 'it' ? 'Nessuna partita approvata ancora.' : 'No approved matches yet.' ?></p>
+        </div>
+        <?php else: ?>
+        <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+            <?= $lang === 'it' ? 'Partite approvate' : 'Approved Matches' ?>
+        </h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
+                        <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($matches as $match): ?>
                     <tr>
-                        <td>
-                            <a href="?page=player&id=<?= $match['white_id'] ?>"><?= htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) ?></a>
-                            <small style="color: var(--text-secondary);">(<?= htmlspecialchars($match['white_club']) ?>)</small>
-                        </td>
-                        <td><strong><?= str_replace('-', ' - ', $match['result']) ?></strong></td>
-                        <td>
-                            <a href="?page=player&id=<?= $match['black_id'] ?>"><?= htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) ?></a>
-                            <small style="color: var(--text-secondary);">(<?= htmlspecialchars($match['black_club']) ?>)</small>
-                        </td>
-                        <td><?= date('d/m/Y', strtotime($match['created_at'])) ?></td>
+                        <td><a href="?page=player&id=<?= $match['white_id'] ?>"><?= htmlspecialchars($match['white_first'] . ' ' . $match['white_last']) ?></a></td>
+                        <td><a href="?page=player&id=<?= $match['black_id'] ?>"><?= htmlspecialchars($match['black_first'] . ' ' . $match['black_last']) ?></a></td>
+                        <td style="text-align: center; white-space: nowrap;"><strong><?= str_replace('-', ' - ', $match['result']) ?></strong></td>
+                        <td style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;"><?= date('d/m/Y', strtotime($match['created_at'])) ?></td>
                         <td>
                             <a href="?page=match&id=<?= $match['id'] ?>" class="btn btn-sm btn-secondary">
-                                <?= $lang === 'it' ? 'Dettagli' : 'Details' ?>
+                                <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
                             </a>
                         </td>
                     </tr>
