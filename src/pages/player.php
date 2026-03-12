@@ -554,6 +554,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         </div>
         <?php endif; ?>
 
+        <!-- Personal Protected Access Link -->
+        <?php if (!empty($player['view_token'])): ?>
+        <div class="create-section">
+            <h2>&#128274; <?= $lang === 'it' ? 'Accesso Club Protetto' : 'Protected Club Access' ?></h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                <?= $lang === 'it'
+                    ? 'Se il tuo club ha attivato la modalità protetta, usa questo link personale per vedere i nomi dei giocatori. Non condividere questo link.'
+                    : 'If your club has enabled protected mode, use this personal link to view player names. Do not share this link.' ?>
+            </p>
+            <?php
+            $protectedClubUrl = BASE_URL . '?page=club&id=' . $player['club_id'] . '&token=' . urlencode($player['view_token']);
+            ?>
+            <div style="background: var(--bg-secondary); padding: 0.8rem 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; word-break: break-all; color: var(--text-secondary); margin: 0.75rem 0;">
+                <?= htmlspecialchars($protectedClubUrl) ?>
+            </div>
+            <a href="<?= htmlspecialchars($protectedClubUrl) ?>" class="btn btn-secondary" style="margin-top: 0.5rem;">
+                <?= $lang === 'it' ? 'Vai al mio club' : 'Go to my club' ?>
+            </a>
+        </div>
+        <?php endif; ?>
+
         <!-- Manual Rating Request -->
         <?php if (!empty($ratings)): ?>
         <div class="create-section">

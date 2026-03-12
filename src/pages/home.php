@@ -7,14 +7,15 @@ $db = Database::get();
 
 // Get stats
 $stats = [
-    'circuits' => $db->query("SELECT COUNT(*) FROM circuits WHERE confirmed = 1")->fetchColumn(),
+    'circuits' => $db->query("SELECT COUNT(*) FROM circuits WHERE confirmed = 1 AND deleted_at IS NULL")->fetchColumn(),
     'clubs' => $db->query("
         SELECT COUNT(*) FROM clubs c
         WHERE c.president_confirmed = 1
+        AND c.deleted_at IS NULL
         AND EXISTS (SELECT 1 FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1)
     ")->fetchColumn(),
-    'players' => $db->query("SELECT COUNT(*) FROM players WHERE confirmed = 1")->fetchColumn(),
-    'matches' => $db->query("SELECT COUNT(*) FROM matches WHERE rating_applied = 1")->fetchColumn(),
+    'players' => $db->query("SELECT COUNT(*) FROM players WHERE confirmed = 1 AND deleted_at IS NULL")->fetchColumn(),
+    'matches' => $db->query("SELECT COUNT(*) FROM matches WHERE rating_applied = 1 AND deleted_at IS NULL")->fetchColumn(),
 ];
 
 // Get recent circuits
@@ -24,6 +25,7 @@ $circuits = $db->query("
         (SELECT COUNT(DISTINCT r.player_id) FROM ratings r WHERE r.circuit_id = c.id) as player_count
     FROM circuits c
     WHERE c.confirmed = 1
+    AND c.deleted_at IS NULL
     ORDER BY c.created_at DESC
     LIMIT 6
 ")->fetchAll();

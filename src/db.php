@@ -36,19 +36,6 @@ class Database {
 
             self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-            // Check schema version (legacy system, will be replaced by migrations)
-            if (!$needsInit && DB_TYPE === 'sqlite') {
-                $version = self::getSchemaVersion();
-                if ($version < DB_SCHEMA_VERSION) {
-                    self::resetDatabase();
-                    $needsInit = true;
-                }
-            }
-
-            if ($needsInit && DB_TYPE === 'sqlite') {
-                self::init();
-            }
         }
         return self::$pdo;
     }

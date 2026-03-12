@@ -11,6 +11,8 @@ start:
 	@docker compose up -d --build
 	@echo "Visit http://localhost:8080 for the application."
 
+migrate:
+	@docker compose exec openelo php -f migrate.php
 
 
 .PHONY: ftp-deploy

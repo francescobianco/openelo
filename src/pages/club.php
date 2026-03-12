@@ -7,6 +7,9 @@ require_once SRC_PATH . '/mail.php';
 
 $db = Database::get();
 
+// Protected mode: check if visitor is an authenticated club member
+function maskPlayerName(): string { return '●●● ●●●'; }
+
 $clubId = (int)($_GET['id'] ?? 0);
 $message = null;
 $messageType = null;
@@ -72,6 +75,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
+    } elseif ($_POST['action'] === 'toggle_protected') {
+        $toggleToken = trim($_POST['token'] ?? '');
+        $stmt = $db->prepare("
+            SELECT id FROM players
+            WHERE view_token = ? AND club_id = ? AND confirmed = 1 AND deleted_at IS NULL
+        ");
+        $stmt->execute([$toggleToken, $clubId]);
+        if ($stmt->fetch()) {
+            $newMode = $club['protected_mode'] ? 0 : 1;
+            $db->prepare("UPDATE clubs SET protected_mode = ? WHERE id = ?")->execute([$newMode, $clubId]);
+            $club['protected_mode'] = $newMode;
+            $message = $newMode
+                ? ($lang === 'it' ? 'Modalità protetta attivata.' : 'Protected mode enabled.')
+                : ($lang === 'it' ? 'Modalità protetta disattivata.' : 'Protected mode disabled.');
+            $messageType = 'success';
+        }
     }
 }
 
@@ -88,6 +107,18 @@ $club = $stmt->fetch();
 if (!$club) {
     header('Location: ?page=circuits');
     exit;
+}
+
+// Protected mode access check (using view_token in URL)
+$protectedToken = trim($_GET['token'] ?? '');
+$isProtectedMember = false;
+if ($protectedToken) {
+    $stmt = $db->prepare("
+        SELECT id FROM players
+        WHERE view_token = ? AND club_id = ? AND confirmed = 1 AND deleted_at IS NULL
+    ");
+    $stmt->execute([$protectedToken, $clubId]);
+    $isProtectedMember = (bool)$stmt->fetch();
 }
 
 // Check pending confirmations
@@ -216,6 +247,11 @@ $isActive = $club['active_circuits'] > 0;
                 <?php else: ?>
                 <span class="badge badge-warning"><?= __('club_pending') ?></span>
                 <?php endif; ?>
+                <?php if ($club['protected_mode']): ?>
+                <span class="badge badge-warning" title="<?= $lang === 'it' ? 'I nomi dei giocatori sono visibili solo ai membri del club' : 'Player names are visible only to club members' ?>">
+                    &#128274; <?= $lang === 'it' ? 'Modalità protetta' : 'Protected mode' ?>
+                </span>
+                <?php endif; ?>
                 <span><?= count($players) ?> <?= __('circuit_players') ?></span>
             </div>
         </div>
@@ -324,13 +360,64 @@ $isActive = $club['active_circuits'] > 0;
             <ul style="list-style: none; padding: 0;">
                 <?php foreach ($players as $p): ?>
                 <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                    <a href="?page=player&id=<?= $p['id'] ?>"><?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?></a>
+                    <?php if (!$club['protected_mode'] || $isProtectedMember): ?>
+                    <a href="?page=player&id=<?= $p['id'] ?><?= $protectedToken ? '&token=' . urlencode($protectedToken) : '' ?>">
+                        <?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?>
+                    </a>
                     <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
+                    <?php else: ?>
+                    <span style="color: var(--text-secondary); letter-spacing: 0.05em;">●●● ●●●</span>
+                    <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
+                    <?php endif; ?>
                 </li>
                 <?php endforeach; ?>
             </ul>
             <?php endif; ?>
         </div>
+
+        <!-- Protected Mode Toggle -->
+        <?php if ($isProtectedMember || !$club['protected_mode']): ?>
+        <div class="create-section">
+            <h2>&#128274; <?= $lang === 'it' ? 'Modalità Protetta' : 'Protected Mode' ?></h2>
+            <?php if ($club['protected_mode']): ?>
+            <p style="color: var(--text-secondary);">
+                <?= $lang === 'it'
+                    ? 'Attiva. I nomi dei giocatori sono visibili solo ai membri autenticati tramite il loro link personale.'
+                    : 'Active. Player names are visible only to members authenticated via their personal link.' ?>
+            </p>
+            <?php if ($isProtectedMember): ?>
+            <form method="POST">
+                <input type="hidden" name="action" value="toggle_protected">
+                <input type="hidden" name="token" value="<?= htmlspecialchars($protectedToken) ?>">
+                <button type="submit" class="btn btn-secondary">
+                    <?= $lang === 'it' ? 'Disattiva modalità protetta' : 'Disable protected mode' ?>
+                </button>
+            </form>
+            <?php endif; ?>
+            <?php else: ?>
+            <p style="color: var(--text-secondary);">
+                <?= $lang === 'it'
+                    ? 'Disattiva. Attivandola, i nomi dei giocatori saranno visibili solo ai membri del club tramite il loro link personale. Utile per proteggere la privacy dei minori o di chi non vuole che il proprio nome sia pubblico.'
+                    : 'Inactive. When enabled, player names will only be visible to club members via their personal link. Useful to protect the privacy of minors or anyone who prefers not to have their name public.' ?>
+            </p>
+            <?php if ($isProtectedMember): ?>
+            <form method="POST">
+                <input type="hidden" name="action" value="toggle_protected">
+                <input type="hidden" name="token" value="<?= htmlspecialchars($protectedToken) ?>">
+                <button type="submit" class="btn btn-primary">
+                    <?= $lang === 'it' ? 'Attiva modalità protetta' : 'Enable protected mode' ?>
+                </button>
+            </form>
+            <?php else: ?>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                <?= $lang === 'it'
+                    ? 'Accedi con il tuo <a href="?page=player">link personale</a> per gestire questa impostazione.'
+                    : 'Use your <a href="?page=player">personal link</a> to manage this setting.' ?>
+            </p>
+            <?php endif; ?>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Deletion Request Link -->

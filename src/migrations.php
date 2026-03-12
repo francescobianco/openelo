@@ -19,4 +19,5 @@ return [
     '20240101000005_add_match_rating_tracking',
     '20240101000006_add_reminder_rate_limiting',
     '20240101000007_add_deletion_token',
+    '20240101000008_add_protected_mode',
 ];

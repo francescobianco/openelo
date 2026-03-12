@@ -132,8 +132,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Create player
-                $stmt = $db->prepare("INSERT INTO players (first_name, last_name, email, club_id) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$firstName, $lastName, $email, $clubId]);
+                $viewToken = generateToken();
+                $stmt = $db->prepare("INSERT INTO players (first_name, last_name, email, club_id, view_token) VALUES (?, ?, ?, ?, ?)");
+                $stmt->execute([$firstName, $lastName, $email, $clubId, $viewToken]);
                 $playerId = $db->lastInsertId();
 
                 $playerName = "$firstName $lastName";

@@ -20,7 +20,7 @@ $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'clubs', 'players', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'api'];
+$validPages = ['home', 'circuits', 'clubs', 'players', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'security', 'api'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -103,6 +103,8 @@ $content = ob_get_clean();
             <a href="?page=about"><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
             ~
             <a href="?page=contact"><?= $lang === 'it' ? 'Contatti' : 'Contact' ?></a>
+            ~
+            <a href="?page=security"><?= $lang === 'it' ? 'Sicurezza & Privacy' : 'Security & Privacy' ?></a>
         </p>
         <div class="footer-lang-select">
             <select class="lang-select" onchange="changeLang(this.value)">
