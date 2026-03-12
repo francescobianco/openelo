@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Get circuit
-        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ? AND confirmed = 1");
+        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ? AND confirmed = 1 AND deleted_at IS NULL");
         $stmt->execute([$circuitId]);
         $circuitData = $stmt->fetch();
 
@@ -118,14 +118,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get circuits with active players
+// Get circuits with active players (via club membership, not ratings)
 $circuits = $db->query("
     SELECT c.* FROM circuits c
     WHERE c.confirmed = 1
+    AND c.deleted_at IS NULL
     AND EXISTS (
-        SELECT 1 FROM ratings r
-        JOIN players p ON p.id = r.player_id
-        WHERE r.circuit_id = c.id AND p.confirmed = 1
+        SELECT 1 FROM circuit_clubs cc
+        JOIN players p ON p.club_id = cc.club_id
+        WHERE cc.circuit_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
+        AND p.confirmed = 1 AND p.deleted_at IS NULL
     )
     ORDER BY c.name
 ")->fetchAll();
