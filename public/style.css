@@ -745,6 +745,10 @@ tr:hover {
     display: none;
 }
 
+.nav-mobile-logo {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .footer-lang-select {
         display: block;
@@ -906,7 +910,7 @@ tr:hover {
         height: 100vh;
         background: var(--bg-card);
         flex-direction: column;
-        padding: 5rem 2rem 2rem;
+        padding: 2rem 2rem 2rem;
         gap: 0;
         align-items: flex-start;
         transition: left 0.3s ease;
@@ -914,6 +918,14 @@ tr:hover {
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
         overflow-y: auto;
         pointer-events: auto;
+    }
+
+    .nav-mobile-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        margin-bottom: 1.5rem;
     }
 
     .nav.active {

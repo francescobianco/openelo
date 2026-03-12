@@ -74,6 +74,10 @@ $content = ob_get_clean();
                 </button>
             </div>
             <nav class="nav" id="mobile-nav">
+                <a href="./" class="nav-mobile-logo">
+                    <img src="<?= asset('logo.png') ?>" alt="OpenELO Logo" style="height: 36px; width: 36px; vertical-align: middle;">
+                    <span style="font-size: 1.3rem; font-weight: 700; color: #fff;">Open<span style="color: #4361ee;">ELO</span></span>
+                </a>
                 <div class="nav-links">
                     <a href="?page=about" <?= $page === 'about' ? 'class="active"' : '' ?>><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
                     <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
