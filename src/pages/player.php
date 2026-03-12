@@ -558,9 +558,8 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                     <thead>
                         <tr>
                             <th><?= __('form_white') ?></th>
-                            <th></th>
+                            <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
                             <th><?= __('form_black') ?></th>
-                            <th><?= __('form_circuit') ?></th>
                             <th>Stato</th>
                         </tr>
                     </thead>
@@ -570,11 +569,10 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                             <td <?= $m['white_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
                                 <?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?>
                             </td>
-                            <td><strong><?= $m['result'] ?></strong></td>
+                            <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
                             <td <?= $m['black_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
                                 <?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?>
                             </td>
-                            <td><?= htmlspecialchars($m['circuit_name']) ?></td>
                             <td>
                                 <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm">
                                     <?= $lang === 'it' ? 'Vedi dettagli' : 'View details' ?>
