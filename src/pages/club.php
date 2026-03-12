@@ -306,8 +306,10 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
             <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it' ? 'questo circolo non è ancora completamente attivo' : 'this club is not yet fully active' ?></span>
         </p>
         <ul style="list-style: none; padding: 0; margin: 0;">
-            <?php foreach ($pendingConfirmations as $pending): ?>
-            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+            <?php foreach ($pendingConfirmations as $i => $pending):
+                $isLast = $i === array_key_last($pendingConfirmations);
+            ?>
+            <li style="padding: 0.5rem 0 <?= $isLast ? '0' : '0.5rem' ?>; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
                 <span style="font-size: 0.9rem;"><?= $pending['description'] ?></span>
                 <?php if ($pending['type'] === 'president'): ?>
                 <form method="POST">

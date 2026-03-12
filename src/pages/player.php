@@ -409,8 +409,10 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
             <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it' ? 'questo giocatore non è ancora attivo' : 'this player is not yet active' ?></span>
         </p>
         <ul style="list-style: none; padding: 0; margin: 0;">
-            <?php foreach ($pendingConfirmations as $pending): ?>
-            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+            <?php foreach ($pendingConfirmations as $i => $pending):
+                $isLast = $i === array_key_last($pendingConfirmations);
+            ?>
+            <li style="padding: 0.5rem 0 <?= $isLast ? '0' : '0.5rem' ?>; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
                 <span style="font-size: 0.9rem;"><?= $pending['description'] ?></span>
                 <?php if ($pending['type'] === 'player'): ?>
                 <form method="POST">
@@ -455,7 +457,7 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 </form>
                 <?php endif; ?>
             </li>
-            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+            <li style="padding: 0.5rem 0 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
                 <span style="font-size: 0.9rem;"><?= $lang === 'it' ? 'Conferma del presidente del nuovo circolo' : 'New club president confirmation' ?></span>
                 <?php if ($pendingTransfer['president_confirmed']): ?>
                 <span style="color: var(--success); font-size: 0.85rem;">&#10003;</span>
@@ -510,7 +512,7 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 </form>
                 <?php endif; ?>
             </li>
-            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+            <li style="padding: 0.5rem 0 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
                 <span style="font-size: 0.9rem;"><?= $lang === 'it' ? 'Conferma del responsabile del circuito' : 'Circuit manager confirmation' ?></span>
                 <?php if ($mr['circuit_confirmed']): ?>
                 <span style="color: var(--success); font-size: 0.85rem;">&#10003;</span>

@@ -13,7 +13,7 @@ $groupConcat = DB_TYPE === 'mysql'
 
 $clubs = $db->query("
     SELECT c.*,
-        (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as circuit_count,
+        (SELECT COUNT(*) FROM circuit_clubs cc JOIN circuits ci ON ci.id = cc.circuit_id WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1 AND ci.deleted_at IS NULL) as circuit_count,
         (SELECT COUNT(*) FROM players p WHERE p.club_id = c.id AND p.confirmed = 1) as player_count,
         (SELECT $groupConcat FROM circuit_clubs cc2
          JOIN circuits ci ON ci.id = cc2.circuit_id
