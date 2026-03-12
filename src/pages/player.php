@@ -55,12 +55,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
             $messageType = 'success';
         }
+    } elseif ($_POST['action'] === 'sono_io') {
+        $stmt = $db->prepare("SELECT p.*, c.name as club_name FROM players p JOIN clubs c ON c.id = p.club_id WHERE p.id = ?");
+        $stmt->execute([$playerId]);
+        $playerData = $stmt->fetch();
+        if ($playerData && $playerData['confirmed']) {
+            $token = createConfirmation('club_access_player', $playerId, $playerData['email']);
+            sendClubAccessConfirmation($playerData['email'], $playerData['club_name'], 'player', $token);
+            $message = $lang === 'it'
+                ? 'Email inviata! Controlla la tua casella e clicca il link per confermare la tua identità.'
+                : 'Email sent! Check your inbox and click the link to confirm your identity.';
+            $messageType = 'success';
+        }
     }
 }
 
 // Get player with club (allow access even if not confirmed)
 $stmt = $db->prepare("
-    SELECT p.*, c.name as club_name, c.id as club_id, c.president_email
+    SELECT p.*, c.name as club_name, c.id as club_id, c.president_email, c.protected_mode as club_protected
     FROM players p
     JOIN clubs c ON c.id = p.club_id
     WHERE p.id = ?
@@ -72,6 +84,8 @@ if (!$player) {
     header('Location: ?page=circuits');
     exit;
 }
+
+$canViewThisPlayer = !$player['club_protected'] || hasClubAccess((int)$player['club_id']);
 
 // Check pending confirmations
 $pendingConfirmations = [];
@@ -335,12 +349,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 <div class="container">
     <div class="page-header">
         <div>
-            <h1><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></h1>
+            <h1><?= $canViewThisPlayer ? htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) : maskName($player['first_name'] . ' ' . $player['last_name']) ?></h1>
             <div class="circuit-meta" style="margin-top: 0.5rem;">
                 <span><?= __('form_club') ?>: <a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></span>
                 <span><?= $lang === 'it' ? 'Categoria' : 'Category' ?>: <strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></span>
             </div>
         </div>
+        <?php if ($player['confirmed'] && !hasClubAccess((int)$player['club_id'])): ?>
+        <form method="POST">
+            <input type="hidden" name="action" value="sono_io">
+            <button type="submit" class="btn btn-secondary" style="font-size: 0.9rem;">
+                &#128100; <?= $lang === 'it' ? 'Sono io' : 'That\'s me' ?>
+            </button>
+        </form>
+        <?php endif; ?>
     </div>
 
     <?php if ($message): ?>
@@ -551,27 +573,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     </tbody>
                 </table>
             </div>
-        </div>
-        <?php endif; ?>
-
-        <!-- Personal Protected Access Link -->
-        <?php if (!empty($player['view_token'])): ?>
-        <div class="create-section">
-            <h2>&#128274; <?= $lang === 'it' ? 'Accesso Club Protetto' : 'Protected Club Access' ?></h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                <?= $lang === 'it'
-                    ? 'Se il tuo club ha attivato la modalità protetta, usa questo link personale per vedere i nomi dei giocatori. Non condividere questo link.'
-                    : 'If your club has enabled protected mode, use this personal link to view player names. Do not share this link.' ?>
-            </p>
-            <?php
-            $protectedClubUrl = BASE_URL . '?page=club&id=' . $player['club_id'] . '&token=' . urlencode($player['view_token']);
-            ?>
-            <div style="background: var(--bg-secondary); padding: 0.8rem 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; word-break: break-all; color: var(--text-secondary); margin: 0.75rem 0;">
-                <?= htmlspecialchars($protectedClubUrl) ?>
-            </div>
-            <a href="<?= htmlspecialchars($protectedClubUrl) ?>" class="btn btn-secondary" style="margin-top: 0.5rem;">
-                <?= $lang === 'it' ? 'Vai al mio club' : 'Go to my club' ?>
-            </a>
         </div>
         <?php endif; ?>
 

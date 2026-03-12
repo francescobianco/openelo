@@ -89,6 +89,20 @@ function isBetterCategory(string $newCategory, string $currentCategory): bool {
 }
 
 /**
+ * Mask a player's full name: show first 2 chars per word, replace rest with asterisks
+ * Example: "Francesco Bianco" → "Fr******* Bi****"
+ */
+function maskName(string $name): string {
+    $parts = explode(' ', $name);
+    $masked = array_map(function(string $part): string {
+        $len = mb_strlen($part, 'UTF-8');
+        if ($len <= 2) return $part;
+        return mb_substr($part, 0, 2, 'UTF-8') . str_repeat('*', $len - 2);
+    }, $parts);
+    return implode(' ', $masked);
+}
+
+/**
  * Get all available categories for dropdown
  */
 function getAvailableCategories(): array {

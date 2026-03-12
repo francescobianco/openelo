@@ -4,6 +4,7 @@
  */
 
 require_once SRC_PATH . '/mail.php';
+require_once SRC_PATH . '/utils.php';
 
 $db = Database::get();
 
@@ -165,7 +166,7 @@ $clubs = $stmt->fetchAll();
 
 // Get rankings
 $stmt = $db->prepare("
-    SELECT p.*, r.rating, r.games_played, cl.name as club_name, cl.id as club_id
+    SELECT p.*, r.rating, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected
     FROM ratings r
     JOIN players p ON p.id = r.player_id
     JOIN clubs cl ON cl.id = p.club_id
@@ -290,8 +291,9 @@ $tab = $_GET['tab'] ?? 'rankings';
                 <tbody>
                     <?php foreach ($rankings as $i => $player): ?>
                     <tr>
-                        <td class="rank <?= $i < 3 ? 'rank-' . ($i + 1) : '' ?>"><?= $i + 1 ?></td>
-                        <td><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a></td>
+                        <td class="rank <?= $i < 3 ? 'rank-' . ($i + 1) : '' ?>" style="padding-top: 0; padding-bottom: 0; line-height: 1;"><strong style="font-size: 1.8em; line-height: 1;"><?= $i + 1 ?>°</strong></td>
+                        <?php $canViewPlayer = !$player['club_protected'] || hasClubAccess((int)$player['club_id']); ?>
+                        <td><?php if ($canViewPlayer): ?><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a><?php else: ?><span style="color: var(--text-secondary);"><?= maskName($player['first_name'] . ' ' . $player['last_name']) ?></span><?php endif; ?></td>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
                         <td><strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></td>
                         <td class="rating"><?= $player['rating'] ?></td>

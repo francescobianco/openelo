@@ -4,6 +4,7 @@
  */
 
 require_once SRC_PATH . '/mail.php';
+require_once SRC_PATH . '/utils.php';
 
 $db = Database::get();
 
@@ -92,6 +93,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             ? 'Email inviata al presidente del circolo per confermare il cambio di modalità.'
             : 'Email sent to the club president to confirm the mode change.';
         $messageType = 'success';
+    } elseif ($_POST['action'] === 'sono_il_presidente') {
+        $token = createConfirmation('club_access_president', $clubId, $club['president_email']);
+        sendClubAccessConfirmation($club['president_email'], $club['name'], 'president', $token);
+        $message = $lang === 'it'
+            ? 'Email inviata al presidente! Controlla la casella e clicca il link per confermare.'
+            : 'Email sent to the president! Check the inbox and click the link to confirm.';
+        $messageType = 'success';
     } elseif ($_POST['action'] === 'join_circuit') {
         try {
             $circuitId = (int)($_POST['circuit_id'] ?? 0);
@@ -125,17 +133,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Protected mode access check (view_token in URL, for player name display)
-$protectedToken = trim($_GET['token'] ?? '');
-$isProtectedMember = false;
-if ($protectedToken) {
-    $stmt = $db->prepare("
-        SELECT id FROM players
-        WHERE view_token = ? AND club_id = ? AND confirmed = 1 AND deleted_at IS NULL
-    ");
-    $stmt->execute([$protectedToken, $clubId]);
-    $isProtectedMember = (bool)$stmt->fetch();
-}
+// Protected mode access check via cookie
+$hasClubAccess = hasClubAccess($clubId);
+$isProtectedMember = ($club['protected_mode'] && $hasClubAccess);
 
 // Check pending confirmations
 $pendingConfirmations = [];
@@ -224,8 +224,20 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 <span><?= count($players) ?> <?= __('circuit_players') ?></span>
             </div>
         </div>
-        <?php if ($isActive): ?>
-        <a href="?page=create&club=<?= $clubId ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Giocatore' : 'Register Player' ?></a>
+        <?php if ($isActive || !$hasClubAccess): ?>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+            <?php if (!$hasClubAccess): ?>
+            <form method="POST">
+                <input type="hidden" name="action" value="sono_il_presidente">
+                <button type="submit" class="btn btn-secondary" style="font-size: 0.9rem;">
+                    &#128081; <?= $lang === 'it' ? 'Sono il presidente' : 'I\'m the president' ?>
+                </button>
+            </form>
+            <?php endif; ?>
+            <?php if ($isActive): ?>
+            <a href="?page=create&club=<?= $clubId ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Giocatore' : 'Register Player' ?></a>
+            <?php endif; ?>
+        </div>
         <?php endif; ?>
     </div>
 
@@ -342,11 +354,11 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                     <?php foreach ($players as $p): ?>
                     <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
                         <?php if (!$club['protected_mode'] || $isProtectedMember): ?>
-                        <a href="?page=player&id=<?= $p['id'] ?><?= $protectedToken ? '&token=' . urlencode($protectedToken) : '' ?>">
+                        <a href="?page=player&id=<?= $p['id'] ?>">
                             <?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?>
                         </a>
                         <?php else: ?>
-                        <span style="color: var(--text-secondary); letter-spacing: 0.05em;">●●● ●●●</span>
+                        <span style="color: var(--text-secondary); letter-spacing: 0.05em;"><?= maskName($p['first_name'] . ' ' . $p['last_name']) ?></span>
                         <?php endif; ?>
                         <span style="color: var(--text-secondary); margin-left: 0.5rem;"><?= htmlspecialchars($p['category'] ?? 'NC') ?></span>
                     </li>

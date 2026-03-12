@@ -309,6 +309,38 @@ function sendProtectedModeConfirmation(string $presidentEmail, string $clubName,
 }
 
 /**
+ * Send club access confirmation (for "Sono io" / "Sono il presidente")
+ */
+function sendClubAccessConfirmation(string $to, string $clubName, string $role, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    if ($lang === 'it') {
+        if ($role === 'president') {
+            $subject = "Conferma identità: presidente di {$clubName}";
+            $message = "È stata ricevuta una richiesta di accesso come <strong>presidente</strong> del circolo <strong>{$clubName}</strong>.<br><br>
+                Se sei tu il presidente, clicca il pulsante qui sotto. Riceverai un accesso permanente ai dati del tuo circolo su questo dispositivo.";
+        } else {
+            $subject = "Conferma identità: giocatore di {$clubName}";
+            $message = "È stata ricevuta una richiesta di accesso come <strong>giocatore</strong> del circolo <strong>{$clubName}</strong>.<br><br>
+                Se sei tu questo giocatore, clicca il pulsante qui sotto. Riceverai un accesso permanente ai dati del tuo circolo su questo dispositivo.";
+        }
+    } else {
+        if ($role === 'president') {
+            $subject = "Identity confirmation: president of {$clubName}";
+            $message = "An access request has been received for the <strong>president</strong> of club <strong>{$clubName}</strong>.<br><br>
+                If you are the president, click the button below. You will receive permanent access to your club's data on this device.";
+        } else {
+            $subject = "Identity confirmation: player of {$clubName}";
+            $message = "An access request has been received for a <strong>player</strong> of club <strong>{$clubName}</strong>.<br><br>
+                If you are this player, click the button below. You will receive permanent access to your club's data on this device.";
+        }
+    }
+
+    return sendConfirmationEmail($to, $subject, $message, $url);
+}
+
+/**
  * Send manual rating request confirmation
  */
 function sendManualRatingConfirmation(string $to, string $role, string $playerName, string $circuitName, int $rating, string $category, string $token): bool {

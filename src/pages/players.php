@@ -4,15 +4,16 @@
  */
 
 $db = Database::get();
+require_once SRC_PATH . '/utils.php';
 
 // Get all confirmed players with their club and best rating
 $players = $db->query("
-    SELECT p.*, c.name as club_name, c.id as club_id,
+    SELECT p.*, c.name as club_name, c.id as club_id, c.protected_mode as club_protected,
         (SELECT MAX(r.rating) FROM ratings r WHERE r.player_id = p.id) as best_rating,
         (SELECT SUM(r.games_played) FROM ratings r WHERE r.player_id = p.id) as total_games
     FROM players p
     JOIN clubs c ON c.id = p.club_id
-    WHERE p.confirmed = 1
+    WHERE p.confirmed = 1 AND p.deleted_at IS NULL
     ORDER BY p.last_name, p.first_name
 ")->fetchAll();
 ?>
@@ -43,7 +44,12 @@ $players = $db->query("
                     <?php foreach ($players as $p): ?>
                     <tr>
                         <td>
+                            <?php $canView = !$p['club_protected'] || hasClubAccess((int)$p['club_id']); ?>
+                            <?php if ($canView): ?>
                             <a href="?page=player&id=<?= $p['id'] ?>"><?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?></a>
+                            <?php else: ?>
+                            <span style="color: var(--text-secondary);"><?= maskName($p['first_name'] . ' ' . $p['last_name']) ?></span>
+                            <?php endif; ?>
                         </td>
                         <td style="text-align: center;"><strong><?= htmlspecialchars($p['category'] ?? 'NC') ?></strong></td>
                         <td style="text-align: center;" class="rating"><?= $p['best_rating'] ?? '-' ?></td>

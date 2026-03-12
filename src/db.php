@@ -193,6 +193,47 @@ class Database {
 }
 
 /**
+ * Return all club IDs the visitor has access to (via per-club cookies).
+ * Result is cached for the duration of the request.
+ */
+function getAccessibleClubIds(): array {
+    static $cache = null;
+    if ($cache !== null) return $cache;
+
+    $cache = [];
+    $tokenMap = []; // token → expected club_id
+
+    foreach ($_COOKIE as $name => $value) {
+        if (str_starts_with($name, 'openelo_club_')) {
+            $clubId = (int)substr($name, strlen('openelo_club_'));
+            if ($clubId > 0) $tokenMap[$value] = $clubId;
+        }
+    }
+
+    if (empty($tokenMap)) return $cache;
+
+    $db = Database::get();
+    $placeholders = implode(',', array_fill(0, count($tokenMap), '?'));
+    $stmt = $db->prepare("SELECT token, club_id FROM club_access_tokens WHERE token IN ($placeholders)");
+    $stmt->execute(array_keys($tokenMap));
+
+    foreach ($stmt->fetchAll() as $row) {
+        if (isset($tokenMap[$row['token']]) && $tokenMap[$row['token']] === (int)$row['club_id']) {
+            $cache[] = (int)$row['club_id'];
+        }
+    }
+
+    return $cache;
+}
+
+/**
+ * Check whether the visitor has club-access cookie for the given club.
+ */
+function hasClubAccess(int $clubId): bool {
+    return in_array($clubId, getAccessibleClubIds());
+}
+
+/**
  * Generate secure token
  */
 function generateToken(): string {

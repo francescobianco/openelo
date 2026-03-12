@@ -420,6 +420,54 @@ if (empty($token)) {
                     $redirectUrl = '?page=club&id=' . $clubId;
                     break;
 
+                case 'club_access_player':
+                    // Player confirms "Sono io" → set access cookie
+                    $playerId = $confirmation['target_id'];
+                    $stmt = $db->prepare("SELECT p.*, c.name as club_name FROM players p JOIN clubs c ON c.id = p.club_id WHERE p.id = ?");
+                    $stmt->execute([$playerId]);
+                    $player = $stmt->fetch();
+                    if ($player) {
+                        $accessToken = generateToken();
+                        $stmt = $db->prepare("INSERT INTO club_access_tokens (token, club_id) VALUES (?, ?)");
+                        $stmt->execute([$accessToken, $player['club_id']]);
+                        setcookie('openelo_club_' . $player['club_id'], $accessToken, [
+                            'expires'  => time() + 365 * 24 * 3600,
+                            'path'     => '/',
+                            'httponly' => true,
+                            'samesite' => 'Strict',
+                        ]);
+                        $message = $lang === 'it'
+                            ? 'Identità confermata! Ora puoi vedere i dati del tuo circolo su questo dispositivo.'
+                            : 'Identity confirmed! You can now view your club\'s data on this device.';
+                        $redirectUrl = '?page=player&id=' . $playerId;
+                    }
+                    $messageType = 'success';
+                    break;
+
+                case 'club_access_president':
+                    // President confirms "Sono il presidente" → set access cookie
+                    $clubId = $confirmation['target_id'];
+                    $stmt = $db->prepare("SELECT * FROM clubs WHERE id = ?");
+                    $stmt->execute([$clubId]);
+                    $clubRow = $stmt->fetch();
+                    if ($clubRow) {
+                        $accessToken = generateToken();
+                        $stmt = $db->prepare("INSERT INTO club_access_tokens (token, club_id) VALUES (?, ?)");
+                        $stmt->execute([$accessToken, $clubId]);
+                        setcookie('openelo_club_' . $clubId, $accessToken, [
+                            'expires'  => time() + 365 * 24 * 3600,
+                            'path'     => '/',
+                            'httponly' => true,
+                            'samesite' => 'Strict',
+                        ]);
+                        $message = $lang === 'it'
+                            ? 'Identità confermata! Ora puoi vedere i dati del tuo circolo su questo dispositivo.'
+                            : 'Identity confirmed! You can now view your club\'s data on this device.';
+                        $redirectUrl = '?page=club&id=' . $clubId;
+                    }
+                    $messageType = 'success';
+                    break;
+
                 default:
                     throw new Exception('Unknown confirmation type');
             }

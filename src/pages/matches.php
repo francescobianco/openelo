@@ -4,14 +4,15 @@
  */
 
 $db = Database::get();
+require_once SRC_PATH . '/utils.php';
 
 $matches = $db->query("
     SELECT m.*,
         ci.name as circuit_name, ci.id as circuit_id,
         pw.first_name as white_first, pw.last_name as white_last, pw.id as white_id,
         pb.first_name as black_first, pb.last_name as black_last, pb.id as black_id,
-        cw.protected_mode as white_club_protected,
-        cb.protected_mode as black_club_protected
+        cw.protected_mode as white_club_protected, cw.id as white_club_id,
+        cb.protected_mode as black_club_protected, cb.id as black_club_id
     FROM matches m
     JOIN circuits ci ON ci.id = m.circuit_id
     JOIN players pw ON pw.id = m.white_player_id
@@ -54,20 +55,22 @@ $matches = $db->query("
                             <?= date('d/m/Y', strtotime($m['created_at'])) ?>
                         </td>
                         <td>
-                            <?php if ($m['white_club_protected']): ?>
-                            <span style="color: var(--text-secondary);">●●● ●●●</span>
-                            <?php else: ?>
+                            <?php $canViewWhite = !$m['white_club_protected'] || hasClubAccess((int)$m['white_club_id']); ?>
+                            <?php if ($canViewWhite): ?>
                             <a href="?page=player&id=<?= $m['white_id'] ?>"><?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?></a>
+                            <?php else: ?>
+                            <span style="color: var(--text-secondary);"><?= maskName($m['white_first'] . ' ' . $m['white_last']) ?></span>
                             <?php endif; ?>
                         </td>
                         <td style="text-align: center; font-weight: bold; font-size: 1.05rem;">
                             <a href="?page=match&id=<?= $m['id'] ?>"><?= htmlspecialchars($m['result']) ?></a>
                         </td>
                         <td>
-                            <?php if ($m['black_club_protected']): ?>
-                            <span style="color: var(--text-secondary);">●●● ●●●</span>
-                            <?php else: ?>
+                            <?php $canViewBlack = !$m['black_club_protected'] || hasClubAccess((int)$m['black_club_id']); ?>
+                            <?php if ($canViewBlack): ?>
                             <a href="?page=player&id=<?= $m['black_id'] ?>"><?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?></a>
+                            <?php else: ?>
+                            <span style="color: var(--text-secondary);"><?= maskName($m['black_first'] . ' ' . $m['black_last']) ?></span>
                             <?php endif; ?>
                         </td>
                         <td>

@@ -20,4 +20,5 @@ return [
     '20240101000006_add_reminder_rate_limiting',
     '20240101000007_add_deletion_token',
     '20240101000008_add_protected_mode',
+    '20240101000009_add_club_access_tokens',
 ];
