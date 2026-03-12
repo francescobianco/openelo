@@ -57,9 +57,9 @@ $translations = [
         'form_cancel' => 'Cancel',
         'form_select' => 'Select...',
 
-        'result_white_wins' => 'White wins (1-0)',
-        'result_black_wins' => 'Black wins (0-1)',
-        'result_draw' => 'Draw (½-½)',
+        'result_white_wins' => 'White wins (1 - 0)',
+        'result_black_wins' => 'Black wins (0 - 1)',
+        'result_draw' => 'Draw (½ - ½)',
 
         // Circuit
         'circuit_create' => 'Create Circuit',
@@ -185,9 +185,9 @@ $translations = [
         'form_cancel' => 'Annulla',
         'form_select' => 'Seleziona...',
 
-        'result_white_wins' => 'Vince il Bianco (1-0)',
-        'result_black_wins' => 'Vince il Nero (0-1)',
-        'result_draw' => 'Patta (½-½)',
+        'result_white_wins' => 'Vince il Bianco (1 - 0)',
+        'result_black_wins' => 'Vince il Nero (0 - 1)',
+        'result_draw' => 'Patta (½ - ½)',
 
         // Circuit
         'circuit_create' => 'Crea Circuito',
