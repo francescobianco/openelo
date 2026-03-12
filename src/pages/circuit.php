@@ -283,9 +283,9 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <th><?= __('rankings_position') ?></th>
                         <th><?= __('rankings_player') ?></th>
                         <th><?= __('rankings_club') ?></th>
-                        <th><?= $lang === 'it' ? 'Categoria' : 'Category' ?></th>
-                        <th><?= __('rankings_rating') ?></th>
-                        <th><?= __('rankings_games') ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Categoria' : 'Category' ?></th>
+                        <th style="text-align: center;"><?= __('rankings_rating') ?></th>
+                        <th style="text-align: center;"><?= __('rankings_games') ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -295,9 +295,9 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <?php $canViewPlayer = !$player['club_protected'] || hasClubAccess((int)$player['club_id']); ?>
                         <td><?php if ($canViewPlayer): ?><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a><?php else: ?><a href="?page=player&id=<?= $player['id'] ?>" style="color: var(--text-secondary);"><?= maskName($player['first_name'] . ' ' . $player['last_name']) ?></a><?php endif; ?></td>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
-                        <td><strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></td>
-                        <td class="rating"><?= $player['rating'] ?></td>
-                        <td><?= $player['games_played'] ?></td>
+                        <td style="text-align: center;"><strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></td>
+                        <td class="rating" style="text-align: center;"><?= $player['rating'] ?></td>
+                        <td style="text-align: center;"><?= $player['games_played'] ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
