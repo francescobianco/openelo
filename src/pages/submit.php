@@ -208,7 +208,8 @@ function loadCircuitPlayers() {
         .then(data => {
             let playerOptions = '<option value="">-- <?= __('form_player') ?> --</option>';
             data.players.forEach(player => {
-                playerOptions += `<option value="${player.id}">${player.first_name} ${player.last_name} (${player.club_name}) - ${player.rating}</option>`;
+                const rating = player.rating !== null ? player.rating : <?= ELO_START ?>;
+                playerOptions += `<option value="${player.id}">${player.first_name} ${player.last_name} (${player.club_name}) - ${rating}</option>`;
             });
             whiteSelect.innerHTML = playerOptions;
             blackSelect.innerHTML = playerOptions;
