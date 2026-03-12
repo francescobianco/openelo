@@ -246,6 +246,16 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
                 <?php endif; ?>
                 <span><?= count($players) ?> <?= __('circuit_players') ?></span>
             </div>
+            <?php if (!empty($club['location']) || !empty($club['website'])): ?>
+            <div style="margin-top: 0.4rem; font-size: 0.9rem; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem;">
+                <?php if (!empty($club['location'])): ?>
+                <span>&#128205; <?= htmlspecialchars($club['location']) ?></span>
+                <?php endif; ?>
+                <?php if (!empty($club['website'])): ?>
+                <span>&#127760; <a href="<?= htmlspecialchars($club['website']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($club['website']) ?></a></span>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
         <?php if ($isActive || ($club['protected_mode'] && !$hasClubAccess)): ?>
         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
