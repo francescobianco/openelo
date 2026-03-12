@@ -285,18 +285,19 @@ $tab = $_GET['tab'] ?? 'rankings';
             <h1><?= htmlspecialchars($circuit['name']) ?></h1>
             <div class="circuit-meta" style="margin-top: 0.5rem;">
                 <span><?= count($clubs) ?> <?= __('circuit_clubs') ?></span>
-                <span><?php
+                <?php
                     $stmtPc = $db->prepare("SELECT COUNT(DISTINCT p.id) FROM players p JOIN circuit_clubs cc ON cc.club_id = p.club_id WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1 AND p.confirmed = 1 AND p.deleted_at IS NULL");
                     $stmtPc->execute([$circuitId]);
-                    echo $stmtPc->fetchColumn();
-                ?> <?= __('circuit_players') ?></span>
+                    $totalPlayers = (int)$stmtPc->fetchColumn();
+                ?>
+                <span><?= $totalPlayers ?> <?= __('circuit_players') ?></span>
                 <span><?= count($matches) ?> <?= __('circuit_matches') ?></span>
             </div>
         </div>
         <?php if ($circuit['confirmed']): ?>
             <?php if (empty($clubs)): ?>
             <a href="?page=create&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Circolo' : 'Register Club' ?></a>
-            <?php elseif (count($rankings) < 2): ?>
+            <?php elseif ($totalPlayers < 2): ?>
             <a href="?page=create&club=<?= count($clubs) === 1 ? $clubs[0]['id'] : '' ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Giocatori' : 'Register Players' ?></a>
             <?php else: ?>
             <a href="?page=submit&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= __('nav_submit_result') ?></a>
