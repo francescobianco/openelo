@@ -42,8 +42,8 @@ $matches = $db->query("
                     <tr>
                         <th><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
                         <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
-                        <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
                         <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
                         <th><?= __('form_circuit') ?></th>
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Stato' : 'Status' ?></th>
                     </tr>
@@ -62,9 +62,6 @@ $matches = $db->query("
                             <a href="?page=player&id=<?= $m['white_id'] ?>" style="color: var(--text-secondary);"><?= maskName($m['white_first'] . ' ' . $m['white_last']) ?></a>
                             <?php endif; ?>
                         </td>
-                        <td style="text-align: center; font-weight: bold; font-size: 1.05rem;">
-                            <a href="?page=match&id=<?= $m['id'] ?>"><?= htmlspecialchars($m['result']) ?></a>
-                        </td>
                         <td>
                             <?php $canViewBlack = !$m['black_club_protected'] || hasClubAccess((int)$m['black_club_id']); ?>
                             <?php if ($canViewBlack): ?>
@@ -72,6 +69,9 @@ $matches = $db->query("
                             <?php else: ?>
                             <a href="?page=player&id=<?= $m['black_id'] ?>" style="color: var(--text-secondary);"><?= maskName($m['black_first'] . ' ' . $m['black_last']) ?></a>
                             <?php endif; ?>
+                        </td>
+                        <td style="text-align: center; font-weight: bold; font-size: 1.05rem;">
+                            <a href="?page=match&id=<?= $m['id'] ?>"><?= htmlspecialchars($m['result']) ?></a>
                         </td>
                         <td>
                             <a href="?page=circuit&id=<?= $m['circuit_id'] ?>"><?= htmlspecialchars($m['circuit_name']) ?></a>
