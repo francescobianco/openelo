@@ -152,7 +152,7 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>&nbps;</th>
                         <th><?= $lang === 'it' ? 'Data' : 'Date' ?></th>
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Colore' : 'Color' ?></th>
                         <th><?= $lang === 'it' ? 'Dettagli' : 'Details' ?></th>

@@ -104,7 +104,7 @@ $translations = [
 
         // Rankings
         'rankings_title' => 'Rankings',
-        'rankings_position' => '#',
+        'rankings_position' => '',
         'rankings_player' => 'Player',
         'rankings_club' => 'Club',
         'rankings_rating' => 'Rating',
@@ -232,7 +232,7 @@ $translations = [
 
         // Rankings
         'rankings_title' => 'Classifica',
-        'rankings_position' => '#',
+        'rankings_position' => '',
         'rankings_player' => 'Giocatore',
         'rankings_club' => 'Circolo',
         'rankings_rating' => 'Rating',
