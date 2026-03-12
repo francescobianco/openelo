@@ -375,131 +375,128 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
     <?php endif; ?>
 
     <?php if (!empty($pendingConfirmations)): ?>
-    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div class="pending-icon">⏳</div>
-        <div style="flex: 1;">
-            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></h3>
-            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it' ? 'Questo giocatore non è ancora attivo. Sono necessarie le seguenti approvazioni:' : 'This player is not yet active. The following approvals are required:' ?></p>
-            <ul class="pending-approvals-list">
-                <?php foreach ($pendingConfirmations as $pending): ?>
-                <li>
-                    <?= $pending['description'] ?>
-                    <?php if ($pending['type'] === 'player'): ?>
-                    <form method="POST" style="display: inline; margin-left: 1rem;">
-                        <input type="hidden" name="action" value="resend_player">
-                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                        </button>
-                    </form>
-                    <?php elseif ($pending['type'] === 'president'): ?>
-                    <form method="POST" style="display: inline; margin-left: 1rem;">
-                        <input type="hidden" name="action" value="resend_president">
-                        <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                            <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+    <div class="alert alert-warning">
+        <p style="margin: 0 0 0.75rem 0;">
+            <strong><?= $lang === 'it' ? 'Approvazioni in attesa' : 'Pending Approvals' ?></strong>
+            <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it' ? 'questo giocatore non è ancora attivo' : 'this player is not yet active' ?></span>
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <?php foreach ($pendingConfirmations as $pending): ?>
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $pending['description'] ?></span>
+                <?php if ($pending['type'] === 'player'): ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_player">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php elseif ($pending['type'] === 'president'): ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_president">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
     </div>
     <?php endif; ?>
 
     <?php if ($pendingTransfer): ?>
-    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div class="pending-icon">⏳</div>
-        <div style="flex: 1;">
-            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Trasferimento in attesa' : 'Pending Transfer' ?></h3>
-            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it'
-                ? 'Trasferimento verso <strong>' . htmlspecialchars($pendingTransfer['to_club_name']) . '</strong> in attesa di conferma.'
-                : 'Transfer to <strong>' . htmlspecialchars($pendingTransfer['to_club_name']) . '</strong> pending confirmation.' ?></p>
-            <ul class="pending-approvals-list">
-                <li>
-                    <?= $lang === 'it' ? 'Conferma del giocatore' : 'Player confirmation' ?>
-                    <?php if ($pendingTransfer['player_confirmed']): ?>
-                        <span style="color: var(--success);">&#10003;</span>
-                    <?php else: ?>
-                        <form method="POST" style="display: inline; margin-left: 1rem;">
-                            <input type="hidden" name="action" value="resend_transfer_player">
-                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                </li>
-                <li>
-                    <?= $lang === 'it' ? 'Conferma del presidente del nuovo circolo' : 'New club president confirmation' ?>
-                    <?php if ($pendingTransfer['president_confirmed']): ?>
-                        <span style="color: var(--success);">&#10003;</span>
-                    <?php else: ?>
-                        <form method="POST" style="display: inline; margin-left: 1rem;">
-                            <input type="hidden" name="action" value="resend_transfer_president">
-                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                </li>
-            </ul>
-        </div>
+    <div class="alert alert-warning">
+        <p style="margin: 0 0 0.75rem 0;">
+            <strong><?= $lang === 'it' ? 'Trasferimento in attesa' : 'Pending Transfer' ?></strong>
+            <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it'
+                ? 'verso ' . htmlspecialchars($pendingTransfer['to_club_name'])
+                : 'to ' . htmlspecialchars($pendingTransfer['to_club_name']) ?></span>
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $lang === 'it' ? 'Conferma del giocatore' : 'Player confirmation' ?></span>
+                <?php if ($pendingTransfer['player_confirmed']): ?>
+                <span style="color: var(--success); font-size: 0.85rem;">&#10003;</span>
+                <?php else: ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_transfer_player">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $lang === 'it' ? 'Conferma del presidente del nuovo circolo' : 'New club president confirmation' ?></span>
+                <?php if ($pendingTransfer['president_confirmed']): ?>
+                <span style="color: var(--success); font-size: 0.85rem;">&#10003;</span>
+                <?php else: ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_transfer_president">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+        </ul>
     </div>
     <?php endif; ?>
 
     <?php if (!empty($pendingManualRatings)): ?>
     <?php foreach ($pendingManualRatings as $mr): ?>
-    <div class="alert alert-warning" style="display: flex; gap: 1rem;">
-        <div class="pending-icon">⏳</div>
-        <div style="flex: 1;">
-            <h3 style="margin: 0 0 0.5rem 0;"><?= $lang === 'it' ? 'Variazione manuale in attesa' : 'Pending Manual Rating Change' ?></h3>
-            <p style="margin: 0 0 1rem 0;"><?= $lang === 'it'
-                ? 'Richiesta variazione a <strong>' . $mr['requested_rating'] . '</strong> (cat. ' . htmlspecialchars($mr['requested_category']) . ') nel circuito <strong>' . htmlspecialchars($mr['circuit_name']) . '</strong>.'
-                : 'Request to change rating to <strong>' . $mr['requested_rating'] . '</strong> (cat. ' . htmlspecialchars($mr['requested_category']) . ') in circuit <strong>' . htmlspecialchars($mr['circuit_name']) . '</strong>.' ?></p>
-            <ul class="pending-approvals-list">
-                <li>
-                    <?= $lang === 'it' ? 'Conferma del giocatore' : 'Player confirmation' ?>
-                    <?php if ($mr['player_confirmed']): ?>
-                        <span style="color: var(--success);">&#10003;</span>
-                    <?php else: ?>
-                        <form method="POST" style="display: inline; margin-left: 1rem;">
-                            <input type="hidden" name="action" value="resend_manual_rating_player">
-                            <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
-                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                </li>
-                <li>
-                    <?= $lang === 'it' ? 'Conferma del presidente del circolo' : 'Club president confirmation' ?>
-                    <?php if ($mr['president_confirmed']): ?>
-                        <span style="color: var(--success);">&#10003;</span>
-                    <?php else: ?>
-                        <form method="POST" style="display: inline; margin-left: 1rem;">
-                            <input type="hidden" name="action" value="resend_manual_rating_president">
-                            <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
-                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                </li>
-                <li>
-                    <?= $lang === 'it' ? 'Conferma del responsabile del circuito' : 'Circuit manager confirmation' ?>
-                    <?php if ($mr['circuit_confirmed']): ?>
-                        <span style="color: var(--success);">&#10003;</span>
-                    <?php else: ?>
-                        <form method="POST" style="display: inline; margin-left: 1rem;">
-                            <input type="hidden" name="action" value="resend_manual_rating_circuit">
-                            <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
-                            <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit;">
-                                <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                </li>
-            </ul>
-        </div>
+    <div class="alert alert-warning">
+        <p style="margin: 0 0 0.75rem 0;">
+            <strong><?= $lang === 'it' ? 'Variazione manuale in attesa' : 'Pending Manual Rating Change' ?></strong>
+            <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.9rem;"> — <?= $lang === 'it'
+                ? $mr['requested_rating'] . ' (cat. ' . htmlspecialchars($mr['requested_category']) . ') · ' . htmlspecialchars($mr['circuit_name'])
+                : $mr['requested_rating'] . ' (cat. ' . htmlspecialchars($mr['requested_category']) . ') · ' . htmlspecialchars($mr['circuit_name']) ?></span>
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $lang === 'it' ? 'Conferma del giocatore' : 'Player confirmation' ?></span>
+                <?php if ($mr['player_confirmed']): ?>
+                <span style="color: var(--success); font-size: 0.85rem;">&#10003;</span>
+                <?php else: ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_manual_rating_player">
+                    <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $lang === 'it' ? 'Conferma del presidente del circolo' : 'Club president confirmation' ?></span>
+                <?php if ($mr['president_confirmed']): ?>
+                <span style="color: var(--success); font-size: 0.85rem;">&#10003;</span>
+                <?php else: ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_manual_rating_president">
+                    <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+            <li style="padding: 0.5rem 0; border-top: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 1rem;">
+                <span style="font-size: 0.9rem;"><?= $lang === 'it' ? 'Conferma del responsabile del circuito' : 'Circuit manager confirmation' ?></span>
+                <?php if ($mr['circuit_confirmed']): ?>
+                <span style="color: var(--success); font-size: 0.85rem;">&#10003;</span>
+                <?php else: ?>
+                <form method="POST">
+                    <input type="hidden" name="action" value="resend_manual_rating_circuit">
+                    <input type="hidden" name="request_id" value="<?= $mr['id'] ?>">
+                    <button type="submit" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem; white-space: nowrap;">
+                        <?= $lang === 'it' ? 'manda sollecito' : 'send reminder' ?>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </li>
+        </ul>
     </div>
     <?php endforeach; ?>
     <?php endif; ?>
@@ -510,7 +507,7 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
             <?= $lang === 'it' ? 'Rating e Partite' : 'Ratings & Matches' ?>
         </a>
         <a href="?page=player&id=<?= $playerId ?>&tab=management" class="tab <?= $tab === 'management' ? 'active' : '' ?>">
-            &#9881; <?= $lang === 'it' ? 'Gestione' : 'Management' ?>
+            <?= $lang === 'it' ? 'Gestione' : 'Management' ?>
         </a>
     </div>
 
