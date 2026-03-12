@@ -4,6 +4,25 @@
  */
 
 /**
+ * Store a flash message in session (PRG pattern)
+ */
+function setFlash(string $type, string $message): void {
+    $_SESSION['flash_type']    = $type;
+    $_SESSION['flash_message'] = $message;
+}
+
+/**
+ * Read and clear flash message from session
+ * Returns ['type' => ..., 'message' => ...] or null
+ */
+function getFlash(): ?array {
+    if (!isset($_SESSION['flash_message'])) return null;
+    $flash = ['type' => $_SESSION['flash_type'], 'message' => $_SESSION['flash_message']];
+    unset($_SESSION['flash_type'], $_SESSION['flash_message']);
+    return $flash;
+}
+
+/**
  * Normalize name for similarity comparison
  * - Lowercase
  * - Remove accents

@@ -14,6 +14,8 @@ require_once SRC_PATH . '/config.php';
 require_once SRC_PATH . '/lang.php';
 require_once SRC_PATH . '/db.php';
 
+session_start();
+
 // Initialize language before any output (sets cookie if needed)
 initLang();
 $lang = getCurrentLang();

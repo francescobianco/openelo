@@ -9,8 +9,9 @@ require_once SRC_PATH . '/utils.php';
 $db = Database::get();
 
 $playerId = (int)($_GET['id'] ?? 0);
-$message = null;
-$messageType = null;
+$flash = getFlash();
+$message = $flash['message'] ?? null;
+$messageType = $flash['type'] ?? null;
 
 // Handle resend requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -36,8 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $token = createConfirmation('player_self', $playerId, $playerData['email']);
             sendPlayerSelfConfirmation($playerData['email'], $playerName, $playerData['club_name'], $token);
             logReminder();
-            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     } elseif ($_POST['action'] === 'resend_president') {
         $stmt = $db->prepare("SELECT p.*, c.name as club_name, c.president_email
@@ -52,8 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $token = createConfirmation('player_president', $playerId, $playerData['president_email']);
             sendPlayerPresidentConfirmation($playerData['president_email'], $playerName, $playerData['club_name'], $token);
             logReminder();
-            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     } elseif ($_POST['action'] === 'sono_io') {
         $stmt = $db->prepare("SELECT p.*, c.name as club_name FROM players p JOIN clubs c ON c.id = p.club_id WHERE p.id = ?");
@@ -62,10 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($playerData && $playerData['confirmed']) {
             $token = createConfirmation('club_access_player', $playerId, $playerData['email']);
             sendClubAccessConfirmation($playerData['email'], $playerData['club_name'], 'player', $token);
-            $message = $lang === 'it'
+            setFlash('success', $lang === 'it'
                 ? 'Email inviata! Controlla la tua casella e clicca il link per confermare la tua identità.'
-                : 'Email sent! Check your inbox and click the link to confirm your identity.';
-            $messageType = 'success';
+                : 'Email sent! Check your inbox and click the link to confirm your identity.');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     }
 }
@@ -155,8 +159,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $tokenPresident = createConfirmation('transfer_president', $transferId, $newClub['president_email']);
         sendTransferPresidentConfirmation($newClub['president_email'], $playerName, $newClub['name'], $tokenPresident);
 
-        $message = __('player_transfer_requested');
-        $messageType = 'success';
+        setFlash('success', __('player_transfer_requested'));
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
 
     } catch (Exception $e) {
         $message = $e->getMessage();
@@ -213,10 +218,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $tokenCircuit = createConfirmation('manual_rating_circuit', $requestId, $circuit['owner_email']);
         sendManualRatingConfirmation($circuit['owner_email'], 'circuit', $playerName, $circuit['name'], $requestedRating, $requestedCategory, $tokenCircuit);
 
-        $message = $lang === 'it'
+        setFlash('success', $lang === 'it'
             ? 'Richiesta inviata! Tutti i responsabili riceveranno un\'email di conferma.'
-            : 'Request sent! All responsible parties will receive a confirmation email.';
-        $messageType = 'success';
+            : 'Request sent! All responsible parties will receive a confirmation email.');
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
 
     } catch (Exception $e) {
         $message = $e->getMessage();
@@ -319,8 +325,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $token = createConfirmation('transfer_player', $pendingTransfer['id'], $player['email']);
         sendTransferPlayerConfirmation($player['email'], $playerName, $pendingTransfer['to_club_name'], $token);
         logReminder();
-        $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-        $messageType = 'success';
+        setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
     } elseif ($_POST['action'] === 'resend_transfer_president' && $pendingTransfer && !$pendingTransfer['president_confirmed']) {
         $playerName = $player['first_name'] . ' ' . $player['last_name'];
         $stmt = $db->prepare("SELECT president_email FROM clubs WHERE id = ?");
@@ -329,8 +336,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $token = createConfirmation('transfer_president', $pendingTransfer['id'], $toClub['president_email']);
         sendTransferPresidentConfirmation($toClub['president_email'], $playerName, $pendingTransfer['to_club_name'], $token);
         logReminder();
-        $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-        $messageType = 'success';
+        setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
     } elseif (str_starts_with($_POST['action'], 'resend_manual_rating_') && isset($_POST['request_id'])) {
         $reqId = (int)$_POST['request_id'];
         $stmt = $db->prepare("SELECT mr.*, ci.name as circuit_name, ci.owner_email as circuit_owner_email FROM manual_rating_requests mr JOIN circuits ci ON ci.id = mr.circuit_id WHERE mr.id = ? AND mr.player_id = ? AND mr.applied = 0");
@@ -343,20 +351,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $token = createConfirmation('manual_rating_player', $reqId, $player['email']);
                 sendManualRatingConfirmation($player['email'], 'player', $playerName, $mrReq['circuit_name'], $mrReq['requested_rating'], $mrReq['requested_category'], $token);
                 logReminder();
-                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-                $messageType = 'success';
+                setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+                header('Location: ' . $_SERVER['REQUEST_URI']);
+                exit;
             } elseif ($role === 'president' && !$mrReq['president_confirmed']) {
                 $token = createConfirmation('manual_rating_president', $reqId, $player['president_email']);
                 sendManualRatingConfirmation($player['president_email'], 'president', $playerName, $mrReq['circuit_name'], $mrReq['requested_rating'], $mrReq['requested_category'], $token);
                 logReminder();
-                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-                $messageType = 'success';
+                setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+                header('Location: ' . $_SERVER['REQUEST_URI']);
+                exit;
             } elseif ($role === 'circuit' && !$mrReq['circuit_confirmed']) {
                 $token = createConfirmation('manual_rating_circuit', $reqId, $mrReq['circuit_owner_email']);
                 sendManualRatingConfirmation($mrReq['circuit_owner_email'], 'circuit', $playerName, $mrReq['circuit_name'], $mrReq['requested_rating'], $mrReq['requested_category'], $token);
                 logReminder();
-                $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-                $messageType = 'success';
+                setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+                header('Location: ' . $_SERVER['REQUEST_URI']);
+                exit;
             }
         }
     }

@@ -9,8 +9,9 @@ require_once SRC_PATH . '/utils.php';
 $db = Database::get();
 
 $clubId = (int)($_GET['id'] ?? 0);
-$message = null;
-$messageType = null;
+$flash = getFlash();
+$message = $flash['message'] ?? null;
+$messageType = $flash['type'] ?? null;
 
 // Load club first (needed by POST handlers too)
 $stmt = $db->prepare("
@@ -49,8 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $token = createConfirmation('club_president', $data['membership_id'], $data['president_email']);
             sendClubPresidentConfirmation($data['president_email'], $data['name'], $data['circuit_name'], $token);
             logReminder();
-            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     } elseif ($_POST['action'] === 'resend_club_circuit' && isset($_POST['membership_id'])) {
         $membershipId = (int)$_POST['membership_id'];
@@ -65,8 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $token = createConfirmation('membership_club', $membershipId, $data['president_email']);
             sendClubPresidentConfirmation($data['president_email'], $data['club_name'], $data['circuit_name'], $token);
             logReminder();
-            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     } elseif ($_POST['action'] === 'resend_circuit' && isset($_POST['membership_id'])) {
         $membershipId = (int)$_POST['membership_id'];
@@ -81,25 +84,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $token = createConfirmation($data['is_primary'] ? 'club_circuit' : 'membership_circuit', $membershipId, $data['owner_email']);
             sendClubCircuitConfirmation($data['owner_email'], $data['club_name'], $data['circuit_name'], $token);
             logReminder();
-            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     } elseif ($_POST['action'] === 'request_protected_toggle') {
         // Send email to president asking to confirm enabling/disabling protected mode
         $desiredMode = $club['protected_mode'] ? 'disable' : 'enable';
         $token = createConfirmation('protected_mode_toggle', $clubId, $club['president_email'], $desiredMode);
         sendProtectedModeConfirmation($club['president_email'], $club['name'], $desiredMode, $token);
-        $message = $lang === 'it'
+        setFlash('success', $lang === 'it'
             ? 'Email inviata al presidente del circolo per confermare il cambio di modalità.'
-            : 'Email sent to the club president to confirm the mode change.';
-        $messageType = 'success';
+            : 'Email sent to the club president to confirm the mode change.');
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
     } elseif ($_POST['action'] === 'sono_il_presidente') {
         $token = createConfirmation('club_access_president', $clubId, $club['president_email']);
         sendClubAccessConfirmation($club['president_email'], $club['name'], 'president', $token);
-        $message = $lang === 'it'
+        setFlash('success', $lang === 'it'
             ? 'Email inviata al presidente! Controlla la casella e clicca il link per confermare.'
-            : 'Email sent to the president! Check the inbox and click the link to confirm.';
-        $messageType = 'success';
+            : 'Email sent to the president! Check the inbox and click the link to confirm.');
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
     } elseif ($_POST['action'] === 'request_club_update') {
         try {
             $newName  = trim($_POST['name'] ?? '');
@@ -126,10 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $token = createConfirmation('club_update', $requestId, $club['president_email']);
             sendClubUpdateConfirmation($club['president_email'], $club['name'], $newName, $location, $website, $token);
 
-            $message = $lang === 'it'
+            setFlash('success', $lang === 'it'
                 ? 'Richiesta inviata! Il presidente riceverà un\'email per approvare le modifiche.'
-                : 'Request sent! The president will receive an email to approve the changes.';
-            $messageType = 'success';
+                : 'Request sent! The president will receive an email to approve the changes.');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         } catch (Exception $e) {
             $message = $e->getMessage();
             $messageType = 'error';
@@ -158,8 +165,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $tokenCircuit = createConfirmation('membership_circuit', $membershipId, $circuit['owner_email']);
             sendClubCircuitConfirmation($circuit['owner_email'], $club['name'], $circuit['name'], $tokenCircuit);
 
-            $message = __('club_request_sent');
-            $messageType = 'success';
+            setFlash('success', __('club_request_sent'));
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         } catch (Exception $e) {
             $message = $e->getMessage();
             $messageType = 'error';

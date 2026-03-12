@@ -4,13 +4,15 @@
  */
 
 require_once SRC_PATH . '/mail.php';
+require_once SRC_PATH . '/utils.php';
 
 $db = Database::get();
 
 $requestId = (int)($_GET['id'] ?? 0);
 $action = $_GET['action'] ?? 'view';
-$message = null;
-$messageType = null;
+$flash = getFlash();
+$message = $flash['message'] ?? null;
+$messageType = $flash['type'] ?? null;
 
 // Handle deletion request creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_deletion'])) {
@@ -106,10 +108,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_deletion'])) 
             sendDeletionRequest($recipient, $entityType, $entityName, $requesterEmail, $reason, $newRequestId, $deletionToken);
         }
 
-        $message = $lang === 'it'
+        setFlash('success', $lang === 'it'
             ? 'Richiesta di eliminazione inviata. Riceverai una notifica quando verrà processata.'
-            : 'Deletion request sent. You will be notified when it is processed.';
-        $messageType = 'success';
+            : 'Deletion request sent. You will be notified when it is processed.');
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
 
     } catch (Exception $e) {
         $message = $e->getMessage();

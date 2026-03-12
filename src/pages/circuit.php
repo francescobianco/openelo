@@ -9,8 +9,9 @@ require_once SRC_PATH . '/utils.php';
 $db = Database::get();
 
 $circuitId = (int)($_GET['id'] ?? 0);
-$message = null;
-$messageType = null;
+$flash = getFlash();
+$message = $flash['message'] ?? null;
+$messageType = $flash['type'] ?? null;
 
 // Handle contact form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'contact_manager') {
@@ -51,8 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 mail($circuitData['owner_email'], $subject, $body, implode("\r\n", $headers));
             }
 
-            $message = $lang === 'it' ? 'Messaggio inviato!' : 'Message sent!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Messaggio inviato!' : 'Message sent!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     }
 }
@@ -98,8 +100,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 mail($circuitData['owner_email'], $subject, $body, implode("\r\n", $headers));
             }
 
-            $message = $lang === 'it' ? 'Richiesta inviata!' : 'Request sent!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Richiesta inviata!' : 'Request sent!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     }
 }
@@ -131,8 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $token = createConfirmation('circuit_formula_change', $requestId, $circuitData['owner_email']);
             sendCircuitFormulaConfirmation($circuitData['owner_email'], $circuitData['name'], $formulaLabels[$formula], $token);
 
-            $message = $lang === 'it' ? 'Richiesta inviata! Il responsabile riceverà una email di conferma.' : 'Request sent! The manager will receive a confirmation email.';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Richiesta inviata! Il responsabile riceverà una email di conferma.' : 'Request sent! The manager will receive a confirmation email.');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     }
 }
@@ -156,8 +160,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $token = createConfirmation('circuit', $circuitId, $circuitData['owner_email']);
             sendCircuitConfirmation($circuitData['owner_email'], $circuitData['name'], $token);
             logReminder();
-            $message = $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!';
-            $messageType = 'success';
+            setFlash('success', $lang === 'it' ? 'Email di conferma inviata nuovamente!' : 'Confirmation email sent again!');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
         }
     }
 }
