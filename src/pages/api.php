@@ -18,10 +18,15 @@ switch ($action) {
 
         $db = Database::get();
 
+        $stmtCircuit = $db->prepare("SELECT formula FROM circuits WHERE id = ?");
+        $stmtCircuit->execute([$circuitId]);
+        $circuitFormula = $stmtCircuit->fetchColumn() ?: 'classic_elo';
+
         // Get players in this circuit via club membership
         $stmt = $db->prepare("
             SELECT p.id, p.first_name, p.last_name, c.name as club_name,
-                (SELECT r.rating FROM ratings r WHERE r.player_id = p.id AND r.circuit_id = ?) as rating
+                (SELECT r.rating FROM ratings r WHERE r.player_id = p.id AND r.circuit_id = ?) as rating,
+                (SELECT r.ladder_position FROM ratings r WHERE r.player_id = p.id AND r.circuit_id = ?) as ladder_position
             FROM players p
             JOIN clubs c ON c.id = p.club_id
             JOIN circuit_clubs cc ON cc.club_id = p.club_id
@@ -29,10 +34,10 @@ switch ($action) {
             AND p.confirmed = 1 AND p.deleted_at IS NULL AND c.deleted_at IS NULL
             ORDER BY p.last_name, p.first_name
         ");
-        $stmt->execute([$circuitId, $circuitId]);
+        $stmt->execute([$circuitId, $circuitId, $circuitId]);
         $players = $stmt->fetchAll();
 
-        echo json_encode(['players' => $players]);
+        echo json_encode(['players' => $players, 'formula' => $circuitFormula]);
         exit;
 
     case 'circuit_data':
@@ -98,6 +103,114 @@ switch ($action) {
         $circuits = $stmt->fetchAll();
 
         echo json_encode(['circuits' => $circuits]);
+        exit;
+
+    case 'demo_seed':
+        // Authenticate via X-App-Secret header
+        $secret = APP_SECRET;
+        if (empty($secret)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Demo seed is disabled (APP_SECRET not configured)']);
+            exit;
+        }
+
+        $incoming = $_SERVER['HTTP_X_APP_SECRET'] ?? '';
+        if (!hash_equals($secret, $incoming)) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Invalid or missing X-App-Secret header']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'POST required']);
+            exit;
+        }
+
+        $raw = file_get_contents('php://input');
+        $seed = json_decode($raw, true);
+        if (!$seed || !isset($seed['circuit'], $seed['clubs'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON: missing circuit or clubs']);
+            exit;
+        }
+
+        $db = Database::get();
+
+        try {
+            $db->beginTransaction();
+
+            // Create circuit (skip if name already exists)
+            $stmtFind = $db->prepare("SELECT id FROM circuits WHERE name = ?");
+            $stmtFind->execute([$seed['circuit']['name']]);
+            $circuitId = $stmtFind->fetchColumn();
+
+            if (!$circuitId) {
+                $stmt = $db->prepare("INSERT INTO circuits (name, owner_email, confirmed) VALUES (?, ?, 1)");
+                $stmt->execute([$seed['circuit']['name'], $seed['circuit']['owner_email']]);
+                $circuitId = (int)$db->lastInsertId();
+            }
+
+            $stats = ['circuit_id' => $circuitId, 'clubs' => [], 'players_created' => 0, 'players_skipped' => 0];
+
+            foreach ($seed['clubs'] as $clubData) {
+                // Create club (skip if name already exists)
+                $stmtFind = $db->prepare("SELECT id FROM clubs WHERE name = ?");
+                $stmtFind->execute([$clubData['name']]);
+                $clubId = $stmtFind->fetchColumn();
+
+                if (!$clubId) {
+                    $stmt = $db->prepare("INSERT INTO clubs (name, president_email, confirmed) VALUES (?, ?, 1)");
+                    $stmt->execute([$clubData['name'], $clubData['president_email']]);
+                    $clubId = (int)$db->lastInsertId();
+                }
+
+                // Join club to circuit (idempotent)
+                $stmtCheck = $db->prepare("SELECT id FROM circuit_clubs WHERE circuit_id = ? AND club_id = ?");
+                $stmtCheck->execute([$circuitId, $clubId]);
+                if (!$stmtCheck->fetchColumn()) {
+                    $stmt = $db->prepare("INSERT INTO circuit_clubs (circuit_id, club_id, club_confirmed, circuit_confirmed) VALUES (?, ?, 1, 1)");
+                    $stmt->execute([$circuitId, $clubId]);
+                }
+
+                $clubStats = ['club_id' => $clubId, 'name' => $clubData['name'], 'players' => []];
+
+                foreach ($clubData['players'] as $playerData) {
+                    // Skip if email already exists
+                    $stmtFind = $db->prepare("SELECT id FROM players WHERE email = ?");
+                    $stmtFind->execute([$playerData['email']]);
+                    $existingId = $stmtFind->fetchColumn();
+
+                    if ($existingId) {
+                        $stats['players_skipped']++;
+                        $clubStats['players'][] = ['id' => $existingId, 'status' => 'skipped'];
+                        continue;
+                    }
+
+                    $stmt = $db->prepare("INSERT INTO players (first_name, last_name, email, club_id, category, confirmed) VALUES (?, ?, ?, ?, ?, 1)");
+                    $stmt->execute([
+                        $playerData['first_name'],
+                        $playerData['last_name'],
+                        $playerData['email'],
+                        $clubId,
+                        $playerData['category'] ?? 'NC'
+                    ]);
+                    $playerId = (int)$db->lastInsertId();
+                    $stats['players_created']++;
+                    $clubStats['players'][] = ['id' => $playerId, 'status' => 'created'];
+                }
+
+                $stats['clubs'][] = $clubStats;
+            }
+
+            $db->commit();
+            echo json_encode(['ok' => true, 'stats' => $stats]);
+
+        } catch (Exception $e) {
+            $db->rollBack();
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
         exit;
 
     default:

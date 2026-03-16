@@ -41,6 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception(__('error_not_found'));
         }
 
+        $circuitFormula = $circuitData['formula'] ?? 'classic_elo';
+
+        // Ladder 3up Scorrimento: no draws allowed
+        if ($circuitFormula === 'ladder_3up_scorrimento' && $result === '0.5-0.5') {
+            throw new Exception(__('error_draw_not_allowed'));
+        }
+
         // Get players with their clubs
         $stmt = $db->prepare("
             SELECT p.*, c.name as club_name, c.president_email
@@ -71,8 +78,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $approverRole = 'circuit_manager';
         }
 
+        // Ladder 3up Scorrimento: validate position gap and assign positions
+        if ($circuitFormula === 'ladder_3up_scorrimento') {
+            $whitePos = getOrCreateLadderPosition($whiteId, $circuitId);
+            $blackPos = getOrCreateLadderPosition($blackId, $circuitId);
+            if (abs($whitePos - $blackPos) > 3) {
+                throw new Exception(__('error_ladder_gap'));
+            }
+        }
+
         // Calculate rating changes at match creation time (frozen values)
-        $ratingChanges = calculateRatingChanges($whiteId, $blackId, $circuitId, $result);
+        // For ladder circuits no ELO changes apply; store zeros
+        if ($circuitFormula === 'ladder_3up_scorrimento') {
+            $ratingChanges = [
+                'white_rating' => 0,
+                'black_rating' => 0,
+                'white_change' => 0,
+                'black_change' => 0,
+            ];
+        } else {
+            $ratingChanges = calculateRatingChanges($whiteId, $blackId, $circuitId, $result);
+        }
 
         // Create match with frozen ratings and changes
         $stmt = $db->prepare("
@@ -180,7 +206,7 @@ $selectedCircuit = (int)($_GET['circuit'] ?? 0);
                     <option value="">-- <?= __('form_select') ?> --</option>
                     <option value="1-0"><?= __('result_white_wins') ?></option>
                     <option value="0-1"><?= __('result_black_wins') ?></option>
-                    <option value="0.5-0.5"><?= __('result_draw') ?></option>
+                    <option value="0.5-0.5" id="result-draw"><?= __('result_draw') ?></option>
                 </select>
             </div>
 
@@ -190,26 +216,48 @@ $selectedCircuit = (int)($_GET['circuit'] ?? 0);
 </div>
 
 <script>
+let circuitFormula = '';
+
 function loadCircuitPlayers() {
     const circuitId = document.getElementById('circuit').value;
     const whiteSelect = document.getElementById('white');
     const blackSelect = document.getElementById('black');
+    const drawOption = document.getElementById('result-draw');
 
     if (!circuitId) {
         whiteSelect.disabled = true;
         blackSelect.disabled = true;
         whiteSelect.innerHTML = '<option value="">-- <?= __('form_player') ?> --</option>';
         blackSelect.innerHTML = '<option value="">-- <?= __('form_player') ?> --</option>';
+        if (drawOption) drawOption.disabled = false;
         return;
     }
 
     fetch('?page=api&action=circuit_players&circuit_id=' + circuitId)
         .then(r => r.json())
         .then(data => {
+            circuitFormula = data.formula || '';
+            const isLadder = circuitFormula === 'ladder_3up_scorrimento';
+
+            // Hide/show draw option
+            if (drawOption) {
+                drawOption.disabled = isLadder;
+                if (isLadder && document.getElementById('result').value === '0.5-0.5') {
+                    document.getElementById('result').value = '';
+                }
+            }
+
             let playerOptions = '<option value="">-- <?= __('form_player') ?> --</option>';
             data.players.forEach(player => {
-                const rating = player.rating !== null ? player.rating : <?= ELO_START ?>;
-                playerOptions += `<option value="${player.id}">${player.first_name} ${player.last_name} (${player.club_name}) - ${rating}</option>`;
+                let label;
+                if (isLadder) {
+                    const pos = player.ladder_position !== null ? ('#' + player.ladder_position) : '<?= $lang === 'it' ? 'non classificato' : 'unranked' ?>';
+                    label = `${player.first_name} ${player.last_name} (${player.club_name}) - ${pos}`;
+                } else {
+                    const rating = player.rating !== null ? player.rating : <?= ELO_START ?>;
+                    label = `${player.first_name} ${player.last_name} (${player.club_name}) - ${rating}`;
+                }
+                playerOptions += `<option value="${player.id}" data-ladder-pos="${player.ladder_position ?? ''}">${label}</option>`;
             });
             whiteSelect.innerHTML = playerOptions;
             blackSelect.innerHTML = playerOptions;

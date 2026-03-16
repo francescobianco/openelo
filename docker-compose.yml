@@ -9,6 +9,8 @@ services:
       - ./public:/var/www/html/public
     environment:
       - BASE_URL=${BASE_URL:-http://localhost:8080}
+      - APP_ENV=${APP_ENV:-}
+      - APP_SECRET=${APP_SECRET:-secret}
       - DB_PATH=/var/www/html/data/openelo.db
       - DEFAULT_LANG=${DEFAULT_LANG:-en}
       - SMTP_HOST=${SMTP_HOST:-smtp.example.com}

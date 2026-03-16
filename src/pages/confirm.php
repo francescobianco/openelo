@@ -255,8 +255,16 @@ if (empty($token)) {
                     $match = $stmt->fetch();
 
                     if ($match['white_confirmed'] && $match['black_confirmed'] && $match['president_confirmed']) {
-                        // All confirmed - apply rating change
-                        applyRatingChange($matchId);
+                        // All confirmed - apply rating/position change based on circuit formula
+                        $stmtCircuit = $db->prepare("SELECT formula FROM circuits WHERE id = ?");
+                        $stmtCircuit->execute([$match['circuit_id']]);
+                        $circuitFormula = $stmtCircuit->fetchColumn() ?: 'classic_elo';
+
+                        if ($circuitFormula === 'ladder_3up_scorrimento') {
+                            applyLadderPositionChange($matchId);
+                        } else {
+                            applyRatingChange($matchId);
+                        }
                         $message = $lang === 'it'
                             ? 'Confermato! La partita è stata registrata e i rating aggiornati.'
                             : 'Confirmed! Match has been recorded and ratings updated.';

@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle formula change request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_formula_change') {
-    $allowedFormulas = ['classic_elo', 'ladder_no_draw', 'knockout_no_draw'];
+    $allowedFormulas = ['classic_elo', 'ladder_no_draw', 'knockout_no_draw', 'ladder_3up_scorrimento'];
     $formula = trim($_POST['formula'] ?? '');
 
     if (!in_array($formula, $allowedFormulas)) {
@@ -122,9 +122,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         if ($circuitData) {
             $formulaLabels = [
-                'classic_elo'      => 'Lista ELO Classica',
-                'ladder_no_draw'   => 'Ladder No Draw',
-                'knockout_no_draw' => 'Knockout No Draw',
+                'classic_elo'            => __('formula_classic_elo'),
+                'ladder_no_draw'         => __('formula_ladder_no_draw'),
+                'knockout_no_draw'       => __('formula_knockout_no_draw'),
+                'ladder_3up_scorrimento' => __('formula_ladder_3up_scorrimento'),
             ];
 
             $stmt = $db->prepare("INSERT INTO circuit_formula_requests (circuit_id, formula) VALUES (?, ?)");
@@ -203,14 +204,28 @@ $stmt->execute([$circuitId]);
 $clubs = $stmt->fetchAll();
 
 // Get rankings
-$stmt = $db->prepare("
-    SELECT p.*, r.rating, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected
-    FROM ratings r
-    JOIN players p ON p.id = r.player_id
-    JOIN clubs cl ON cl.id = p.club_id
-    WHERE r.circuit_id = ? AND p.confirmed = 1
-    ORDER BY r.rating DESC
-");
+$circuitFormula = $circuit['formula'] ?? 'classic_elo';
+$isLadderScorrimento = ($circuitFormula === 'ladder_3up_scorrimento');
+
+if ($isLadderScorrimento) {
+    $stmt = $db->prepare("
+        SELECT p.*, r.rating, r.ladder_position, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected
+        FROM ratings r
+        JOIN players p ON p.id = r.player_id
+        JOIN clubs cl ON cl.id = p.club_id
+        WHERE r.circuit_id = ? AND p.confirmed = 1 AND r.ladder_position IS NOT NULL
+        ORDER BY r.ladder_position ASC
+    ");
+} else {
+    $stmt = $db->prepare("
+        SELECT p.*, r.rating, NULL as ladder_position, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected
+        FROM ratings r
+        JOIN players p ON p.id = r.player_id
+        JOIN clubs cl ON cl.id = p.club_id
+        WHERE r.circuit_id = ? AND p.confirmed = 1
+        ORDER BY r.rating DESC
+    ");
+}
 $stmt->execute([$circuitId]);
 $rankings = $stmt->fetchAll();
 
@@ -350,19 +365,26 @@ $tab = $_GET['tab'] ?? 'rankings';
                         <th><?= __('rankings_player') ?></th>
                         <th><?= __('rankings_club') ?></th>
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Categoria' : 'Category' ?></th>
+                        <?php if (!$isLadderScorrimento): ?>
                         <th style="text-align: center;"><?= __('rankings_rating') ?></th>
+                        <?php endif; ?>
                         <th style="text-align: center;"><?= __('rankings_games') ?></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($rankings as $i => $player): ?>
+                    <?php foreach ($rankings as $i => $player):
+                        $displayPos = $isLadderScorrimento ? (int)$player['ladder_position'] : ($i + 1);
+                        $posClass = $displayPos <= 3 ? 'rank-' . $displayPos : '';
+                    ?>
                     <tr>
-                        <td class="rank <?= $i < 3 ? 'rank-' . ($i + 1) : '' ?>" style="padding-top: 0; padding-bottom: 0; line-height: 1;"><strong style="font-size: 1.8em; line-height: 1;"><?= $i + 1 ?>°</strong></td>
+                        <td class="rank <?= $posClass ?>" style="padding-top: 0; padding-bottom: 0; line-height: 1;"><strong style="font-size: 1.8em; line-height: 1;"><?= $displayPos ?>°</strong></td>
                         <?php $canViewPlayer = !$player['club_protected'] || hasClubAccess((int)$player['club_id']); ?>
                         <td><?php if ($canViewPlayer): ?><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a><?php else: ?><a href="?page=player&id=<?= $player['id'] ?>" style="color: var(--text-secondary);"><?= maskName($player['first_name'] . ' ' . $player['last_name']) ?></a><?php endif; ?></td>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
                         <td style="text-align: center;"><strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></td>
+                        <?php if (!$isLadderScorrimento): ?>
                         <td class="rating" style="text-align: center;"><?= $player['rating'] ?></td>
+                        <?php endif; ?>
                         <td style="text-align: center;"><?= $player['games_played'] ?></td>
                     </tr>
                     <?php endforeach; ?>
@@ -530,9 +552,10 @@ $tab = $_GET['tab'] ?? 'rankings';
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
                 <?php
                 $formulaLabels = [
-                    'classic_elo'      => 'Lista ELO Classica',
-                    'ladder_no_draw'   => 'Ladder No Draw',
-                    'knockout_no_draw' => 'Knockout No Draw',
+                    'classic_elo'            => __('formula_classic_elo'),
+                    'ladder_no_draw'         => __('formula_ladder_no_draw'),
+                    'knockout_no_draw'       => __('formula_knockout_no_draw'),
+                    'ladder_3up_scorrimento' => __('formula_ladder_3up_scorrimento'),
                 ];
                 $currentFormula = $circuit['formula'] ?? 'classic_elo';
                 ?>

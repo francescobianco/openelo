@@ -1,0 +1,64 @@
+{
+  "circuit": {
+    "name": "Demo Circuit",
+    "owner_email": "manager@demo.openelo.org"
+  },
+  "clubs": [
+    {
+      "name": "Circolo Alfa",
+      "president_email": "presidente@alfa.demo",
+      "players": [
+        { "first_name": "Luca",     "last_name": "Rossi",    "email": "luca.rossi@alfa.demo",    "category": "NC" },
+        { "first_name": "Marco",    "last_name": "Bianchi",  "email": "marco.bianchi@alfa.demo",  "category": "NC" },
+        { "first_name": "Sara",     "last_name": "Ferrari",  "email": "sara.ferrari@alfa.demo",   "category": "NC" },
+        { "first_name": "Elena",    "last_name": "Ricci",    "email": "elena.ricci@alfa.demo",    "category": "NC" },
+        { "first_name": "Giorgio",  "last_name": "Conti",    "email": "giorgio.conti@alfa.demo",  "category": "NC" },
+        { "first_name": "Matteo",   "last_name": "Esposito", "email": "matteo.esposito@alfa.demo","category": "NC" },
+        { "first_name": "Chiara",   "last_name": "Romano",   "email": "chiara.romano@alfa.demo",  "category": "NC" },
+        { "first_name": "Andrea",   "last_name": "Colombo",  "email": "andrea.colombo@alfa.demo", "category": "NC" }
+      ]
+    },
+    {
+      "name": "Circolo Beta",
+      "president_email": "presidente@beta.demo",
+      "players": [
+        { "first_name": "Paolo",    "last_name": "Russo",    "email": "paolo.russo@beta.demo",    "category": "NC" },
+        { "first_name": "Giulia",   "last_name": "Marino",   "email": "giulia.marino@beta.demo",  "category": "NC" },
+        { "first_name": "Davide",   "last_name": "Greco",    "email": "davide.greco@beta.demo",   "category": "NC" },
+        { "first_name": "Alessia",  "last_name": "Bruno",    "email": "alessia.bruno@beta.demo",  "category": "NC" },
+        { "first_name": "Simone",   "last_name": "Gallo",    "email": "simone.gallo@beta.demo",   "category": "NC" },
+        { "first_name": "Federica", "last_name": "Coppola",  "email": "federica.coppola@beta.demo","category": "NC" },
+        { "first_name": "Roberto",  "last_name": "De Luca",  "email": "roberto.deluca@beta.demo", "category": "NC" },
+        { "first_name": "Valentina","last_name": "Rizzo",    "email": "valentina.rizzo@beta.demo","category": "NC" }
+      ]
+    },
+    {
+      "name": "Circolo Gamma",
+      "president_email": "presidente@gamma.demo",
+      "players": [
+        { "first_name": "Stefano",  "last_name": "Lombardi", "email": "stefano.lombardi@gamma.demo","category": "NC" },
+        { "first_name": "Monica",   "last_name": "Moretti",  "email": "monica.moretti@gamma.demo", "category": "NC" },
+        { "first_name": "Daniele",  "last_name": "Fontana",  "email": "daniele.fontana@gamma.demo","category": "NC" },
+        { "first_name": "Laura",    "last_name": "Caruso",   "email": "laura.caruso@gamma.demo",  "category": "NC" },
+        { "first_name": "Antonio",  "last_name": "Marini",   "email": "antonio.marini@gamma.demo","category": "NC" },
+        { "first_name": "Francesca","last_name": "Costa",    "email": "francesca.costa@gamma.demo","category": "NC" },
+        { "first_name": "Luca",     "last_name": "Gentile",  "email": "luca.gentile@gamma.demo",  "category": "NC" },
+        { "first_name": "Irene",    "last_name": "Pellegrini","email": "irene.pellegrini@gamma.demo","category": "NC" }
+      ]
+    },
+    {
+      "name": "Circolo Delta",
+      "president_email": "presidente@delta.demo",
+      "players": [
+        { "first_name": "Massimo",  "last_name": "Palumbo",  "email": "massimo.palumbo@delta.demo","category": "NC" },
+        { "first_name": "Cristina", "last_name": "Mancini",  "email": "cristina.mancini@delta.demo","category": "NC" },
+        { "first_name": "Fabio",    "last_name": "Vitale",   "email": "fabio.vitale@delta.demo",  "category": "NC" },
+        { "first_name": "Silvia",   "last_name": "Ferrara",  "email": "silvia.ferrara@delta.demo","category": "NC" },
+        { "first_name": "Gianluca", "last_name": "Ferrero",  "email": "gianluca.ferrero@delta.demo","category": "NC" },
+        { "first_name": "Paola",    "last_name": "Testa",    "email": "paola.testa@delta.demo",   "category": "NC" },
+        { "first_name": "Marco",    "last_name": "Santoro",  "email": "marco.santoro@delta.demo", "category": "NC" },
+        { "first_name": "Roberta",  "last_name": "Grassi",   "email": "roberta.grassi@delta.demo","category": "NC" }
+      ]
+    }
+  ]
+}

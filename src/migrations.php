@@ -23,4 +23,5 @@ return [
     '20240101000009_add_club_access_tokens',
     '20240101000010_add_club_info',
     '20240101000011_add_circuit_formula',
+    '20240101000012_add_ladder_position',
 ];

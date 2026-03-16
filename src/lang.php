@@ -118,6 +118,12 @@ $translations = [
         'status_pending_both' => 'Waiting for both confirmations',
         'status_active' => 'Active',
 
+        // Formulas
+        'formula_classic_elo'            => 'Classic ELO List',
+        'formula_ladder_no_draw'         => 'Ladder No Draw',
+        'formula_knockout_no_draw'       => 'Knockout No Draw',
+        'formula_ladder_3up_scorrimento' => 'Ladder 3up Sliding',
+
         // Errors
         'error_required' => 'This field is required.',
         'error_email' => 'Invalid email address.',
@@ -127,6 +133,8 @@ $translations = [
         'error_invalid_result' => 'Invalid result.',
         'error_email_exists' => 'Email already registered.',
         'error_already_member' => 'Already member of this circuit.',
+        'error_draw_not_allowed' => 'Draws are not allowed in this circuit.',
+        'error_ladder_gap' => 'You can only challenge players within 3 positions above you.',
 
         // Footer
         'footer_text' => 'is open source software.',
@@ -247,6 +255,12 @@ $translations = [
         'status_pending_both' => 'In attesa di entrambe le conferme',
         'status_active' => 'Attivo',
 
+        // Formulas
+        'formula_classic_elo'            => 'Lista ELO Classica',
+        'formula_ladder_no_draw'         => 'Ladder No Draw',
+        'formula_knockout_no_draw'       => 'Knockout No Draw',
+        'formula_ladder_3up_scorrimento' => 'Ladder 3up Scorrimento',
+
         // Errors
         'error_required' => 'Campo obbligatorio.',
         'error_email' => 'Indirizzo email non valido.',
@@ -256,6 +270,8 @@ $translations = [
         'error_invalid_result' => 'Risultato non valido.',
         'error_email_exists' => 'Email già registrata.',
         'error_already_member' => 'Già membro di questo circuito.',
+        'error_draw_not_allowed' => 'I pareggi non sono consentiti in questo circuito.',
+        'error_ladder_gap' => 'Puoi sfidare solo giocatori entro 3 posizioni sopra di te.',
 
         // Footer
         'footer_text' => 'è un software open source.',

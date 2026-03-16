@@ -15,6 +15,28 @@ start:
 migrate:
 	@docker compose exec openelo php -f migrate.php
 
+# Push a demo seed file to a running instance.
+# Usage:
+#   make demo-seed file=demo/simple.json                        # local (localhost:8080)
+#   make demo-seed file=demo/simple.json url=https://demo.openelo.org
+# Requires APP_SECRET to be set in the environment or .env file.
+demo-seed:
+	@sh -c '\
+	FILE="$(file)"; \
+	URL="$${url:-http://localhost:8080}"; \
+	SECRET="$${APP_SECRET}"; \
+	if [ -z "$$FILE" ]; then echo "❌ file not set. Usage: make demo-seed file=demo/simple.json"; exit 1; fi; \
+	if [ ! -f "$$FILE" ]; then echo "❌ file not found: $$FILE"; exit 1; fi; \
+	if [ -z "$$SECRET" ]; then echo "❌ APP_SECRET not set in environment"; exit 1; fi; \
+	echo "🚀 Pushing $$FILE to $$URL ..."; \
+	curl -sf -X POST \
+	  -H "Content-Type: application/json" \
+	  -H "X-App-Secret: $$SECRET" \
+	  --data-binary "@$$FILE" \
+	  "$$URL/?page=api&action=demo_seed" | cat; \
+	echo ""; \
+	'
+
 # Usage:
 #   make ftp-deploy file=prod.lftp
 ftp-deploy: push

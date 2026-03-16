@@ -124,6 +124,110 @@ function calculateRatingChanges(int $whiteId, int $blackId, int $circuitId, stri
 }
 
 /**
+ * Get or create ladder position for a player in a ladder circuit.
+ * New players are assigned the next available (last) position.
+ */
+function getOrCreateLadderPosition(int $playerId, int $circuitId): int {
+    $db = Database::get();
+
+    $stmt = $db->prepare("SELECT ladder_position FROM ratings WHERE player_id = ? AND circuit_id = ?");
+    $stmt->execute([$playerId, $circuitId]);
+    $row = $stmt->fetch();
+
+    if ($row && $row['ladder_position'] !== null) {
+        return (int)$row['ladder_position'];
+    }
+
+    // Assign next available position
+    $stmt = $db->prepare("SELECT COALESCE(MAX(ladder_position), 0) + 1 FROM ratings WHERE circuit_id = ?");
+    $stmt->execute([$circuitId]);
+    $nextPos = (int)$stmt->fetchColumn();
+
+    if ($row) {
+        $stmt = $db->prepare("UPDATE ratings SET ladder_position = ? WHERE player_id = ? AND circuit_id = ?");
+        $stmt->execute([$nextPos, $playerId, $circuitId]);
+    } else {
+        $stmt = $db->prepare("INSERT INTO ratings (player_id, circuit_id, rating, games_played, ladder_position) VALUES (?, ?, ?, 0, ?)");
+        $stmt->execute([$playerId, $circuitId, ELO_START, $nextPos]);
+    }
+
+    return $nextPos;
+}
+
+/**
+ * Apply ladder position change for a confirmed match (ladder_3up_scorrimento formula).
+ * If the lower-ranked player wins, they take the higher-ranked player's spot and everyone
+ * in between slides down one position.
+ * If the higher-ranked player wins, no positions change.
+ */
+function applyLadderPositionChange(int $matchId): bool {
+    $db = Database::get();
+
+    $stmt = $db->prepare("SELECT * FROM matches WHERE id = ? AND rating_applied = 0");
+    $stmt->execute([$matchId]);
+    $match = $stmt->fetch();
+
+    if (!$match) {
+        return false;
+    }
+
+    if (!$match['white_confirmed'] || !$match['black_confirmed'] || !$match['president_confirmed']) {
+        return false;
+    }
+
+    $circuitId = $match['circuit_id'];
+    $whiteId   = $match['white_player_id'];
+    $blackId   = $match['black_player_id'];
+
+    $whitePos = getOrCreateLadderPosition($whiteId, $circuitId);
+    $blackPos = getOrCreateLadderPosition($blackId, $circuitId);
+
+    $result = $match['result'];
+
+    if ($result === '1-0') {
+        $winnerId  = $whiteId;
+        $loserId   = $blackId;
+        $winnerPos = $whitePos;
+        $loserPos  = $blackPos;
+    } elseif ($result === '0-1') {
+        $winnerId  = $blackId;
+        $loserId   = $whiteId;
+        $winnerPos = $blackPos;
+        $loserPos  = $whitePos;
+    } else {
+        // Draw — not expected, mark applied and bail
+        $stmt = $db->prepare("UPDATE matches SET rating_applied = 1 WHERE id = ?");
+        $stmt->execute([$matchId]);
+        return true;
+    }
+
+    if ($winnerPos > $loserPos) {
+        // Lower-ranked player (higher number) beat the higher-ranked one → sliding
+        // Shift everyone between loserPos and winnerPos-1 (inclusive) down by 1
+        $stmt = $db->prepare("
+            UPDATE ratings SET ladder_position = ladder_position + 1
+            WHERE circuit_id = ? AND ladder_position >= ? AND ladder_position < ?
+        ");
+        $stmt->execute([$circuitId, $loserPos, $winnerPos]);
+
+        // Winner moves to the top spot
+        $stmt = $db->prepare("UPDATE ratings SET ladder_position = ? WHERE player_id = ? AND circuit_id = ?");
+        $stmt->execute([$loserPos, $winnerId, $circuitId]);
+    }
+    // If higher-ranked player wins, no position changes
+
+    // Increment games_played for both
+    $stmt = $db->prepare("UPDATE ratings SET games_played = games_played + 1 WHERE player_id = ? AND circuit_id = ?");
+    $stmt->execute([$winnerId, $circuitId]);
+    $stmt->execute([$loserId, $circuitId]);
+
+    $stmt = $db->prepare("UPDATE matches SET rating_applied = 1 WHERE id = ?");
+    $stmt->execute([$matchId]);
+
+    return true;
+}
+
+/**
  * Apply rating change for a confirmed match
  * Result: '1-0' = white wins, '0-1' = black wins, '0.5-0.5' = draw
  */
