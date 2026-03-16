@@ -78,11 +78,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $approverRole = 'circuit_manager';
         }
 
-        // Ladder 3up Scorrimento: validate position gap and assign positions
+        // Ladder 3up Sliding: validate position gap WITHOUT writing to DB.
+        // Positions are only assigned/changed when the match is fully confirmed.
         if ($circuitFormula === 'ladder_3up_sliding') {
-            $whitePos = getOrCreateLadderPosition($whiteId, $circuitId);
-            $blackPos = getOrCreateLadderPosition($blackId, $circuitId);
-            if (abs($whitePos - $blackPos) > 3) {
+            $stmtPos = $db->prepare("
+                SELECT player_id, ladder_position FROM ratings
+                WHERE circuit_id = ? AND player_id IN (?, ?) AND ladder_position IS NOT NULL
+            ");
+            $stmtPos->execute([$circuitId, $whiteId, $blackId]);
+            $existingPos = [];
+            foreach ($stmtPos->fetchAll() as $row) {
+                $existingPos[(int)$row['player_id']] = (int)$row['ladder_position'];
+            }
+
+            // Unranked players are treated as sitting just beyond the last position
+            $stmtMax = $db->prepare("SELECT COALESCE(MAX(ladder_position), 0) FROM ratings WHERE circuit_id = ?");
+            $stmtMax->execute([$circuitId]);
+            $maxPos = (int)$stmtMax->fetchColumn();
+            $virtual = 1;
+            foreach ([$whiteId, $blackId] as $pid) {
+                if (!isset($existingPos[$pid])) {
+                    $existingPos[$pid] = $maxPos + $virtual++;
+                }
+            }
+
+            if (abs($existingPos[$whiteId] - $existingPos[$blackId]) > 3) {
                 throw new Exception(__('error_ladder_gap'));
             }
         }

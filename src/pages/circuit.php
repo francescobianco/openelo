@@ -336,7 +336,9 @@ $tab = $_GET['tab'] ?? 'rankings';
         <div>
             <h1><?= htmlspecialchars($circuit['name']) ?></h1>
             <div class="circuit-meta" style="margin-top: 0.5rem;">
+                <?php if (count($clubs) !== 1): ?>
                 <span><?= count($clubs) ?> <?= __('circuit_clubs') ?></span>
+                <?php endif; ?>
                 <?php
                     $stmtPc = $db->prepare("SELECT COUNT(DISTINCT p.id) FROM players p JOIN circuit_clubs cc ON cc.club_id = p.club_id WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1 AND p.confirmed = 1 AND p.deleted_at IS NULL");
                     $stmtPc->execute([$circuitId]);
@@ -359,7 +361,9 @@ $tab = $_GET['tab'] ?? 'rankings';
 
     <div class="tabs">
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=rankings" class="tab <?= $tab === 'rankings' ? 'active' : '' ?>"><?= __('rankings_title') ?></a>
+        <?php if (count($clubs) !== 1): ?>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=clubs" class="tab <?= $tab === 'clubs' ? 'active' : '' ?>"><?= __('circuit_clubs') ?></a>
+        <?php endif; ?>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=matches" class="tab <?= $tab === 'matches' ? 'active' : '' ?>"><?= __('circuit_matches') ?></a>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=manager" class="tab <?= $tab === 'manager' ? 'active' : '' ?>"><?= $lang === 'it' ? 'Responsabile' : 'Manager' ?></a>
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=settings" class="tab <?= $tab === 'settings' ? 'active' : '' ?>"><?= $lang === 'it' ? 'Impostazioni' : 'Settings' ?></a>
