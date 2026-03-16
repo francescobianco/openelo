@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle formula change request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_formula_change') {
-    $allowedFormulas = ['classic_elo', 'ladder_no_draw', 'knockout_no_draw', 'ladder_3up_scorrimento'];
+    $allowedFormulas = ['classic_elo', 'ladder_no_draw', 'knockout_no_draw', 'ladder_3up_sliding'];
     $formula = trim($_POST['formula'] ?? '');
 
     if (!in_array($formula, $allowedFormulas)) {
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 'classic_elo'            => __('formula_classic_elo'),
                 'ladder_no_draw'         => __('formula_ladder_no_draw'),
                 'knockout_no_draw'       => __('formula_knockout_no_draw'),
-                'ladder_3up_scorrimento' => __('formula_ladder_3up_scorrimento'),
+                'ladder_3up_sliding' => __('formula_ladder_3up_sliding'),
             ];
 
             $stmt = $db->prepare("INSERT INTO circuit_formula_requests (circuit_id, formula) VALUES (?, ?)");
@@ -205,17 +205,32 @@ $clubs = $stmt->fetchAll();
 
 // Get rankings
 $circuitFormula = $circuit['formula'] ?? 'classic_elo';
-$isLadderScorrimento = ($circuitFormula === 'ladder_3up_scorrimento');
+$isLadderScorrimento = ($circuitFormula === 'ladder_3up_sliding');
 
 if ($isLadderScorrimento) {
+    // Include all confirmed players in the circuit even without a ratings row yet.
+    // Players without a position are shown at the bottom (NULL sorts last via CASE).
     $stmt = $db->prepare("
-        SELECT p.*, r.rating, r.ladder_position, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected
-        FROM ratings r
-        JOIN players p ON p.id = r.player_id
+        SELECT p.*,
+               COALESCE(r.rating, 0)            AS rating,
+               r.ladder_position,
+               COALESCE(r.games_played, 0)       AS games_played,
+               cl.name                           AS club_name,
+               cl.id                             AS club_id,
+               cl.protected_mode                 AS club_protected
+        FROM players p
         JOIN clubs cl ON cl.id = p.club_id
-        WHERE r.circuit_id = ? AND p.confirmed = 1 AND r.ladder_position IS NOT NULL
-        ORDER BY r.ladder_position ASC
+        JOIN circuit_clubs cc ON cc.club_id = cl.id
+        LEFT JOIN ratings r ON r.player_id = p.id AND r.circuit_id = ?
+        WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
+          AND p.confirmed = 1 AND p.deleted_at IS NULL AND cl.deleted_at IS NULL
+        ORDER BY
+            CASE WHEN r.ladder_position IS NULL THEN 1 ELSE 0 END ASC,
+            r.ladder_position ASC,
+            p.last_name ASC,
+            p.first_name ASC
     ");
+    $stmt->execute([$circuitId, $circuitId]);
 } else {
     $stmt = $db->prepare("
         SELECT p.*, r.rating, NULL as ladder_position, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected
@@ -225,8 +240,8 @@ if ($isLadderScorrimento) {
         WHERE r.circuit_id = ? AND p.confirmed = 1
         ORDER BY r.rating DESC
     ");
+    $stmt->execute([$circuitId]);
 }
-$stmt->execute([$circuitId]);
 $rankings = $stmt->fetchAll();
 
 // Get pending matches (not approved, not older than 30 days)
@@ -356,16 +371,21 @@ $tab = $_GET['tab'] ?? 'rankings';
         <div class="empty-state">
             <p><?= $lang === 'it' ? 'Nessun giocatore ancora. Inizia a registrare partite!' : 'No players yet. Start submitting matches!' ?></p>
         </div>
-        <?php else: ?>
+        <?php else:
+            $showClub   = count($clubs) > 1;
+            $showRating = !$isLadderScorrimento;
+        ?>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th><?= __('rankings_position') ?></th>
                         <th><?= __('rankings_player') ?></th>
+                        <?php if ($showClub): ?>
                         <th><?= __('rankings_club') ?></th>
+                        <?php endif; ?>
                         <th style="text-align: center;"><?= $lang === 'it' ? 'Categoria' : 'Category' ?></th>
-                        <?php if (!$isLadderScorrimento): ?>
+                        <?php if ($showRating): ?>
                         <th style="text-align: center;"><?= __('rankings_rating') ?></th>
                         <?php endif; ?>
                         <th style="text-align: center;"><?= __('rankings_games') ?></th>
@@ -373,16 +393,25 @@ $tab = $_GET['tab'] ?? 'rankings';
                 </thead>
                 <tbody>
                     <?php foreach ($rankings as $i => $player):
-                        $displayPos = $isLadderScorrimento ? (int)$player['ladder_position'] : ($i + 1);
-                        $posClass = $displayPos <= 3 ? 'rank-' . $displayPos : '';
+                        $hasPosition = $isLadderScorrimento ? ($player['ladder_position'] !== null) : true;
+                        $displayPos  = $isLadderScorrimento ? ($player['ladder_position'] ?? null) : ($i + 1);
+                        $posClass    = ($displayPos !== null && $displayPos <= 3) ? 'rank-' . $displayPos : '';
                     ?>
                     <tr>
-                        <td class="rank <?= $posClass ?>" style="padding-top: 0; padding-bottom: 0; line-height: 1;"><strong style="font-size: 1.8em; line-height: 1;"><?= $displayPos ?>°</strong></td>
+                        <td class="rank <?= $posClass ?>" style="padding-top: 0; padding-bottom: 0; line-height: 1;">
+                            <?php if ($hasPosition): ?>
+                            <strong style="font-size: 1.8em; line-height: 1;"><?= $displayPos ?>°</strong>
+                            <?php else: ?>
+                            <span style="font-size: 1.2em; color: var(--text-secondary);">—</span>
+                            <?php endif; ?>
+                        </td>
                         <?php $canViewPlayer = !$player['club_protected'] || hasClubAccess((int)$player['club_id']); ?>
                         <td><?php if ($canViewPlayer): ?><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a><?php else: ?><a href="?page=player&id=<?= $player['id'] ?>" style="color: var(--text-secondary);"><?= maskName($player['first_name'] . ' ' . $player['last_name']) ?></a><?php endif; ?></td>
+                        <?php if ($showClub): ?>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
+                        <?php endif; ?>
                         <td style="text-align: center;"><strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></td>
-                        <?php if (!$isLadderScorrimento): ?>
+                        <?php if ($showRating): ?>
                         <td class="rating" style="text-align: center;"><?= $player['rating'] ?></td>
                         <?php endif; ?>
                         <td style="text-align: center;"><?= $player['games_played'] ?></td>
@@ -555,7 +584,7 @@ $tab = $_GET['tab'] ?? 'rankings';
                     'classic_elo'            => __('formula_classic_elo'),
                     'ladder_no_draw'         => __('formula_ladder_no_draw'),
                     'knockout_no_draw'       => __('formula_knockout_no_draw'),
-                    'ladder_3up_scorrimento' => __('formula_ladder_3up_scorrimento'),
+                    'ladder_3up_sliding' => __('formula_ladder_3up_sliding'),
                 ];
                 $currentFormula = $circuit['formula'] ?? 'classic_elo';
                 ?>
@@ -568,7 +597,10 @@ $tab = $_GET['tab'] ?? 'rankings';
                     <label for="formula"><?= $lang === 'it' ? 'Nuova Formula' : 'New Formula' ?></label>
                     <select id="formula" name="formula" required>
                         <option value="">-- <?= __('form_select') ?> --</option>
-                        <?php foreach ($formulaLabels as $key => $label): ?>
+                        <?php
+                        $sortedFormulas = $formulaLabels;
+                        asort($sortedFormulas);
+                        foreach ($sortedFormulas as $key => $label): ?>
                         <option value="<?= $key ?>" <?= $currentFormula === $key ? 'selected' : '' ?>><?= $label ?></option>
                         <?php endforeach; ?>
                     </select>

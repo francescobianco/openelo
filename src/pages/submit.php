@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $circuitFormula = $circuitData['formula'] ?? 'classic_elo';
 
         // Ladder 3up Scorrimento: no draws allowed
-        if ($circuitFormula === 'ladder_3up_scorrimento' && $result === '0.5-0.5') {
+        if ($circuitFormula === 'ladder_3up_sliding' && $result === '0.5-0.5') {
             throw new Exception(__('error_draw_not_allowed'));
         }
 
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Ladder 3up Scorrimento: validate position gap and assign positions
-        if ($circuitFormula === 'ladder_3up_scorrimento') {
+        if ($circuitFormula === 'ladder_3up_sliding') {
             $whitePos = getOrCreateLadderPosition($whiteId, $circuitId);
             $blackPos = getOrCreateLadderPosition($blackId, $circuitId);
             if (abs($whitePos - $blackPos) > 3) {
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Calculate rating changes at match creation time (frozen values)
         // For ladder circuits no ELO changes apply; store zeros
-        if ($circuitFormula === 'ladder_3up_scorrimento') {
+        if ($circuitFormula === 'ladder_3up_sliding') {
             $ratingChanges = [
                 'white_rating' => 0,
                 'black_rating' => 0,
@@ -237,7 +237,7 @@ function loadCircuitPlayers() {
         .then(r => r.json())
         .then(data => {
             circuitFormula = data.formula || '';
-            const isLadder = circuitFormula === 'ladder_3up_scorrimento';
+            const isLadder = circuitFormula === 'ladder_3up_sliding';
 
             // Hide/show draw option
             if (drawOption) {

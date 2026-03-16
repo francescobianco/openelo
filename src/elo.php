@@ -155,7 +155,7 @@ function getOrCreateLadderPosition(int $playerId, int $circuitId): int {
 }
 
 /**
- * Apply ladder position change for a confirmed match (ladder_3up_scorrimento formula).
+ * Apply ladder position change for a confirmed match (ladder_3up_sliding formula).
  * If the lower-ranked player wins, they take the higher-ranked player's spot and everyone
  * in between slides down one position.
  * If the higher-ranked player wins, no positions change.

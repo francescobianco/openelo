@@ -1,0 +1,31 @@
+{
+  "circuit": {
+    "name": "Ladder Demo",
+    "owner_email": "manager@ladder.demo",
+    "formula": "ladder_3up_sliding"
+  },
+  "clubs": [
+    {
+      "name": "Circolo Ladder",
+      "president_email": "presidente@ladder.demo",
+      "players": [
+        { "first_name": "Luca",      "last_name": "Rossi",      "email": "luca.rossi@ladder.demo",      "category": "NC" },
+        { "first_name": "Marco",     "last_name": "Bianchi",    "email": "marco.bianchi@ladder.demo",    "category": "NC" },
+        { "first_name": "Sara",      "last_name": "Ferrari",    "email": "sara.ferrari@ladder.demo",     "category": "NC" },
+        { "first_name": "Elena",     "last_name": "Ricci",      "email": "elena.ricci@ladder.demo",      "category": "NC" },
+        { "first_name": "Giorgio",   "last_name": "Conti",      "email": "giorgio.conti@ladder.demo",    "category": "NC" },
+        { "first_name": "Matteo",    "last_name": "Esposito",   "email": "matteo.esposito@ladder.demo",  "category": "NC" },
+        { "first_name": "Chiara",    "last_name": "Romano",     "email": "chiara.romano@ladder.demo",    "category": "NC" },
+        { "first_name": "Andrea",    "last_name": "Colombo",    "email": "andrea.colombo@ladder.demo",   "category": "NC" },
+        { "first_name": "Paolo",     "last_name": "Russo",      "email": "paolo.russo@ladder.demo",      "category": "NC" },
+        { "first_name": "Giulia",    "last_name": "Marino",     "email": "giulia.marino@ladder.demo",    "category": "NC" },
+        { "first_name": "Davide",    "last_name": "Greco",      "email": "davide.greco@ladder.demo",     "category": "NC" },
+        { "first_name": "Alessia",   "last_name": "Bruno",      "email": "alessia.bruno@ladder.demo",    "category": "NC" },
+        { "first_name": "Simone",    "last_name": "Gallo",      "email": "simone.gallo@ladder.demo",     "category": "NC" },
+        { "first_name": "Federica",  "last_name": "Coppola",    "email": "federica.coppola@ladder.demo", "category": "NC" },
+        { "first_name": "Roberto",   "last_name": "De Luca",    "email": "roberto.deluca@ladder.demo",   "category": "NC" },
+        { "first_name": "Valentina", "last_name": "Rizzo",      "email": "valentina.rizzo@ladder.demo",  "category": "NC" }
+      ]
+    }
+  ]
+}

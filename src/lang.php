@@ -122,7 +122,7 @@ $translations = [
         'formula_classic_elo'            => 'Classic ELO List',
         'formula_ladder_no_draw'         => 'Ladder No Draw',
         'formula_knockout_no_draw'       => 'Knockout No Draw',
-        'formula_ladder_3up_scorrimento' => 'Ladder 3up Sliding',
+        'formula_ladder_3up_sliding' => 'Ladder 3up Sliding',
 
         // Errors
         'error_required' => 'This field is required.',
@@ -259,7 +259,7 @@ $translations = [
         'formula_classic_elo'            => 'Lista ELO Classica',
         'formula_ladder_no_draw'         => 'Ladder No Draw',
         'formula_knockout_no_draw'       => 'Knockout No Draw',
-        'formula_ladder_3up_scorrimento' => 'Ladder 3up Scorrimento',
+        'formula_ladder_3up_sliding' => 'Ladder 3up Scorrimento',
 
         // Errors
         'error_required' => 'Campo obbligatorio.',

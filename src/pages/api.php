@@ -140,64 +140,88 @@ switch ($action) {
         try {
             $db->beginTransaction();
 
-            // Create circuit (skip if name already exists)
+            // Upsert circuit by name
+            $circuitName  = $seed['circuit']['name'];
+            $circuitEmail = $seed['circuit']['owner_email'];
+            $circuitFormula = $seed['circuit']['formula'] ?? 'classic_elo';
+
             $stmtFind = $db->prepare("SELECT id FROM circuits WHERE name = ?");
-            $stmtFind->execute([$seed['circuit']['name']]);
+            $stmtFind->execute([$circuitName]);
             $circuitId = $stmtFind->fetchColumn();
 
-            if (!$circuitId) {
-                $stmt = $db->prepare("INSERT INTO circuits (name, owner_email, confirmed) VALUES (?, ?, 1)");
-                $stmt->execute([$seed['circuit']['name'], $seed['circuit']['owner_email']]);
+            if ($circuitId) {
+                $stmt = $db->prepare("UPDATE circuits SET owner_email = ?, formula = ?, confirmed = 1 WHERE id = ?");
+                $stmt->execute([$circuitEmail, $circuitFormula, $circuitId]);
+                $circuitStatus = 'updated';
+            } else {
+                $stmt = $db->prepare("INSERT INTO circuits (name, owner_email, formula, confirmed) VALUES (?, ?, ?, 1)");
+                $stmt->execute([$circuitName, $circuitEmail, $circuitFormula]);
                 $circuitId = (int)$db->lastInsertId();
+                $circuitStatus = 'created';
             }
 
-            $stats = ['circuit_id' => $circuitId, 'clubs' => [], 'players_created' => 0, 'players_skipped' => 0];
+            $stats = ['circuit_id' => $circuitId, 'circuit_status' => $circuitStatus, 'clubs' => [], 'players_created' => 0, 'players_updated' => 0];
 
             foreach ($seed['clubs'] as $clubData) {
-                // Create club (skip if name already exists)
+                // Upsert club by name
                 $stmtFind = $db->prepare("SELECT id FROM clubs WHERE name = ?");
                 $stmtFind->execute([$clubData['name']]);
                 $clubId = $stmtFind->fetchColumn();
 
-                if (!$clubId) {
+                if ($clubId) {
+                    $stmt = $db->prepare("UPDATE clubs SET president_email = ?, confirmed = 1 WHERE id = ?");
+                    $stmt->execute([$clubData['president_email'], $clubId]);
+                    $clubCreated = false;
+                } else {
                     $stmt = $db->prepare("INSERT INTO clubs (name, president_email, confirmed) VALUES (?, ?, 1)");
                     $stmt->execute([$clubData['name'], $clubData['president_email']]);
                     $clubId = (int)$db->lastInsertId();
+                    $clubCreated = true;
                 }
 
-                // Join club to circuit (idempotent)
+                // Upsert circuit_clubs membership
                 $stmtCheck = $db->prepare("SELECT id FROM circuit_clubs WHERE circuit_id = ? AND club_id = ?");
                 $stmtCheck->execute([$circuitId, $clubId]);
                 if (!$stmtCheck->fetchColumn()) {
                     $stmt = $db->prepare("INSERT INTO circuit_clubs (circuit_id, club_id, club_confirmed, circuit_confirmed) VALUES (?, ?, 1, 1)");
                     $stmt->execute([$circuitId, $clubId]);
+                } else {
+                    $stmt = $db->prepare("UPDATE circuit_clubs SET club_confirmed = 1, circuit_confirmed = 1 WHERE circuit_id = ? AND club_id = ?");
+                    $stmt->execute([$circuitId, $clubId]);
                 }
 
-                $clubStats = ['club_id' => $clubId, 'name' => $clubData['name'], 'players' => []];
+                $clubStats = ['club_id' => $clubId, 'name' => $clubData['name'], 'status' => $clubCreated ? 'created' : 'updated', 'players' => []];
 
                 foreach ($clubData['players'] as $playerData) {
-                    // Skip if email already exists
+                    // Upsert player by email
                     $stmtFind = $db->prepare("SELECT id FROM players WHERE email = ?");
                     $stmtFind->execute([$playerData['email']]);
-                    $existingId = $stmtFind->fetchColumn();
+                    $playerId = $stmtFind->fetchColumn();
 
-                    if ($existingId) {
-                        $stats['players_skipped']++;
-                        $clubStats['players'][] = ['id' => $existingId, 'status' => 'skipped'];
-                        continue;
+                    if ($playerId) {
+                        $stmt = $db->prepare("UPDATE players SET first_name = ?, last_name = ?, club_id = ?, category = ?, confirmed = 1 WHERE id = ?");
+                        $stmt->execute([
+                            $playerData['first_name'],
+                            $playerData['last_name'],
+                            $clubId,
+                            $playerData['category'] ?? 'NC',
+                            $playerId
+                        ]);
+                        $stats['players_updated']++;
+                        $clubStats['players'][] = ['id' => $playerId, 'status' => 'updated'];
+                    } else {
+                        $stmt = $db->prepare("INSERT INTO players (first_name, last_name, email, club_id, category, confirmed) VALUES (?, ?, ?, ?, ?, 1)");
+                        $stmt->execute([
+                            $playerData['first_name'],
+                            $playerData['last_name'],
+                            $playerData['email'],
+                            $clubId,
+                            $playerData['category'] ?? 'NC'
+                        ]);
+                        $playerId = (int)$db->lastInsertId();
+                        $stats['players_created']++;
+                        $clubStats['players'][] = ['id' => $playerId, 'status' => 'created'];
                     }
-
-                    $stmt = $db->prepare("INSERT INTO players (first_name, last_name, email, club_id, category, confirmed) VALUES (?, ?, ?, ?, ?, 1)");
-                    $stmt->execute([
-                        $playerData['first_name'],
-                        $playerData['last_name'],
-                        $playerData['email'],
-                        $clubId,
-                        $playerData['category'] ?? 'NC'
-                    ]);
-                    $playerId = (int)$db->lastInsertId();
-                    $stats['players_created']++;
-                    $clubStats['players'][] = ['id' => $playerId, 'status' => 'created'];
                 }
 
                 $stats['clubs'][] = $clubStats;

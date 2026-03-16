@@ -260,7 +260,7 @@ if (empty($token)) {
                         $stmtCircuit->execute([$match['circuit_id']]);
                         $circuitFormula = $stmtCircuit->fetchColumn() ?: 'classic_elo';
 
-                        if ($circuitFormula === 'ladder_3up_scorrimento') {
+                        if ($circuitFormula === 'ladder_3up_sliding') {
                             applyLadderPositionChange($matchId);
                         } else {
                             applyRatingChange($matchId);
