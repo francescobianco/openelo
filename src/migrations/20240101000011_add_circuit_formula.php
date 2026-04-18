@@ -9,7 +9,8 @@ return [
         }
 
         if (!in_array('formula', $cols)) {
-            $db->exec("ALTER TABLE circuits ADD COLUMN formula TEXT DEFAULT 'classic_elo'");
+            $colDef = $dbType === 'mysql' ? "VARCHAR(100) DEFAULT 'classic_elo'" : "TEXT DEFAULT 'classic_elo'";
+            $db->exec("ALTER TABLE circuits ADD COLUMN formula $colDef");
         }
 
         // Create circuit_formula_requests table

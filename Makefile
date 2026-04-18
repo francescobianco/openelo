@@ -57,4 +57,5 @@ ftp-deploy: push
 	cd "$$DEPLOY_SRC"; \
 	echo "🚀 Running lftp with script $$SCRIPT"; \
 	lftp -f "$$SCRIPT"; \
+	rm -rf "$$DEPLOY_SRC"; \
 	'
