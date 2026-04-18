@@ -402,6 +402,32 @@ function sendClubUpdateConfirmation(string $presidentEmail, string $clubName, st
 }
 
 /**
+ * Send circuit info update confirmation (name or description) to circuit manager
+ */
+function sendCircuitUpdateConfirmation(string $managerEmail, string $circuitName, string $field, string $value, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=confirm&token=' . $token;
+
+    if ($lang === 'it') {
+        $fieldLabel = $field === 'name' ? 'Nuovo nome' : 'Nuova descrizione';
+        $subject = "Richiesta modifica circuito: {$circuitName}";
+        $preview = $field === 'description' ? '<br><em style="font-size:13px;color:#666;">' . htmlspecialchars(mb_substr($value, 0, 200)) . (mb_strlen($value) > 200 ? '…' : '') . '</em>' : '';
+        $message = "È stata ricevuta una richiesta di modifica per il circuito <strong>{$circuitName}</strong>.<br><br>
+            <strong>{$fieldLabel}:</strong> " . htmlspecialchars($value) . "{$preview}<br><br>
+            Clicca il pulsante qui sotto per approvare la modifica.";
+    } else {
+        $fieldLabel = $field === 'name' ? 'New name' : 'New description';
+        $subject = "Circuit update request: {$circuitName}";
+        $preview = $field === 'description' ? '<br><em style="font-size:13px;color:#666;">' . htmlspecialchars(mb_substr($value, 0, 200)) . (mb_strlen($value) > 200 ? '…' : '') . '</em>' : '';
+        $message = "An update request has been received for circuit <strong>{$circuitName}</strong>.<br><br>
+            <strong>{$fieldLabel}:</strong> " . htmlspecialchars($value) . "{$preview}<br><br>
+            Click the button below to approve the change.";
+    }
+
+    return sendConfirmationEmail($managerEmail, $subject, $message, $url);
+}
+
+/**
  * Send circuit formula change confirmation to circuit manager
  */
 function sendCircuitFormulaConfirmation(string $managerEmail, string $circuitName, string $formulaLabel, string $token): bool {

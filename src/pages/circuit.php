@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle formula change request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_formula_change') {
-    $allowedFormulas = ['classic_elo', 'ladder_no_draw', 'knockout_no_draw', 'ladder_3up_sliding'];
+    $allowedFormulas = ['classic_elo', 'ladder_no_draw', 'knockout_no_draw', 'ladder_3up_sliding', 'mobile_ranking'];
     $formula = trim($_POST['formula'] ?? '');
 
     if (!in_array($formula, $allowedFormulas)) {
@@ -122,10 +122,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         if ($circuitData) {
             $formulaLabels = [
-                'classic_elo'            => __('formula_classic_elo'),
-                'ladder_no_draw'         => __('formula_ladder_no_draw'),
-                'knockout_no_draw'       => __('formula_knockout_no_draw'),
+                'classic_elo'        => __('formula_classic_elo'),
+                'ladder_no_draw'     => __('formula_ladder_no_draw'),
+                'knockout_no_draw'   => __('formula_knockout_no_draw'),
                 'ladder_3up_sliding' => __('formula_ladder_3up_sliding'),
+                'mobile_ranking'     => __('formula_mobile_ranking'),
             ];
 
             $stmt = $db->prepare("INSERT INTO circuit_formula_requests (circuit_id, formula) VALUES (?, ?)");
@@ -134,6 +135,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             $token = createConfirmation('circuit_formula_change', $requestId, $circuitData['owner_email']);
             sendCircuitFormulaConfirmation($circuitData['owner_email'], $circuitData['name'], $formulaLabels[$formula], $token);
+
+            setFlash('success', $lang === 'it' ? 'Richiesta inviata! Il responsabile riceverà una email di conferma.' : 'Request sent! The manager will receive a confirmation email.');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
+        }
+    }
+}
+
+// Handle circuit name change request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_name_change') {
+    $newName = trim($_POST['new_name'] ?? '');
+
+    if (empty($newName) || mb_strlen($newName) > 100) {
+        $message = __('error_required');
+        $messageType = 'error';
+    } else {
+        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
+        $stmt->execute([$circuitId]);
+        $circuitData = $stmt->fetch();
+
+        if ($circuitData) {
+            $stmt = $db->prepare("INSERT INTO circuit_update_requests (circuit_id, field, value) VALUES (?, 'name', ?)");
+            $stmt->execute([$circuitId, $newName]);
+            $requestId = $db->lastInsertId();
+
+            $token = createConfirmation('circuit_update', $requestId, $circuitData['owner_email']);
+            sendCircuitUpdateConfirmation($circuitData['owner_email'], $circuitData['name'], 'name', $newName, $token);
+
+            setFlash('success', $lang === 'it' ? 'Richiesta inviata! Il responsabile riceverà una email di conferma.' : 'Request sent! The manager will receive a confirmation email.');
+            header('Location: ' . $_SERVER['REQUEST_URI']);
+            exit;
+        }
+    }
+}
+
+// Handle circuit description change request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_description_change') {
+    $newDescription = trim($_POST['new_description'] ?? '');
+
+    if (mb_strlen($newDescription) > 3000) {
+        $message = __('error_required');
+        $messageType = 'error';
+    } else {
+        $stmt = $db->prepare("SELECT * FROM circuits WHERE id = ?");
+        $stmt->execute([$circuitId]);
+        $circuitData = $stmt->fetch();
+
+        if ($circuitData) {
+            $stmt = $db->prepare("INSERT INTO circuit_update_requests (circuit_id, field, value) VALUES (?, 'description', ?)");
+            $stmt->execute([$circuitId, $newDescription]);
+            $requestId = $db->lastInsertId();
+
+            $token = createConfirmation('circuit_update', $requestId, $circuitData['owner_email']);
+            sendCircuitUpdateConfirmation($circuitData['owner_email'], $circuitData['name'], 'description', $newDescription, $token);
 
             setFlash('success', $lang === 'it' ? 'Richiesta inviata! Il responsabile riceverà una email di conferma.' : 'Request sent! The manager will receive a confirmation email.');
             header('Location: ' . $_SERVER['REQUEST_URI']);
@@ -206,6 +261,7 @@ $clubs = $stmt->fetchAll();
 // Get rankings
 $circuitFormula = $circuit['formula'] ?? 'classic_elo';
 $isLadderScorrimento = ($circuitFormula === 'ladder_3up_sliding');
+$isMobileRanking     = ($circuitFormula === 'mobile_ranking');
 
 if ($isLadderScorrimento) {
     // Include all confirmed players in the circuit even without a ratings row yet.
@@ -217,7 +273,8 @@ if ($isLadderScorrimento) {
                COALESCE(r.games_played, 0)       AS games_played,
                cl.name                           AS club_name,
                cl.id                             AS club_id,
-               cl.protected_mode                 AS club_protected
+               cl.protected_mode                 AS club_protected,
+               0                                 AS has_rating
         FROM players p
         JOIN clubs cl ON cl.id = p.club_id
         JOIN circuit_clubs cc ON cc.club_id = cl.id
@@ -231,9 +288,34 @@ if ($isLadderScorrimento) {
             p.first_name ASC
     ");
     $stmt->execute([$circuitId, $circuitId]);
+} elseif ($isMobileRanking) {
+    // Show all confirmed players even without any matches. Rated players ranked first by
+    // rating DESC; unrated players listed below alphabetically without a position number.
+    $stmt = $db->prepare("
+        SELECT p.*,
+               COALESCE(r.rating, 0)           AS rating,
+               NULL                             AS ladder_position,
+               COALESCE(r.games_played, 0)      AS games_played,
+               cl.name                          AS club_name,
+               cl.id                            AS club_id,
+               cl.protected_mode                AS club_protected,
+               CASE WHEN r.rating IS NOT NULL THEN 1 ELSE 0 END AS has_rating
+        FROM players p
+        JOIN clubs cl ON cl.id = p.club_id
+        JOIN circuit_clubs cc ON cc.club_id = cl.id
+        LEFT JOIN ratings r ON r.player_id = p.id AND r.circuit_id = ?
+        WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
+          AND p.confirmed = 1 AND p.deleted_at IS NULL AND cl.deleted_at IS NULL
+        ORDER BY
+            CASE WHEN r.rating IS NULL THEN 1 ELSE 0 END ASC,
+            r.rating DESC,
+            p.last_name ASC,
+            p.first_name ASC
+    ");
+    $stmt->execute([$circuitId, $circuitId]);
 } else {
     $stmt = $db->prepare("
-        SELECT p.*, r.rating, NULL as ladder_position, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected
+        SELECT p.*, r.rating, NULL as ladder_position, r.games_played, cl.name as club_name, cl.id as club_id, cl.protected_mode as club_protected, 1 AS has_rating
         FROM ratings r
         JOIN players p ON p.id = r.player_id
         JOIN clubs cl ON cl.id = p.club_id
@@ -359,6 +441,16 @@ $tab = $_GET['tab'] ?? 'rankings';
         <?php endif; ?>
     </div>
 
+    <?php if (!empty($circuit['description'])): ?>
+    <div style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border); line-height: 1.7; color: var(--text-primary);">
+        <?= nl2br(preg_replace_callback(
+            '~(https?://[^\s<>"\']+)~',
+            fn($m) => '<a href="' . htmlspecialchars($m[1]) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($m[1]) . '</a>',
+            htmlspecialchars($circuit['description'])
+        )) ?>
+    </div>
+    <?php endif; ?>
+
     <div class="tabs">
         <a href="?page=circuit&id=<?= $circuitId ?>&tab=rankings" class="tab <?= $tab === 'rankings' ? 'active' : '' ?>"><?= __('rankings_title') ?></a>
         <?php if (count($clubs) !== 1): ?>
@@ -396,10 +488,21 @@ $tab = $_GET['tab'] ?? 'rankings';
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($rankings as $i => $player):
-                        $hasPosition = $isLadderScorrimento ? ($player['ladder_position'] !== null) : true;
-                        $displayPos  = $isLadderScorrimento ? ($player['ladder_position'] ?? null) : ($i + 1);
-                        $posClass    = ($displayPos !== null && $displayPos <= 3) ? 'rank-' . $displayPos : '';
+                    <?php
+                    $ratedPos = 0;
+                    foreach ($rankings as $i => $player):
+                        if ($isLadderScorrimento) {
+                            $hasPosition = ($player['ladder_position'] !== null);
+                            $displayPos  = $player['ladder_position'] ?? null;
+                        } elseif ($isMobileRanking) {
+                            $hasPosition = (bool)($player['has_rating'] ?? 0);
+                            if ($hasPosition) $ratedPos++;
+                            $displayPos = $hasPosition ? $ratedPos : null;
+                        } else {
+                            $hasPosition = true;
+                            $displayPos  = $i + 1;
+                        }
+                        $posClass = ($displayPos !== null && $displayPos <= 3) ? 'rank-' . $displayPos : '';
                     ?>
                     <tr>
                         <td class="rank <?= $posClass ?>" style="padding-top: 0; padding-bottom: 0; line-height: 1;">
@@ -578,20 +681,66 @@ $tab = $_GET['tab'] ?? 'rankings';
         </div>
     </div>
     <?php elseif ($tab === 'settings'): ?>
+    <?php
+    $formulaLabels = [
+        'classic_elo'        => __('formula_classic_elo'),
+        'ladder_no_draw'     => __('formula_ladder_no_draw'),
+        'knockout_no_draw'   => __('formula_knockout_no_draw'),
+        'ladder_3up_sliding' => __('formula_ladder_3up_sliding'),
+        'mobile_ranking'     => __('formula_mobile_ranking'),
+    ];
+    $currentFormula = $circuit['formula'] ?? 'classic_elo';
+    ?>
+
+    <!-- Description (full width) -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;"><?= $lang === 'it' ? 'Descrizione' : 'Description' ?></h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+            <?= $lang === 'it'
+                ? 'Testo informativo mostrato nella pagina del circuito. Puoi aggiungere regole, link utili e informazioni importanti. Le URL vengono convertite automaticamente in link cliccabili.'
+                : 'Informational text shown on the circuit page. You can add rules, useful links, and important information. URLs are automatically converted to clickable links.' ?>
+        </p>
+        <form method="POST">
+            <input type="hidden" name="action" value="request_description_change">
+            <div class="form-group">
+                <textarea name="new_description" rows="6" style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"><?= htmlspecialchars($circuit['description'] ?? '') ?></textarea>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem;">
+                <?= $lang === 'it'
+                    ? 'La richiesta verrà inviata al responsabile del circuito per approvazione via email.'
+                    : 'The request will be sent to the circuit manager for approval via email.' ?>
+            </p>
+            <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Richiedi Aggiornamento' : 'Request Update' ?></button>
+        </form>
+    </div>
+
     <div class="create-grid">
+        <!-- Name Change -->
+        <div class="create-section">
+            <h2><?= $lang === 'it' ? 'Nome Circuito' : 'Circuit Name' ?></h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                <?= $lang === 'it' ? 'Nome attuale:' : 'Current name:' ?>
+                <strong><?= htmlspecialchars($circuit['name']) ?></strong>
+            </p>
+            <form method="POST">
+                <input type="hidden" name="action" value="request_name_change">
+                <div class="form-group">
+                    <label for="new_name"><?= $lang === 'it' ? 'Nuovo Nome' : 'New Name' ?></label>
+                    <input type="text" id="new_name" name="new_name" maxlength="100" value="<?= htmlspecialchars($circuit['name']) ?>" required>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem;">
+                    <?= $lang === 'it'
+                        ? 'La richiesta verrà inviata al responsabile del circuito per approvazione via email.'
+                        : 'The request will be sent to the circuit manager for approval via email.' ?>
+                </p>
+                <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Richiedi Cambio' : 'Request Change' ?></button>
+            </form>
+        </div>
+
         <!-- Formula Change -->
         <div class="create-section">
             <h2><?= $lang === 'it' ? 'Formula del Circuito' : 'Circuit Formula' ?></h2>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                <?php
-                $formulaLabels = [
-                    'classic_elo'            => __('formula_classic_elo'),
-                    'ladder_no_draw'         => __('formula_ladder_no_draw'),
-                    'knockout_no_draw'       => __('formula_knockout_no_draw'),
-                    'ladder_3up_sliding' => __('formula_ladder_3up_sliding'),
-                ];
-                $currentFormula = $circuit['formula'] ?? 'classic_elo';
-                ?>
                 <?= $lang === 'it' ? 'Formula attuale:' : 'Current formula:' ?>
                 <strong><?= htmlspecialchars($formulaLabels[$currentFormula] ?? $currentFormula) ?></strong>
             </p>
