@@ -373,8 +373,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$tab = $_GET['tab'] ?? 'main';
-if (!in_array($tab, ['main', 'management'])) $tab = 'main';
+$tab = $_GET['tab'] ?? 'ratings';
+if ($tab === 'main') $tab = 'ratings'; // backward compat
+if (!in_array($tab, ['ratings', 'matches', 'management'])) $tab = 'ratings';
 ?>
 
 <div class="container">
@@ -533,123 +534,133 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
 
     <!-- Tab Navigation -->
     <div class="tabs">
-        <a href="?page=player&id=<?= $playerId ?>&tab=main" class="tab <?= $tab === 'main' ? 'active' : '' ?>">
-            <?= $lang === 'it' ? 'Rating e Partite' : 'Ratings & Matches' ?>
+        <a href="?page=player&id=<?= $playerId ?>&tab=ratings" class="tab <?= $tab === 'ratings' ? 'active' : '' ?>">
+            <?= $lang === 'it' ? 'Rating' : 'Ratings' ?>
+        </a>
+        <a href="?page=player&id=<?= $playerId ?>&tab=matches" class="tab <?= $tab === 'matches' ? 'active' : '' ?>">
+            <?= $lang === 'it' ? 'Partite' : 'Matches' ?>
         </a>
         <a href="?page=player&id=<?= $playerId ?>&tab=management" class="tab <?= $tab === 'management' ? 'active' : '' ?>">
             <?= $lang === 'it' ? 'Gestione' : 'Management' ?>
         </a>
     </div>
 
-    <!-- Tab: Ratings & Matches -->
-    <?php if ($tab === 'main'): ?>
-    <div class="create-grid">
-        <!-- Ratings -->
-        <div class="create-section">
-            <h2><?= __('rankings_title') ?></h2>
-            <?php if (empty($ratings)): ?>
-            <p style="color: var(--text-secondary);"><?= $lang === 'it' ? 'Nessun rating ancora.' : 'No ratings yet.' ?></p>
-            <?php else: ?>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th><?= __('form_circuit') ?></th>
-                            <th style="text-align: center;"><?= __('rankings_rating') ?></th>
-                            <th style="text-align: center;"><?= __('rankings_games') ?></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($ratings as $r): ?>
-                        <tr>
-                            <td><a href="?page=circuit&id=<?= $r['circuit_id'] ?>"><?= htmlspecialchars($r['circuit_name']) ?></a></td>
-                            <td class="rating" style="text-align: center;"><?= $r['rating'] ?></td>
-                            <td style="text-align: center;"><?= $r['games_played'] ?></td>
-                            <td>
-                                <a href="?page=player_history&player=<?= $playerId ?>&circuit=<?= $r['circuit_id'] ?>" class="btn btn-sm btn-secondary">
-                                    <?= $lang === 'it' ? 'Storico' : 'History' ?>
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <?php endif; ?>
+    <!-- Tab: Ratings -->
+    <?php if ($tab === 'ratings'): ?>
+    <div class="card">
+        <?php if (empty($ratings)): ?>
+        <div class="empty-state">
+            <p><?= $lang === 'it' ? 'Nessun rating ancora.' : 'No ratings yet.' ?></p>
         </div>
-
-        <!-- Recent Matches -->
-        <?php if (!empty($recentMatches)): ?>
-        <div class="create-section">
-            <h2><?= $lang === 'it' ? 'Ultime Partite' : 'Recent Matches' ?></h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
-                            <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
-                            <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($recentMatches as $m): ?>
-                        <tr>
-                            <td <?= $m['white_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
-                                <a href="?page=player&id=<?= $m['white_id'] ?>"><?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?></a>
-                            </td>
-                            <td <?= $m['black_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
-                                <a href="?page=player&id=<?= $m['black_id'] ?>"><?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?></a>
-                            </td>
-                            <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
-                            <td>
-                                <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm btn-secondary">
-                                    <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+        <?php else: ?>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><?= __('form_circuit') ?></th>
+                        <th style="text-align: center;"><?= __('rankings_rating') ?></th>
+                        <th style="text-align: center;"><?= __('rankings_games') ?></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($ratings as $r): ?>
+                    <tr>
+                        <td><a href="?page=circuit&id=<?= $r['circuit_id'] ?>"><?= htmlspecialchars($r['circuit_name']) ?></a></td>
+                        <td class="rating" style="text-align: center;"><?= $r['rating'] ?></td>
+                        <td style="text-align: center;"><?= $r['games_played'] ?></td>
+                        <td>
+                            <a href="?page=player_history&player=<?= $playerId ?>&circuit=<?= $r['circuit_id'] ?>" class="btn btn-sm btn-secondary">
+                                <?= $lang === 'it' ? 'Storico' : 'History' ?>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
         <?php endif; ?>
+    </div>
 
-        <!-- Pending Matches -->
-        <?php if (!empty($pendingMatches)): ?>
-        <div class="create-section">
-            <h2>⏳ <?= $lang === 'it' ? 'Partite in attesa di approvazione' : 'Matches Pending Approval' ?></h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
-                            <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
-                            <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($pendingMatches as $m): ?>
-                        <tr>
-                            <td <?= $m['white_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
-                                <?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?>
-                            </td>
-                            <td <?= $m['black_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
-                                <?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?>
-                            </td>
-                            <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
-                            <td>
-                                <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm btn-secondary">
-                                    <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+    <!-- Tab: Matches -->
+    <?php elseif ($tab === 'matches'): ?>
+
+    <?php if (!empty($pendingMatches)): ?>
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+            ⏳ <?= $lang === 'it' ? 'In attesa di approvazione' : 'Pending Approval' ?>
+        </h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
+                        <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($pendingMatches as $m): ?>
+                    <tr>
+                        <td <?= $m['white_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
+                            <?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?>
+                        </td>
+                        <td <?= $m['black_player_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
+                            <?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?>
+                        </td>
+                        <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
+                        <td>
+                            <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm btn-secondary">
+                                <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <div class="card">
+        <?php if (empty($recentMatches)): ?>
+        <div class="empty-state">
+            <p><?= $lang === 'it' ? 'Nessuna partita ancora.' : 'No matches yet.' ?></p>
+        </div>
+        <?php else: ?>
+        <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+            <?= $lang === 'it' ? 'Partite approvate' : 'Approved Matches' ?>
+        </h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><?= $lang === 'it' ? 'Bianco' : 'White' ?></th>
+                        <th><?= $lang === 'it' ? 'Nero' : 'Black' ?></th>
+                        <th style="text-align: center;"><?= $lang === 'it' ? 'Risultato' : 'Result' ?></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recentMatches as $m): ?>
+                    <tr>
+                        <td <?= $m['white_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
+                            <a href="?page=player&id=<?= $m['white_id'] ?>"><?= htmlspecialchars($m['white_first'] . ' ' . $m['white_last']) ?></a>
+                        </td>
+                        <td <?= $m['black_id'] == $playerId ? 'style="font-weight: bold;"' : '' ?>>
+                            <a href="?page=player&id=<?= $m['black_id'] ?>"><?= htmlspecialchars($m['black_first'] . ' ' . $m['black_last']) ?></a>
+                        </td>
+                        <td style="text-align: center; white-space: nowrap;"><strong><?= htmlspecialchars(str_replace('-', ' - ', $m['result'])) ?></strong></td>
+                        <td>
+                            <a href="?page=match&id=<?= $m['id'] ?>" class="btn btn-sm btn-secondary">
+                                <?= $lang === 'it' ? 'Vedi partita' : 'View match' ?>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
         <?php endif; ?>
     </div>

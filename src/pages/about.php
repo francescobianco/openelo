@@ -7,7 +7,7 @@
 <div class="container">
     <?php if ($lang === 'it'): ?>
     <!-- Italian Version -->
-    <div class="page-header">
+    <div class="page-header" style="justify-content: center; text-align: center;">
         <h1>♞ Chi Siamo</h1>
     </div>
 
@@ -100,7 +100,7 @@
 
     <?php else: ?>
     <!-- English Version -->
-    <div class="page-header">
+    <div class="page-header" style="justify-content: center; text-align: center;">
         <h1>♞ About OpenELO</h1>
     </div>
 

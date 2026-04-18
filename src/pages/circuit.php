@@ -289,17 +289,18 @@ if ($isLadderScorrimento) {
     ");
     $stmt->execute([$circuitId, $circuitId]);
 } elseif ($isMobileRanking) {
-    // Show all confirmed players even without any matches. Rated players ranked first by
-    // rating DESC; unrated players listed below alphabetically without a position number.
+    // Position-based ranking: all confirmed players visible, ordered by ladder_position.
+    // ELO rating is fetched and shown for analysis only — the ranking is determined by position.
+    // Players without a position yet are listed below alphabetically.
     $stmt = $db->prepare("
         SELECT p.*,
-               COALESCE(r.rating, 0)           AS rating,
-               NULL                             AS ladder_position,
-               COALESCE(r.games_played, 0)      AS games_played,
-               cl.name                          AS club_name,
-               cl.id                            AS club_id,
-               cl.protected_mode                AS club_protected,
-               CASE WHEN r.rating IS NOT NULL THEN 1 ELSE 0 END AS has_rating
+               COALESCE(r.rating, 0)                                        AS rating,
+               r.ladder_position,
+               COALESCE(r.games_played, 0)                                  AS games_played,
+               cl.name                                                       AS club_name,
+               cl.id                                                         AS club_id,
+               cl.protected_mode                                             AS club_protected,
+               CASE WHEN r.ladder_position IS NOT NULL THEN 1 ELSE 0 END    AS has_rating
         FROM players p
         JOIN clubs cl ON cl.id = p.club_id
         JOIN circuit_clubs cc ON cc.club_id = cl.id
@@ -307,8 +308,8 @@ if ($isLadderScorrimento) {
         WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
           AND p.confirmed = 1 AND p.deleted_at IS NULL AND cl.deleted_at IS NULL
         ORDER BY
-            CASE WHEN r.rating IS NULL THEN 1 ELSE 0 END ASC,
-            r.rating DESC,
+            CASE WHEN r.ladder_position IS NULL THEN 1 ELSE 0 END ASC,
+            r.ladder_position ASC,
             p.last_name ASC,
             p.first_name ASC
     ");
@@ -469,7 +470,7 @@ $tab = $_GET['tab'] ?? 'rankings';
         </div>
         <?php else:
             $showClub   = count($clubs) > 1;
-            $showRating = !$isLadderScorrimento;
+            $showRating = !$isLadderScorrimento; // mobile_ranking shows ELO for analysis
         ?>
         <div class="table-container">
             <table>
@@ -491,13 +492,9 @@ $tab = $_GET['tab'] ?? 'rankings';
                     <?php
                     $ratedPos = 0;
                     foreach ($rankings as $i => $player):
-                        if ($isLadderScorrimento) {
+                        if ($isLadderScorrimento || $isMobileRanking) {
                             $hasPosition = ($player['ladder_position'] !== null);
                             $displayPos  = $player['ladder_position'] ?? null;
-                        } elseif ($isMobileRanking) {
-                            $hasPosition = (bool)($player['has_rating'] ?? 0);
-                            if ($hasPosition) $ratedPos++;
-                            $displayPos = $hasPosition ? $ratedPos : null;
                         } else {
                             $hasPosition = true;
                             $displayPos  = $i + 1;
@@ -526,6 +523,18 @@ $tab = $_GET['tab'] ?? 'rankings';
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
+        <?php endif; ?>
+
+        <?php
+        $formulaDescKey = 'formula_desc_' . $circuitFormula;
+        $formulaDesc = __($formulaDescKey);
+        if ($formulaDesc !== $formulaDescKey): ?>
+        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+                <strong style="color: var(--text-primary);"><?= htmlspecialchars(__('formula_' . $circuitFormula)) ?></strong>
+                — <?= htmlspecialchars($formulaDesc) ?>
+            </p>
         </div>
         <?php endif; ?>
     </div>
@@ -692,48 +701,40 @@ $tab = $_GET['tab'] ?? 'rankings';
     $currentFormula = $circuit['formula'] ?? 'classic_elo';
     ?>
 
-    <!-- Description (full width) -->
-    <div class="card" style="margin-bottom: 1.5rem;">
-        <h2 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;"><?= $lang === 'it' ? 'Descrizione' : 'Description' ?></h2>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-            <?= $lang === 'it'
-                ? 'Testo informativo mostrato nella pagina del circuito. Puoi aggiungere regole, link utili e informazioni importanti. Le URL vengono convertite automaticamente in link cliccabili.'
-                : 'Informational text shown on the circuit page. You can add rules, useful links, and important information. URLs are automatically converted to clickable links.' ?>
-        </p>
-        <form method="POST">
-            <input type="hidden" name="action" value="request_description_change">
-            <div class="form-group">
-                <textarea name="new_description" rows="6" style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"><?= htmlspecialchars($circuit['description'] ?? '') ?></textarea>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem;">
-                <?= $lang === 'it'
-                    ? 'La richiesta verrà inviata al responsabile del circuito per approvazione via email.'
-                    : 'The request will be sent to the circuit manager for approval via email.' ?>
-            </p>
-            <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Richiedi Aggiornamento' : 'Request Update' ?></button>
-        </form>
-    </div>
-
     <div class="create-grid">
-        <!-- Name Change -->
+        <!-- Name + Description -->
         <div class="create-section">
-            <h2><?= $lang === 'it' ? 'Nome Circuito' : 'Circuit Name' ?></h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                <?= $lang === 'it' ? 'Nome attuale:' : 'Current name:' ?>
-                <strong><?= htmlspecialchars($circuit['name']) ?></strong>
-            </p>
+            <h2><?= $lang === 'it' ? 'Informazioni Circuito' : 'Circuit Info' ?></h2>
+
             <form method="POST">
                 <input type="hidden" name="action" value="request_name_change">
                 <div class="form-group">
-                    <label for="new_name"><?= $lang === 'it' ? 'Nuovo Nome' : 'New Name' ?></label>
+                    <label for="new_name"><?= $lang === 'it' ? 'Nome' : 'Name' ?></label>
                     <input type="text" id="new_name" name="new_name" maxlength="100" value="<?= htmlspecialchars($circuit['name']) ?>" required>
                 </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.25rem 0 0.75rem;">
                     <?= $lang === 'it'
-                        ? 'La richiesta verrà inviata al responsabile del circuito per approvazione via email.'
-                        : 'The request will be sent to the circuit manager for approval via email.' ?>
+                        ? 'La richiesta verrà inviata al responsabile per approvazione via email.'
+                        : 'The request will be sent to the manager for approval via email.' ?>
                 </p>
-                <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Richiedi Cambio' : 'Request Change' ?></button>
+                <button type="submit" class="btn btn-secondary btn-sm"><?= $lang === 'it' ? 'Richiedi Cambio Nome' : 'Request Name Change' ?></button>
+            </form>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+
+            <form method="POST">
+                <input type="hidden" name="action" value="request_description_change">
+                <div class="form-group">
+                    <label for="new_description"><?= $lang === 'it' ? 'Descrizione' : 'Description' ?></label>
+                    <textarea id="new_description" name="new_description" rows="6" style="width: 100%; padding: 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit;"><?= htmlspecialchars($circuit['description'] ?? '') ?></textarea>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.25rem 0 0;"><?= $lang === 'it' ? 'Le URL vengono convertite automaticamente in link.' : 'URLs are automatically converted to links.' ?></p>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.25rem 0 0.75rem;">
+                    <?= $lang === 'it'
+                        ? 'La richiesta verrà inviata al responsabile per approvazione via email.'
+                        : 'The request will be sent to the manager for approval via email.' ?>
+                </p>
+                <button type="submit" class="btn btn-secondary btn-sm"><?= $lang === 'it' ? 'Richiedi Cambio Descrizione' : 'Request Description Change' ?></button>
             </form>
         </div>
 

@@ -28,6 +28,13 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    min-height: 100vh;
 }
 
 a {
@@ -449,6 +456,7 @@ a:hover {
     text-decoration: none !important;
     color: inherit;
     display: block;
+    min-width: 0;
 }
 
 .circuit-card-link:hover {
