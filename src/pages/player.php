@@ -246,6 +246,7 @@ $stmt = $db->prepare("
     SELECT c.* FROM clubs c
     WHERE c.president_confirmed = 1
     AND c.id != ?
+    AND c.deleted_at IS NULL
     AND EXISTS (
         SELECT 1 FROM circuit_clubs cc
         WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
