@@ -5,7 +5,8 @@
 
 $db = Database::get();
 
-$raw  = urldecode($_COOKIE['openelo_favorites'] ?? '{}');
+$rawOriginal = $_COOKIE['openelo_favorites'] ?? null;
+$raw  = urldecode($rawOriginal ?? '{}');
 $favs = json_decode($raw, true) ?: [];
 
 $favPlayerIds  = array_values(array_filter(array_map('intval', $favs['players']  ?? [])));
@@ -39,6 +40,28 @@ if ($favCircuitIds) {
 $hasAny = !empty($players) || !empty($clubs) || !empty($circuits);
 ?>
 
+<!--DEBUG_FAVORITES
+COOKIE_EXISTS: <?= isset($_COOKIE['openelo_favorites']) ? 'YES' : 'NO' ?>
+
+COOKIE_RAW: <?= htmlspecialchars($rawOriginal ?? '(null)') ?>
+
+COOKIE_DECODED: <?= htmlspecialchars($raw) ?>
+
+JSON_VALID: <?= json_decode($raw, true) !== null ? 'YES' : 'NO' ?>
+
+JSON_ERROR: <?= json_last_error_msg() ?>
+
+FAVS_ARRAY: <?= htmlspecialchars(print_r($favs, true)) ?>
+
+FAV_PLAYER_IDS: <?= implode(',', $favPlayerIds) ?: '(none)' ?>
+
+FAV_CLUB_IDS: <?= implode(',', $favClubIds) ?: '(none)' ?>
+
+FAV_CIRCUIT_IDS: <?= implode(',', $favCircuitIds) ?: '(none)' ?>
+
+ALL_COOKIES: <?= htmlspecialchars(print_r($_COOKIE, true)) ?>
+
+-->
 <div class="container">
     <div class="page-header" style="margin-bottom: 1.5rem;">
         <div>
