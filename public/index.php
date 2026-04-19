@@ -139,11 +139,11 @@ $content = ob_get_clean();
             ~
             <a href="?page=about"><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
             ~
+            <a href="?page=formulas"><?= $lang === 'it' ? 'Formule e Circuiti' : 'Formulas & Circuits' ?></a>
+            ~
             <a href="?page=contact"><?= $lang === 'it' ? 'Contatti' : 'Contact' ?></a>
             ~
             <a href="?page=security"><?= $lang === 'it' ? 'Sicurezza & Privacy' : 'Security & Privacy' ?></a>
-            ~
-            <a href="?page=formulas"><?= $lang === 'it' ? 'Formule e Circuiti' : 'Formulas & Circuits' ?></a>
         </p>
         <div class="footer-lang-select">
             <select class="lang-select" onchange="changeLang(this.value)">
