@@ -262,6 +262,8 @@ if (empty($token)) {
 
                         if ($circuitFormula === 'ladder_3up_sliding') {
                             applyLadderPositionChange($matchId);
+                        } elseif ($circuitFormula === 'mobile_ranking') {
+                            applyMobileRankingChange($matchId);
                         } else {
                             applyRatingChange($matchId);
                         }

@@ -124,6 +124,117 @@ function calculateRatingChanges(int $whiteId, int $blackId, int $circuitId, stri
 }
 
 /**
+ * Apply mobile ranking position change for a confirmed match.
+ * Win vs stronger: take their spot (sliding).
+ * Draw vs stronger: move up 1 position.
+ * Draw when both unranked: black enters pos 1, white pos 2.
+ */
+function applyMobileRankingChange(int $matchId): bool {
+    $db = Database::get();
+
+    $stmt = $db->prepare("SELECT * FROM matches WHERE id = ? AND rating_applied = 0");
+    $stmt->execute([$matchId]);
+    $match = $stmt->fetch();
+
+    if (!$match) return false;
+    if (!$match['white_confirmed'] || !$match['black_confirmed'] || !$match['president_confirmed']) return false;
+
+    $circuitId = $match['circuit_id'];
+    $whiteId   = $match['white_player_id'];
+    $blackId   = $match['black_player_id'];
+    $result    = $match['result'];
+
+    // Read current position (null = unranked)
+    $getPos = function(int $pid) use ($db, $circuitId): ?int {
+        $s = $db->prepare("SELECT ladder_position FROM ratings WHERE player_id = ? AND circuit_id = ?");
+        $s->execute([$pid, $circuitId]);
+        $r = $s->fetch();
+        return ($r && $r['ladder_position'] !== null) ? (int)$r['ladder_position'] : null;
+    };
+
+    // Ensure a rating row exists (without assigning position)
+    $ensureRow = function(int $pid) use ($db, $circuitId): void {
+        $s = $db->prepare("SELECT id FROM ratings WHERE player_id = ? AND circuit_id = ?");
+        $s->execute([$pid, $circuitId]);
+        if (!$s->fetch()) {
+            $s = $db->prepare("INSERT INTO ratings (player_id, circuit_id, rating, games_played) VALUES (?, ?, ?, 0)");
+            $s->execute([$pid, $circuitId, ELO_START]);
+        }
+    };
+
+    $whitePos = $getPos($whiteId);
+    $blackPos = $getPos($blackId);
+
+    if ($result === '0.5-0.5') {
+        $ensureRow($whiteId);
+        $ensureRow($blackId);
+
+        if ($whitePos === null && $blackPos === null) {
+            // Both unranked: shift all existing positions down by 2, black=1, white=2
+            $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = ladder_position + 2 WHERE circuit_id = ? AND ladder_position IS NOT NULL");
+            $stmt2->execute([$circuitId]);
+            $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = 1 WHERE player_id = ? AND circuit_id = ?");
+            $stmt2->execute([$blackId, $circuitId]);
+            $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = 2 WHERE player_id = ? AND circuit_id = ?");
+            $stmt2->execute([$whiteId, $circuitId]);
+        } elseif ($whitePos === null || $blackPos === null) {
+            // One unranked: enters at bottom, no draw bonus (no established rank to compare)
+            if ($whitePos === null) getOrCreateLadderPosition($whiteId, $circuitId);
+            else                    getOrCreateLadderPosition($blackId, $circuitId);
+        } else {
+            // Both ranked: lower-ranked draws with higher-ranked → move up 1
+            if ($whitePos > $blackPos) {
+                // White is lower-ranked, moves up 1
+                $newPos = $whitePos - 1;
+                $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = ladder_position + 1 WHERE circuit_id = ? AND ladder_position = ?");
+                $stmt2->execute([$circuitId, $newPos]);
+                $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = ? WHERE player_id = ? AND circuit_id = ?");
+                $stmt2->execute([$newPos, $whiteId, $circuitId]);
+            } elseif ($blackPos > $whitePos) {
+                // Black is lower-ranked, moves up 1
+                $newPos = $blackPos - 1;
+                $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = ladder_position + 1 WHERE circuit_id = ? AND ladder_position = ?");
+                $stmt2->execute([$circuitId, $newPos]);
+                $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = ? WHERE player_id = ? AND circuit_id = ?");
+                $stmt2->execute([$newPos, $blackId, $circuitId]);
+            }
+            // Equal rank: no change
+        }
+    } else {
+        // Win: same sliding logic as ladder_3up_sliding
+        if ($result === '1-0') {
+            $winnerId = $whiteId; $loserId = $blackId;
+            $winnerPos = $whitePos; $loserPos = $blackPos;
+        } else {
+            $winnerId = $blackId; $loserId = $whiteId;
+            $winnerPos = $blackPos; $loserPos = $whitePos;
+        }
+
+        if ($winnerPos === null) $winnerPos = getOrCreateLadderPosition($winnerId, $circuitId);
+        if ($loserPos  === null) $loserPos  = getOrCreateLadderPosition($loserId,  $circuitId);
+
+        if ($winnerPos > $loserPos) {
+            // Lower-ranked wins: take loser's spot, slide intermediates down
+            $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = ladder_position + 1 WHERE circuit_id = ? AND ladder_position >= ? AND ladder_position < ?");
+            $stmt2->execute([$circuitId, $loserPos, $winnerPos]);
+            $stmt2 = $db->prepare("UPDATE ratings SET ladder_position = ? WHERE player_id = ? AND circuit_id = ?");
+            $stmt2->execute([$loserPos, $winnerId, $circuitId]);
+        }
+        // Higher-ranked wins: no change
+    }
+
+    // games_played for both
+    $stmt2 = $db->prepare("UPDATE ratings SET games_played = games_played + 1 WHERE player_id = ? AND circuit_id = ?");
+    $stmt2->execute([$whiteId, $circuitId]);
+    $stmt2->execute([$blackId, $circuitId]);
+
+    $stmt2 = $db->prepare("UPDATE matches SET rating_applied = 1 WHERE id = ?");
+    $stmt2->execute([$matchId]);
+
+    return true;
+}
+
+/**
  * Get or create ladder position for a player in a ladder circuit.
  * New players are assigned the next available (last) position.
  */
