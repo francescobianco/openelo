@@ -570,7 +570,7 @@ if (!in_array($tab, ['ratings', 'matches', 'management'])) $tab = 'ratings';
         </div>
         <?php else: ?>
         <div class="table-container">
-            <table>
+            <table class="table-nowrap">
                 <thead>
                     <tr>
                         <th><?= __('form_circuit') ?></th>

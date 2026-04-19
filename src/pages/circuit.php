@@ -478,8 +478,9 @@ $tab = $_GET['tab'] ?? 'rankings';
             <span style="font-size: 0.9rem; color: var(--text-secondary); flex: 1; min-width: 0;">
                 <?= $lang === 'it' ? 'Vuoi partecipare a questo circuito?' : 'Want to join this circuit?' ?>
             </span>
-            <a href="<?= $joinUrl ?>" class="btn btn-primary btn-sm" style="flex-shrink: 0; white-space: nowrap;">
-                🎯 <?= $lang === 'it' ? 'Iscriviti' : 'Join now' ?>
+            <a href="<?= $joinUrl ?>" class="btn btn-primary btn-sm" style="flex-shrink: 0; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem; padding-left: 0.75rem;">
+                <span style="font-size: 1.1em; line-height: 1;">🎯</span>
+                <span><?= $lang === 'it' ? 'Iscriviti' : 'Join now' ?></span>
             </a>
         </div>
         <?php
