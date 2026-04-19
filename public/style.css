@@ -852,6 +852,36 @@ tr:hover {
     display: none;
 }
 
+.pwa-install-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem 1.25rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.pwa-install-btn:hover {
+    opacity: 0.85;
+}
+
+.pwa-ios-hint {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin: 0;
+    padding: 0.5rem 0;
+    line-height: 1.5;
+}
+
 @media (max-width: 768px) {
     .footer-lang-select {
         display: block;

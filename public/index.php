@@ -47,6 +47,12 @@ $content = ob_get_clean();
     <title><?= __('site_title') ?> - <?= __('site_tagline') ?></title>
     <meta name="description" content="<?= __('site_description') ?>">
     <link rel="icon" type="image/x-icon" href="<?= asset('favicon.ico') ?>">
+    <link rel="manifest" href="<?= asset('manifest.json') ?>">
+    <meta name="theme-color" content="#4361ee">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="OpenELO">
+    <link rel="apple-touch-icon" href="<?= asset('logo.png') ?>">
     <link rel="stylesheet" href="<?= asset('style.css') ?>">
 </head>
 <body>
@@ -94,6 +100,15 @@ $content = ob_get_clean();
                     <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
                     <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>
                 </select>
+                <div class="nav-separator"></div>
+                <button id="pwa-install-btn" class="pwa-install-btn" style="display:none;" onclick="pwaInstall()">
+                    &#8962; <?= $lang === 'it' ? 'Aggiungi alla Home' : 'Add to Home Screen' ?>
+                </button>
+                <p id="pwa-ios-hint" class="pwa-ios-hint" style="display:none;">
+                    <?= $lang === 'it'
+                        ? '&#8679; Tocca <strong>Condividi</strong> poi <strong>"Aggiungi a Home"</strong>'
+                        : '&#8679; Tap <strong>Share</strong> then <strong>"Add to Home Screen"</strong>' ?>
+                </p>
             </nav>
         </div>
     </header>
@@ -122,6 +137,28 @@ $content = ob_get_clean();
     </footer>
 
     <script>
+    // PWA install
+    var _pwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        _pwaPrompt = e;
+        var btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.style.display = 'flex';
+    });
+    function pwaInstall() {
+        if (!_pwaPrompt) return;
+        _pwaPrompt.prompt();
+        _pwaPrompt.userChoice.then(function() { _pwaPrompt = null; });
+        var btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.style.display = 'none';
+    }
+    // iOS Safari hint (no beforeinstallprompt support)
+    var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+    if (isIos) {
+        var hint = document.getElementById('pwa-ios-hint');
+        if (hint) hint.style.display = 'block';
+    }
+
     function changeLang(lang) {
         const url = new URL(window.location.href);
         url.searchParams.set('lang', lang);

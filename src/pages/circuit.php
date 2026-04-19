@@ -469,6 +469,17 @@ $tab = $_GET['tab'] ?? 'rankings';
             <p><?= $lang === 'it' ? 'Nessun giocatore ancora. Inizia a registrare partite!' : 'No players yet. Start submitting matches!' ?></p>
         </div>
         <?php else:
+            $joinUrl = '?page=create&join_circuit=' . $circuitId;
+        ?>
+        <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: var(--bg-secondary); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                <?= $lang === 'it' ? 'Vuoi partecipare a questo circuito?' : 'Want to join this circuit?' ?>
+            </span>
+            <a href="<?= $joinUrl ?>" class="btn btn-primary btn-sm">
+                <?= $lang === 'it' ? 'Iscriviti' : 'Join now' ?>
+            </a>
+        </div>
+        <?php
             $showClub   = count($clubs) > 1;
             $showRating = !$isLadderScorrimento; // mobile_ranking shows ELO for analysis
         ?>
@@ -530,7 +541,7 @@ $tab = $_GET['tab'] ?? 'rankings';
         $formulaDescKey = 'formula_desc_' . $circuitFormula;
         $formulaDesc = __($formulaDescKey);
         if ($formulaDesc !== $formulaDescKey): ?>
-        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+        <div style="margin-top: 1.5rem;">
             <p class="formula-desc" style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
                 <strong style="color: var(--text-primary);"><?= htmlspecialchars(__('formula_' . $circuitFormula)) ?></strong>
                 — <?= htmlspecialchars($formulaDesc) ?>
