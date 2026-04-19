@@ -226,7 +226,7 @@ foreach ($clubCircuits as $cc) {
 $stmt = $db->prepare("
     SELECT p.* FROM players p
     WHERE p.club_id = ? AND p.confirmed = 1 AND p.deleted_at IS NULL
-    ORDER BY p.last_name, p.first_name
+    ORDER BY LOWER(p.last_name), LOWER(p.first_name)
 ");
 $stmt->execute([$clubId]);
 $players = $stmt->fetchAll();

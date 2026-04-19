@@ -14,7 +14,7 @@ $players = $db->query("
     FROM players p
     JOIN clubs c ON c.id = p.club_id
     WHERE p.confirmed = 1 AND p.deleted_at IS NULL AND c.deleted_at IS NULL
-    ORDER BY p.last_name, p.first_name
+    ORDER BY LOWER(p.last_name), LOWER(p.first_name)
 ")->fetchAll();
 ?>
 

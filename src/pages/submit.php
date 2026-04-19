@@ -267,15 +267,19 @@ function loadCircuitPlayers() {
                 }
             }
 
+            const singleClub = data.club_count === 1;
             let playerOptions = '<option value="">-- <?= __('form_player') ?> --</option>';
             data.players.forEach(player => {
                 let label;
+                const name = singleClub
+                    ? `${player.last_name} ${player.first_name}`
+                    : `${player.last_name} ${player.first_name} (${player.club_name})`;
                 if (isLadder) {
                     const pos = player.ladder_position !== null ? ('#' + player.ladder_position) : '<?= $lang === 'it' ? 'non classificato' : 'unranked' ?>';
-                    label = `${player.first_name} ${player.last_name} (${player.club_name}) - ${pos}`;
+                    label = `${name} - ${pos}`;
                 } else {
                     const rating = player.rating !== null ? player.rating : <?= ELO_START ?>;
-                    label = `${player.first_name} ${player.last_name} (${player.club_name}) - ${rating}`;
+                    label = `${name} - ${rating}`;
                 }
                 playerOptions += `<option value="${player.id}" data-ladder-pos="${player.ladder_position ?? ''}">${label}</option>`;
             });

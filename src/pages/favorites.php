@@ -15,7 +15,7 @@ $favCircuitIds = array_values(array_filter(array_map('intval', $favs['circuit'] 
 $players = [];
 if ($favPlayerIds) {
     $ph = implode(',', array_fill(0, count($favPlayerIds), '?'));
-    $stmt = $db->prepare("SELECT p.*, c.name as club_name FROM players p JOIN clubs c ON c.id = p.club_id WHERE p.id IN ($ph) AND p.deleted_at IS NULL ORDER BY p.last_name, p.first_name");
+    $stmt = $db->prepare("SELECT p.*, c.name as club_name FROM players p JOIN clubs c ON c.id = p.club_id WHERE p.id IN ($ph) AND p.deleted_at IS NULL ORDER BY LOWER(p.last_name), LOWER(p.first_name)");
     $stmt->execute($favPlayerIds);
     $players = $stmt->fetchAll();
 }

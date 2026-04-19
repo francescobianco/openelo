@@ -32,12 +32,16 @@ switch ($action) {
             JOIN circuit_clubs cc ON cc.club_id = p.club_id
             WHERE cc.circuit_id = ? AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1
             AND p.confirmed = 1 AND p.deleted_at IS NULL AND c.deleted_at IS NULL
-            ORDER BY p.last_name, p.first_name
+            ORDER BY LOWER(p.last_name), LOWER(p.first_name)
         ");
         $stmt->execute([$circuitId, $circuitId, $circuitId]);
         $players = $stmt->fetchAll();
 
-        echo json_encode(['players' => $players, 'formula' => $circuitFormula]);
+        $stmtClubCount = $db->prepare("SELECT COUNT(*) FROM circuit_clubs WHERE circuit_id = ? AND club_confirmed = 1 AND circuit_confirmed = 1");
+        $stmtClubCount->execute([$circuitId]);
+        $clubCount = (int)$stmtClubCount->fetchColumn();
+
+        echo json_encode(['players' => $players, 'formula' => $circuitFormula, 'club_count' => $clubCount]);
         exit;
 
     case 'circuit_data':
@@ -68,7 +72,7 @@ switch ($action) {
             JOIN clubs c ON c.id = p.club_id
             LEFT JOIN ratings r ON r.player_id = p.id AND r.circuit_id = ?
             WHERE p.confirmed = 1
-            ORDER BY p.last_name, p.first_name
+            ORDER BY LOWER(p.last_name), LOWER(p.first_name)
         ");
         $stmt->execute([ELO_START, $circuitId]);
         $players = $stmt->fetchAll();
