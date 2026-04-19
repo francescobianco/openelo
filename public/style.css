@@ -28,6 +28,12 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
 }
 
 a {
@@ -832,7 +838,7 @@ tr:hover {
     border-top: 1px solid var(--border);
     padding: 2rem;
     text-align: center;
-    margin-top: 4rem;
+    margin-top: auto;
 }
 
 .footer p {

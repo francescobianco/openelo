@@ -471,12 +471,12 @@ $tab = $_GET['tab'] ?? 'rankings';
         <?php else:
             $joinUrl = '?page=create&join_circuit=' . $circuitId;
         ?>
-        <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: var(--bg-secondary); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-            <span style="font-size: 0.9rem; color: var(--text-secondary);">
+        <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: var(--bg-secondary); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: nowrap;">
+            <span style="font-size: 0.9rem; color: var(--text-secondary); flex: 1; min-width: 0;">
                 <?= $lang === 'it' ? 'Vuoi partecipare a questo circuito?' : 'Want to join this circuit?' ?>
             </span>
-            <a href="<?= $joinUrl ?>" class="btn btn-primary btn-sm">
-                <?= $lang === 'it' ? 'Iscriviti' : 'Join now' ?>
+            <a href="<?= $joinUrl ?>" class="btn btn-primary btn-sm" style="flex-shrink: 0; white-space: nowrap;">
+                🎯 <?= $lang === 'it' ? 'Iscriviti' : 'Join now' ?>
             </a>
         </div>
         <?php
