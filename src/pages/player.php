@@ -387,14 +387,17 @@ if (!in_array($tab, ['ratings', 'matches', 'management'])) $tab = 'ratings';
                 <span><?= $lang === 'it' ? 'Categoria' : 'Category' ?>: <strong><?= htmlspecialchars($player['category'] ?? 'NC') ?></strong></span>
             </div>
         </div>
-        <?php if ($player['confirmed'] && !hasClubAccess((int)$player['club_id'])): ?>
-        <form method="POST">
-            <input type="hidden" name="action" value="sono_io">
-            <button type="submit" class="btn btn-secondary" style="font-size: 0.9rem;">
-                &#128100; <?= $lang === 'it' ? 'Sono io' : 'That\'s me' ?>
-            </button>
-        </form>
-        <?php endif; ?>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button class="btn-star" data-fav-type="player" data-fav-id="<?= $playerId ?>" onclick="toggleFavorite('player', <?= $playerId ?>)" title="<?= $lang === 'it' ? 'Aggiungi ai preferiti' : 'Add to favorites' ?>">☆</button>
+            <?php if ($player['confirmed'] && !hasClubAccess((int)$player['club_id'])): ?>
+            <form method="POST">
+                <input type="hidden" name="action" value="sono_io">
+                <button type="submit" class="btn btn-secondary" style="font-size: 0.9rem;">
+                    &#128100; <?= $lang === 'it' ? 'Sono io' : 'That\'s me' ?>
+                </button>
+            </form>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php if (isset($_GET['new'])): ?>

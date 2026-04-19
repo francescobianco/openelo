@@ -278,6 +278,7 @@ if (!in_array($tab, ['main', 'management'])) $tab = 'main';
         </div>
         <?php if ($isActive || ($club['protected_mode'] && !$hasClubAccess)): ?>
         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+            <button class="btn-star" data-fav-type="club" data-fav-id="<?= $clubId ?>" onclick="toggleFavorite('club', <?= $clubId ?>)" title="<?= $lang === 'it' ? 'Aggiungi ai preferiti' : 'Add to favorites' ?>">☆</button>
             <?php if ($club['protected_mode'] && !$hasClubAccess): ?>
             <form method="POST">
                 <input type="hidden" name="action" value="sono_il_presidente">

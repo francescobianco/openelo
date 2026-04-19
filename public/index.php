@@ -22,7 +22,7 @@ $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'clubs', 'players', 'matches', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'security', 'api'];
+$validPages = ['home', 'circuits', 'clubs', 'players', 'matches', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'security', 'api', 'favorites'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -276,6 +276,76 @@ $content = ob_get_clean();
             if (activeModal) {
                 closeModal(activeModal.id);
             }
+        }
+    });
+
+    // ── Favorites ────────────────────────────────────────────────
+    var FAV_COOKIE = 'openelo_favorites';
+
+    function getFavs() {
+        try { return JSON.parse(decodeURIComponent(getCookie(FAV_COOKIE) || '{}')) || {}; }
+        catch(e) { return {}; }
+    }
+
+    function saveFavs(obj) {
+        var d = new Date();
+        d.setFullYear(d.getFullYear() + 10);
+        document.cookie = FAV_COOKIE + '=' + encodeURIComponent(JSON.stringify(obj)) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+    }
+
+    function hasFavs() {
+        var f = getFavs();
+        return Object.keys(f).some(function(k) { return f[k] && f[k].length > 0; });
+    }
+
+    function toggleFavorite(type, id) {
+        var f = getFavs();
+        if (!f[type]) f[type] = [];
+        var idx = f[type].indexOf(id);
+        var adding = idx === -1;
+        if (adding) f[type].push(id); else f[type].splice(idx, 1);
+        if (f[type].length === 0) delete f[type];
+        saveFavs(f);
+        document.querySelectorAll('[data-fav-type="' + type + '"][data-fav-id="' + id + '"]').forEach(function(btn) {
+            btn.classList.toggle('fav-active', adding);
+            btn.title = adding
+                ? (document.documentElement.lang === 'it' ? 'Rimuovi dai preferiti' : 'Remove from favorites')
+                : (document.documentElement.lang === 'it' ? 'Aggiungi ai preferiti' : 'Add to favorites');
+        });
+        updateHomeCTA();
+    }
+
+    function updateHomeCTA() {
+        var btn = document.getElementById('home-create-btn');
+        if (!btn) return;
+        if (hasFavs()) {
+            btn.href = '?page=favorites';
+            btn.textContent = document.documentElement.lang === 'it' ? '★ I tuoi preferiti' : '★ Your favorites';
+        } else {
+            btn.href = '?page=create&highlight=circuit';
+            btn.textContent = btn.getAttribute('data-original-text') || btn.textContent;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Restore star states
+        var f = getFavs();
+        document.querySelectorAll('[data-fav-type]').forEach(function(btn) {
+            var type = btn.getAttribute('data-fav-type');
+            var id = parseInt(btn.getAttribute('data-fav-id'));
+            if (f[type] && f[type].indexOf(id) !== -1) {
+                btn.classList.add('fav-active');
+                btn.title = document.documentElement.lang === 'it' ? 'Rimuovi dai preferiti' : 'Remove from favorites';
+            }
+        });
+        // Save original CTA text for toggle-back
+        var ctaBtn = document.getElementById('home-create-btn');
+        if (ctaBtn) ctaBtn.setAttribute('data-original-text', ctaBtn.textContent.trim());
+        updateHomeCTA();
+        // PWA: if standalone and has favs, go to favorites
+        var isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+        if (isStandalone && hasFavs() && window.location.search === '') {
+            window.location.replace('?page=favorites');
         }
     });
     </script>

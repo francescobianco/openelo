@@ -52,7 +52,7 @@ $circuits = $db->query("
     <p><?= __('hero_subtitle') ?></p>
     <div class="hero-buttons">
         <a href="?page=circuits" class="btn btn-primary"><?= __('hero_cta') ?></a>
-        <a href="?page=create&highlight=circuit" class="btn btn-secondary"><?= __('hero_create') ?></a>
+        <a href="?page=create&highlight=circuit" class="btn btn-secondary" id="home-create-btn"><?= __('hero_create') ?></a>
     </div>
 </section>
 

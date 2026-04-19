@@ -431,15 +431,18 @@ $tab = $_GET['tab'] ?? 'rankings';
                 <span><?= count($matches) ?> <?= __('circuit_matches') ?></span>
             </div>
         </div>
-        <?php if ($circuit['confirmed']): ?>
-            <?php if (empty($clubs)): ?>
-            <a href="?page=create&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Circolo' : 'Register Club' ?></a>
-            <?php elseif ($totalPlayers < 2): ?>
-            <a href="?page=create&club=<?= count($clubs) === 1 ? $clubs[0]['id'] : '' ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Giocatori' : 'Register Players' ?></a>
-            <?php else: ?>
-            <a href="?page=submit&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= __('nav_submit_result') ?></a>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button class="btn-star" data-fav-type="circuit" data-fav-id="<?= $circuitId ?>" onclick="toggleFavorite('circuit', <?= $circuitId ?>)" title="<?= $lang === 'it' ? 'Aggiungi ai preferiti' : 'Add to favorites' ?>">☆</button>
+            <?php if ($circuit['confirmed']): ?>
+                <?php if (empty($clubs)): ?>
+                <a href="?page=create&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Circolo' : 'Register Club' ?></a>
+                <?php elseif ($totalPlayers < 2): ?>
+                <a href="?page=create&club=<?= count($clubs) === 1 ? $clubs[0]['id'] : '' ?>" class="btn btn-primary"><?= $lang === 'it' ? 'Registra Giocatori' : 'Register Players' ?></a>
+                <?php else: ?>
+                <a href="?page=submit&circuit=<?= $circuitId ?>" class="btn btn-primary"><?= __('nav_submit_result') ?></a>
+                <?php endif; ?>
             <?php endif; ?>
-        <?php endif; ?>
+        </div>
     </div>
 
     <?php if (!empty($circuit['description'])): ?>
