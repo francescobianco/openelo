@@ -446,7 +446,7 @@ $tab = $_GET['tab'] ?? 'rankings';
     </div>
 
     <?php if (!empty($circuit['description'])): ?>
-    <div style="margin-bottom: 1.5rem; padding: 0.25rem 0; line-height: 1.8; color: var(--text-primary); font-size: 1.05rem;">
+    <div style="margin-bottom: 1.5rem; padding: 0.25rem 0; line-height: 1.8; color: var(--text-primary); font-size: 1.05rem; text-align: justify;">
         <?= nl2br(preg_replace_callback(
             '~(https?://[^\s<>"\']+)~',
             fn($m) => '<a href="' . htmlspecialchars($m[1]) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($m[1]) . '</a>',
