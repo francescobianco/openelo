@@ -14,8 +14,19 @@ $stats = [
         AND c.deleted_at IS NULL
         AND EXISTS (SELECT 1 FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1)
     ")->fetchColumn(),
-    'players' => $db->query("SELECT COUNT(*) FROM players WHERE confirmed = 1 AND deleted_at IS NULL")->fetchColumn(),
-    'matches' => $db->query("SELECT COUNT(*) FROM matches WHERE rating_applied = 1 AND deleted_at IS NULL")->fetchColumn(),
+    'players' => $db->query("
+        SELECT COUNT(*) FROM players p
+        JOIN clubs c ON c.id = p.club_id
+        WHERE p.confirmed = 1 AND p.deleted_at IS NULL
+          AND c.deleted_at IS NULL AND c.president_confirmed = 1
+          AND EXISTS (SELECT 1 FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1)
+    ")->fetchColumn(),
+    'matches' => $db->query("
+        SELECT COUNT(*) FROM matches m
+        JOIN circuits ci ON ci.id = m.circuit_id
+        WHERE m.rating_applied = 1 AND m.deleted_at IS NULL
+          AND ci.deleted_at IS NULL
+    ")->fetchColumn(),
 ];
 
 // Get recent circuits

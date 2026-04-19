@@ -856,6 +856,10 @@ tr:hover {
     display: none; /* shown only inside mobile nav via media query */
 }
 
+.formula-desc {
+    text-align: justify;
+}
+
 .pwa-install-block-header {
     display: flex;
     align-items: center;
@@ -1194,6 +1198,7 @@ tr:hover {
 
     .create-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .circuit-meta {
@@ -1211,10 +1216,6 @@ tr:hover {
 
     .container {
         padding: 1rem;
-    }
-
-    .formula-desc {
-        text-align: justify;
     }
 
     .card {
