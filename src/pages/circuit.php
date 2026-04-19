@@ -510,7 +510,7 @@ $tab = $_GET['tab'] ?? 'rankings';
                             <?php endif; ?>
                         </td>
                         <?php $canViewPlayer = !$player['club_protected'] || hasClubAccess((int)$player['club_id']); ?>
-                        <td><?php if ($canViewPlayer): ?><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a><?php else: ?><a href="?page=player&id=<?= $player['id'] ?>" style="color: var(--text-secondary);"><?= maskName($player['first_name'] . ' ' . $player['last_name']) ?></a><?php endif; ?></td>
+                        <td style="white-space: nowrap;"><?php if ($canViewPlayer): ?><a href="?page=player&id=<?= $player['id'] ?>"><?= htmlspecialchars($player['first_name'] . ' ' . $player['last_name']) ?></a><?php else: ?><a href="?page=player&id=<?= $player['id'] ?>" style="color: var(--text-secondary);"><?= maskName($player['first_name'] . ' ' . $player['last_name']) ?></a><?php endif; ?></td>
                         <?php if ($showClub): ?>
                         <td><a href="?page=club&id=<?= $player['club_id'] ?>"><?= htmlspecialchars($player['club_name']) ?></a></td>
                         <?php endif; ?>
@@ -531,7 +531,7 @@ $tab = $_GET['tab'] ?? 'rankings';
         $formulaDesc = __($formulaDescKey);
         if ($formulaDesc !== $formulaDescKey): ?>
         <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+            <p class="formula-desc" style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
                 <strong style="color: var(--text-primary);"><?= htmlspecialchars(__('formula_' . $circuitFormula)) ?></strong>
                 — <?= htmlspecialchars($formulaDesc) ?>
             </p>
