@@ -112,11 +112,11 @@ $playerName = $player['first_name'] . ' ' . $player['last_name'];
 <div class="container">
     <div class="page-header">
         <div>
-            <h1><?= $lang === 'it' ? 'Storico Rating' : 'Rating History' ?></h1>
-            <div style="margin-top: 0.5rem; color: var(--text-secondary);">
-                <a href="?page=player&id=<?= $playerId ?>"><?= htmlspecialchars($playerName) ?></a>
-                <span style="margin: 0 0.5rem;">•</span>
-                <a href="?page=circuit&id=<?= $circuitId ?>"><?= htmlspecialchars($circuit['name']) ?></a>
+            <h1><?= htmlspecialchars($playerName) ?></h1>
+            <div class="circuit-meta" style="margin-top: 0.5rem;">
+                <span><?= $lang === 'it' ? 'Storico Rating' : 'Rating History' ?></span>
+                <span>•</span>
+                <span><a href="?page=circuit&id=<?= $circuitId ?>"><?= htmlspecialchars($circuit['name']) ?></a></span>
             </div>
         </div>
     </div>
