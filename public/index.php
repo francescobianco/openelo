@@ -280,6 +280,11 @@ $content = ob_get_clean();
     });
 
     // ── Favorites ────────────────────────────────────────────────
+    function getCookie(name) {
+        var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? v[2] : null;
+    }
+
     var FAV_COOKIE = 'openelo_favorites';
 
     function getFavs() {
@@ -308,6 +313,7 @@ $content = ob_get_clean();
         saveFavs(f);
         document.querySelectorAll('[data-fav-type="' + type + '"][data-fav-id="' + id + '"]').forEach(function(btn) {
             btn.classList.toggle('fav-active', adding);
+            btn.textContent = adding ? '★' : '☆';
             btn.title = adding
                 ? (document.documentElement.lang === 'it' ? 'Rimuovi dai preferiti' : 'Remove from favorites')
                 : (document.documentElement.lang === 'it' ? 'Aggiungi ai preferiti' : 'Add to favorites');
@@ -335,6 +341,7 @@ $content = ob_get_clean();
             var id = parseInt(btn.getAttribute('data-fav-id'));
             if (f[type] && f[type].indexOf(id) !== -1) {
                 btn.classList.add('fav-active');
+                btn.textContent = '★';
                 btn.title = document.documentElement.lang === 'it' ? 'Rimuovi dai preferiti' : 'Remove from favorites';
             }
         });
