@@ -664,6 +664,97 @@ tr:hover {
     background: transparent;
 }
 
+/* Mobile tab dropdown */
+.tabs-dropdown {
+    display: none;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.tabs-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.8rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s;
+}
+
+.tabs-dropdown-trigger:hover {
+    border-color: var(--accent);
+}
+
+.tabs-dropdown-trigger.open {
+    border-color: var(--accent);
+    border-radius: 8px 8px 0 0;
+}
+
+.tabs-chevron {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+}
+
+.tabs-dropdown-trigger.open .tabs-chevron {
+    transform: rotate(180deg);
+}
+
+.tabs-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    z-index: 200;
+}
+
+.tabs-dropdown-menu.open {
+    display: block;
+}
+
+.tabs-dropdown-menu a {
+    display: block;
+    padding: 0.75rem 1.25rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 1rem;
+    border-top: 1px solid var(--border);
+    transition: background 0.15s, color 0.15s;
+}
+
+.tabs-dropdown-menu a:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.tabs-dropdown-menu a.active {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .tabs {
+        display: none;
+    }
+    .tabs-dropdown {
+        display: block;
+    }
+}
+
 /* Status Badge */
 .badge {
     display: inline-block;
@@ -1020,10 +1111,31 @@ tr:hover {
     .circuit-meta {
         flex-wrap: wrap;
         gap: 0.8rem;
+        justify-content: center;
     }
 
     .tabs {
         flex-wrap: wrap;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    .card {
+        padding: 1rem;
+    }
+
+    .create-section {
+        padding: 1rem;
+    }
+
+    .page-header {
+        margin-bottom: 1.25rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
     }
 }
 

@@ -162,6 +162,47 @@ $content = ob_get_clean();
         }
     }
 
+    // Build mobile tab dropdowns from .tabs elements
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.tabs').forEach(function(tabs) {
+            var active = tabs.querySelector('.tab.active');
+            if (!active) return;
+
+            var dropdown = document.createElement('div');
+            dropdown.className = 'tabs-dropdown';
+
+            var trigger = document.createElement('button');
+            trigger.className = 'tabs-dropdown-trigger';
+            trigger.innerHTML = active.textContent.trim() + '<span class="tabs-chevron">&#9660;</span>';
+
+            var menu = document.createElement('div');
+            menu.className = 'tabs-dropdown-menu';
+
+            tabs.querySelectorAll('.tab').forEach(function(link) {
+                var a = document.createElement('a');
+                a.href = link.href;
+                a.textContent = link.textContent.trim();
+                if (link.classList.contains('active')) a.classList.add('active');
+                menu.appendChild(a);
+            });
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.classList.toggle('open');
+                trigger.classList.toggle('open');
+            });
+
+            document.addEventListener('click', function() {
+                menu.classList.remove('open');
+                trigger.classList.remove('open');
+            });
+
+            dropdown.appendChild(trigger);
+            dropdown.appendChild(menu);
+            tabs.parentNode.insertBefore(dropdown, tabs);
+        });
+    });
+
     // Close modal on overlay click
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('modal-overlay')) {
