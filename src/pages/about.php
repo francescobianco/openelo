@@ -8,7 +8,7 @@
     <?php if ($lang === 'it'): ?>
     <!-- Italian Version -->
     <div class="page-header" style="justify-content: center; text-align: center;">
-        <h1>♞ Chi Siamo</h1>
+        <h1>Chi Siamo</h1>
     </div>
 
     <div class="card" style="max-width: 900px; margin: 0 auto;">
@@ -101,7 +101,7 @@
     <?php else: ?>
     <!-- English Version -->
     <div class="page-header" style="justify-content: center; text-align: center;">
-        <h1>♞ About OpenELO</h1>
+        <h1>About OpenELO</h1>
     </div>
 
     <div class="card" style="max-width: 900px; margin: 0 auto;">

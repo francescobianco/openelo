@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1>♞ OpenELO Contact Form</h1>
+                    <h1>OpenELO Contact Form</h1>
                 </div>
                 <div class='content'>
                     <div class='field'>

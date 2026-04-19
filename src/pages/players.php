@@ -30,7 +30,7 @@ $players = $db->query("
     <?php else: ?>
     <div class="card">
         <div class="table-container">
-            <table>
+            <table class="table-nowrap">
                 <thead>
                     <tr>
                         <th><?= $lang === 'it' ? 'Giocatore' : 'Player' ?></th>

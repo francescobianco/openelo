@@ -209,7 +209,7 @@ if ($joinCircuitId) {
         </div>
     </div>
     <?php else: ?>
-    <h1 style="margin-bottom: 2rem;"><?= __('nav_create') ?></h1>
+    <h1 style="margin-bottom: 2rem; text-align: center;"><?= __('nav_create') ?></h1>
     <?php endif; ?>
 
     <?php if ($message): ?>
