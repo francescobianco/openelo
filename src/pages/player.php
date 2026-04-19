@@ -397,6 +397,19 @@ if (!in_array($tab, ['ratings', 'matches', 'management'])) $tab = 'ratings';
         <?php endif; ?>
     </div>
 
+    <?php if (isset($_GET['new'])): ?>
+    <div class="alert" style="background: linear-gradient(135deg, rgba(67,97,238,0.15), rgba(67,97,238,0.05)); border: 1px solid rgba(67,97,238,0.4); border-radius: 10px; padding: 1.25rem 1.5rem;">
+        <p style="margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 700; color: var(--text-primary);">
+            <?= $lang === 'it' ? '👋 Benvenuto in OpenELO!' : '👋 Welcome to OpenELO!' ?>
+        </p>
+        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+            <?= $lang === 'it'
+                ? 'La tua iscrizione è stata ricevuta, ma <strong style="color: var(--text-primary);">l\'attivazione non è ancora completa</strong>. Controlla la tua email: riceverai a breve un link di conferma. Solo dopo aver confermato potrai comparire nelle classifiche e partecipare alle partite ufficiali.'
+                : 'Your registration has been received, but <strong style="color: var(--text-primary);">activation is not yet complete</strong>. Check your inbox: you\'ll receive a confirmation link shortly. You\'ll only appear in rankings and be able to play official matches after confirming.' ?>
+        </p>
+    </div>
+    <?php endif; ?>
+
     <?php if ($message): ?>
     <div class="alert alert-<?= $messageType ?>">
         <?= htmlspecialchars($message) ?>

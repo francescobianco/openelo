@@ -148,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 sendPlayerPresidentConfirmation($club['president_email'], $playerName, $club['name'], $tokenPresident);
 
                 // Redirect to player page
-                header('Location: ?page=player&id=' . $playerId);
+                header('Location: ?page=player&id=' . $playerId . '&new=1');
                 exit;
         }
     } catch (Exception $e) {

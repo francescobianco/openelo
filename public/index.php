@@ -100,15 +100,30 @@ $content = ob_get_clean();
                     <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
                     <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>
                 </select>
-                <div class="nav-separator"></div>
-                <button id="pwa-install-btn" class="pwa-install-btn" style="display:none;" onclick="pwaInstall()">
-                    &#8962; <?= $lang === 'it' ? 'Aggiungi alla Home' : 'Add to Home Screen' ?>
-                </button>
-                <p id="pwa-ios-hint" class="pwa-ios-hint" style="display:none;">
-                    <?= $lang === 'it'
-                        ? '&#8679; Tocca <strong>Condividi</strong> poi <strong>"Aggiungi a Home"</strong>'
-                        : '&#8679; Tap <strong>Share</strong> then <strong>"Add to Home Screen"</strong>' ?>
-                </p>
+                <div id="pwa-install-block" class="pwa-install-block">
+                    <div class="pwa-install-block-header">
+                        <img src="<?= asset('logo.png') ?>" alt="OpenELO" class="pwa-install-block-logo">
+                        <div>
+                            <div class="pwa-install-block-name">Open<span>ELO</span></div>
+                            <div class="pwa-install-block-sub">
+                                <?= $lang === 'it' ? 'App gratuita' : 'Free app' ?>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="pwa-install-block-desc">
+                        <?= $lang === 'it'
+                            ? 'Aggiungi OpenELO alla schermata home: accesso immediato con un tap, come una vera app.'
+                            : 'Add OpenELO to your home screen for instant one-tap access, just like a native app.' ?>
+                    </p>
+                    <button id="pwa-install-btn" class="pwa-install-btn" style="display:none;" onclick="pwaInstall()">
+                        <?= $lang === 'it' ? '&#8659; Installa l\'app' : '&#8659; Install the app' ?>
+                    </button>
+                    <p id="pwa-ios-hint" class="pwa-ios-hint" style="display:none;">
+                        <?= $lang === 'it'
+                            ? '&#8679; Tocca <strong>Condividi</strong> poi <strong>"Aggiungi a Home"</strong>'
+                            : '&#8679; Tap <strong>Share</strong> then <strong>"Add to Home Screen"</strong>' ?>
+                    </p>
+                </div>
             </nav>
         </div>
     </header>
@@ -152,6 +167,13 @@ $content = ob_get_clean();
         var btn = document.getElementById('pwa-install-btn');
         if (btn) btn.style.display = 'none';
     }
+    // If already installed as standalone, hide the whole install block
+    var isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone) {
+        var block = document.getElementById('pwa-install-block');
+        if (block) block.style.display = 'none';
+    }
+
     // iOS Safari hint (no beforeinstallprompt support)
     var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
     if (isIos) {

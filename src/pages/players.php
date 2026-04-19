@@ -43,7 +43,7 @@ $players = $db->query("
                 <tbody>
                     <?php foreach ($players as $p): ?>
                     <tr>
-                        <td>
+                        <td style="white-space: nowrap;">
                             <?php $canView = !$p['club_protected'] || hasClubAccess((int)$p['club_id']); ?>
                             <?php if ($canView): ?>
                             <a href="?page=player&id=<?= $p['id'] ?>"><?= htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) ?></a>
