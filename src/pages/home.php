@@ -24,8 +24,7 @@ $stats = [
     'matches' => $db->query("
         SELECT COUNT(*) FROM matches m
         JOIN circuits ci ON ci.id = m.circuit_id
-        WHERE m.rating_applied = 1 AND m.deleted_at IS NULL
-          AND ci.deleted_at IS NULL
+        WHERE m.deleted_at IS NULL AND ci.deleted_at IS NULL
     ")->fetchColumn(),
 ];
 
