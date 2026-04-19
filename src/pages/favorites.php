@@ -5,7 +5,7 @@
 
 $db = Database::get();
 
-$raw  = $_COOKIE['openelo_favorites'] ?? '{}';
+$raw  = urldecode($_COOKIE['openelo_favorites'] ?? '{}');
 $favs = json_decode($raw, true) ?: [];
 
 $favPlayerIds  = array_values(array_filter(array_map('intval', $favs['players']  ?? [])));
