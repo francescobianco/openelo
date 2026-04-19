@@ -544,11 +544,13 @@ $tab = $_GET['tab'] ?? 'rankings';
         <?php
         $formulaDescKey = 'formula_desc_' . $circuitFormula;
         $formulaDesc = __($formulaDescKey);
+        $formulaAnchor = str_replace('_', '-', $circuitFormula);
         if ($formulaDesc !== $formulaDescKey): ?>
         <div style="margin-top: 1.5rem;">
             <p class="formula-desc" style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
                 <strong style="color: var(--text-primary);"><?= htmlspecialchars(__('formula_' . $circuitFormula)) ?></strong>
                 — <?= htmlspecialchars($formulaDesc) ?>
+                <a href="?page=formulas#<?= htmlspecialchars($formulaAnchor) ?>" style="margin-left: 0.3em; white-space: nowrap;"><?= $lang === 'it' ? 'Leggi ancora →' : 'Read more →' ?></a>
             </p>
         </div>
         <?php endif; ?>
@@ -778,6 +780,9 @@ $tab = $_GET['tab'] ?? 'rankings';
                     <?= $lang === 'it'
                         ? 'La richiesta verrà inviata al responsabile del circuito per approvazione via email.'
                         : 'The request will be sent to the circuit manager for approval via email.' ?>
+                    <?= $lang === 'it'
+                        ? 'Per saperne di più su ogni formula, visita la pagina <a href="?page=formulas">Formule e Circuiti</a>.'
+                        : 'To learn more about each formula, visit the <a href="?page=formulas">Formulas & Circuits</a> page.' ?>
                 </p>
                 <button type="submit" class="btn btn-primary"><?= $lang === 'it' ? 'Richiedi Cambio' : 'Request Change' ?></button>
             </form>
