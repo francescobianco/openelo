@@ -318,21 +318,25 @@ function sendClubAccessConfirmation(string $to, string $clubName, string $role, 
     if ($lang === 'it') {
         if ($role === 'president') {
             $subject = "Conferma identità: presidente di {$clubName}";
-            $message = "È stata ricevuta una richiesta di accesso come <strong>presidente</strong> del circolo <strong>{$clubName}</strong>.<br><br>
+            $message = "È stata ricevuta una richiesta di accesso come <strong>presidente</strong> del circolo:<br>
+                <div style=\"text-align: center; margin: 1rem 0; font-size: 1.1em; font-weight: bold;\">{$clubName}</div>
                 Se sei tu il presidente, clicca il pulsante qui sotto. Riceverai un accesso permanente ai dati del tuo circolo su questo dispositivo.";
         } else {
             $subject = "Conferma identità: giocatore di {$clubName}";
-            $message = "È stata ricevuta una richiesta di accesso come <strong>giocatore</strong> del circolo <strong>{$clubName}</strong>.<br><br>
+            $message = "È stata ricevuta una richiesta di accesso come <strong>giocatore</strong> del circolo:<br>
+                <div style=\"text-align: center; margin: 1rem 0; font-size: 1.1em; font-weight: bold;\">{$clubName}</div>
                 Se sei tu questo giocatore, clicca il pulsante qui sotto. Riceverai un accesso permanente ai dati del tuo circolo su questo dispositivo.";
         }
     } else {
         if ($role === 'president') {
             $subject = "Identity confirmation: president of {$clubName}";
-            $message = "An access request has been received for the <strong>president</strong> of club <strong>{$clubName}</strong>.<br><br>
+            $message = "An access request has been received for the <strong>president</strong> of club:<br>
+                <div style=\"text-align: center; margin: 1rem 0; font-size: 1.1em; font-weight: bold;\">{$clubName}</div>
                 If you are the president, click the button below. You will receive permanent access to your club's data on this device.";
         } else {
             $subject = "Identity confirmation: player of {$clubName}";
-            $message = "An access request has been received for a <strong>player</strong> of club <strong>{$clubName}</strong>.<br><br>
+            $message = "An access request has been received for a <strong>player</strong> of club:<br>
+                <div style=\"text-align: center; margin: 1rem 0; font-size: 1.1em; font-weight: bold;\">{$clubName}</div>
                 If you are this player, click the button below. You will receive permanent access to your club's data on this device.";
         }
     }

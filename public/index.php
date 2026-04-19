@@ -116,7 +116,7 @@ $content = ob_get_clean();
                             : 'Add OpenELO to your home screen for instant one-tap access, just like a native app.' ?>
                     </p>
                     <button id="pwa-install-btn" class="pwa-install-btn" style="display:none;" onclick="pwaInstall()">
-                        <?= $lang === 'it' ? '&#8659; Installa l\'app' : '&#8659; Install the app' ?>
+                        <?= $lang === 'it' ? '🏠 Installa l\'app' : '🏠 Install the app' ?>
                     </button>
                     <p id="pwa-ios-hint" class="pwa-ios-hint" style="display:none;">
                         <?= $lang === 'it'

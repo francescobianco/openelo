@@ -1167,7 +1167,7 @@ tr:hover {
 
     .pwa-install-block {
         display: block;
-        margin-top: auto;
+        margin-top: 2rem;
         width: 100%;
         padding: 1rem;
         background: rgba(67, 97, 238, 0.08);
