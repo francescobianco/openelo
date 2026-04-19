@@ -24,7 +24,13 @@ $stats = [
     'matches' => $db->query("
         SELECT COUNT(*) FROM matches m
         JOIN circuits ci ON ci.id = m.circuit_id
+        JOIN players pw ON pw.id = m.white_player_id
+        JOIN players pb ON pb.id = m.black_player_id
+        JOIN clubs cw ON cw.id = pw.club_id
+        JOIN clubs cb ON cb.id = pb.club_id
         WHERE m.deleted_at IS NULL AND ci.deleted_at IS NULL
+          AND pw.deleted_at IS NULL AND pb.deleted_at IS NULL
+          AND cw.deleted_at IS NULL AND cb.deleted_at IS NULL
     ")->fetchColumn(),
 ];
 

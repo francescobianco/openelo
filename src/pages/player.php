@@ -743,7 +743,7 @@ if (!in_array($tab, ['ratings', 'matches', 'management'])) $tab = 'ratings';
     <?php endif; ?>
 
     <!-- Deletion Request Link -->
-    <div style="text-align: center; margin-top: 3rem; padding-top: 2rem;">
+    <div style="text-align: center; margin-top: 1.5rem;">
         <button onclick="openModal('deletion-modal')" class="deletion-link" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0;">
             <?= $lang === 'it' ? 'Segnala / Richiedi Eliminazione' : 'Report / Request Deletion' ?>
         </button>
