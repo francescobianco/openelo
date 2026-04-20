@@ -358,5 +358,6 @@ $content = ob_get_clean();
         }
     });
     </script>
+<?= getenv('FOOTER_CUSTOM_HTML') ?: '' ?>
 </body>
 </html>
