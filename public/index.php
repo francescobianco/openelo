@@ -323,6 +323,19 @@ $content = ob_get_clean();
         updateHomeCTA();
     }
 
+    function shareCurrentPage() {
+        var url = window.location.href;
+        var title = document.title;
+        if (navigator.share) {
+            navigator.share({ title: title, url: url });
+        } else {
+            navigator.clipboard.writeText(url).then(function() {
+                var lang = document.documentElement.lang;
+                alert(lang === 'it' ? 'Link copiato!' : 'Link copied!');
+            });
+        }
+    }
+
     function updateHomeCTA() {
         var btn = document.getElementById('home-create-btn');
         if (!btn) return;

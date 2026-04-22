@@ -888,6 +888,23 @@ tr:hover {
     filter: brightness(1.1);
 }
 
+.btn-share {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.1rem 0.2rem;
+    color: white;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+}
+
+.btn-share:hover {
+    opacity: 0.75;
+}
+
 .pwa-install-block-header {
     display: flex;
     align-items: center;
