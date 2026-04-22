@@ -42,6 +42,7 @@ $content = ob_get_clean();
 <!DOCTYPE html>
 <html lang="<?= $lang ?>">
 <head>
+<?= getenv('HEAD_CUSTOM_HTML') ?: '' ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= __('site_title') ?> - <?= __('site_tagline') ?></title>
