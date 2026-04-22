@@ -893,6 +893,7 @@ tr:hover {
     border: none;
     cursor: pointer;
     padding: 0.1rem 0.2rem;
+    margin-right: 0.5rem;
     color: white;
     line-height: 1;
     flex-shrink: 0;
