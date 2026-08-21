@@ -30,6 +30,10 @@ $stats = [
 ?>
 
 <section class="hero">
+    <span class="hero-piece hero-piece-1" aria-hidden="true">♞</span>
+    <span class="hero-piece hero-piece-2" aria-hidden="true">♜</span>
+    <span class="hero-piece hero-piece-3" aria-hidden="true">♟</span>
+    <span class="hero-piece hero-piece-4" aria-hidden="true">♛</span>
     <h1><?= __('school_hero_title') ?></h1>
     <p><?= __('school_hero_subtitle') ?></p>
     <div class="hero-buttons">
@@ -56,7 +60,7 @@ $stats = [
 <?php endif; ?>
 
 <section class="features">
-    <h2><?= __('site_tagline') ?></h2>
+    <h2><?= __('school_features_title') ?></h2>
     <div class="features-grid">
         <div class="feature-card">
             <div class="feature-icon">♜</div>
@@ -103,7 +107,24 @@ $stats = [
     </div>
 </section>
 
-<section class="hero" style="padding-top: 0;">
+<section class="fsi-section">
+    <div class="fsi-card">
+        <h2><?= __('fsi_title') ?></h2>
+        <p class="fsi-subtitle"><?= __('fsi_subtitle') ?></p>
+
+        <div class="fsi-pills">
+            <span class="fsi-pill">♟ <?= __('fsi_item_1') ?></span>
+            <span class="fsi-pill">🏆 <?= __('fsi_item_2') ?></span>
+            <span class="fsi-pill">🎒 <?= __('fsi_item_3') ?></span>
+            <span class="fsi-pill">♜ <?= __('fsi_item_4') ?></span>
+        </div>
+
+        <p class="fsi-note"><?= __('fsi_note') ?></p>
+    </div>
+</section>
+
+<section class="cta-final">
+    <h2><?= __('school_cta_title') ?></h2>
     <div class="hero-buttons">
         <a href="?page=register" class="btn btn-primary"><?= __('school_hero_cta') ?></a>
     </div>

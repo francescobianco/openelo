@@ -7,8 +7,8 @@ $translations = [
     'en' => [
         // General
         'site_title' => 'OpenELO',
-        'site_tagline' => 'Chess Courses & Schools Platform',
-        'site_description' => 'The platform for independent chess instructors and chess schools: create classes, manage students, follow their progress.',
+        'site_tagline' => 'Easily run chess courses and school workshops',
+        'site_description' => 'The simple platform for chess instructors: courses, school workshops, students and a smooth path into the Italian FSI circuit.',
         // LEGACY (rating-system mission) - kept for reference:
         // 'site_tagline' => 'Open Chess Rating System',
         // 'site_description' => 'A free, decentralized Elo rating system for chess communities outside FIDE circuits.',
@@ -163,23 +163,34 @@ $translations = [
         'nav_rating_area' => 'Rating & Circuits',
 
         // Landing page (school mission)
-        'school_hero_title' => 'Teach chess, not paperwork',
-        'school_hero_subtitle' => 'The platform for independent chess instructors and chess schools: create your classes, manage your students, follow their progress.',
-        'school_hero_cta' => 'Create your free account',
+        'school_hero_title' => 'Easily run chess courses and school workshops',
+        'school_hero_subtitle' => 'Classes, students and progress all in one place. Simple to use and ready for the Italian FSI circuit: youth games, provincial and school championships.',
+        'school_hero_cta' => 'Start for free',
         'school_hero_secondary' => 'I already have an account',
-        'school_feature_1_title' => 'Your classes',
-        'school_feature_1_desc' => 'Create a class in seconds: level, schedule, venue. Everything about your course in one place.',
-        'school_feature_2_title' => 'Your students',
-        'school_feature_2_desc' => 'One address book for every student, with guardian contacts for underage players.',
-        'school_feature_3_title' => 'Built for instructors',
-        'school_feature_3_desc' => 'Made for the independent coach: no federation, no club bureaucracy, no setup costs.',
-        'school_feature_4_title' => 'Chess ratings included',
-        'school_feature_4_desc' => 'Track each student\'s level and rating, and connect your school to an OpenELO rating circuit.',
+        'school_feature_1_title' => 'Genuinely simple',
+        'school_feature_1_desc' => 'Set up a course in thirty seconds and add your kids in a moment. Nothing to install, nothing to learn.',
+        'school_feature_2_title' => 'Courses and school workshops',
+        'school_feature_2_desc' => 'Run club courses and school workshops the same way, with parent and teacher contacts always at hand.',
+        'school_feature_3_title' => 'Ready for the FSI circuit',
+        'school_feature_3_desc' => 'Complete, tidy records: take your kids to youth games, provincial and school championships without rebuilding the lists every time.',
+        'school_feature_4_title' => 'Your kids\' progress',
+        'school_feature_4_desc' => 'Every student\'s level and rating, always up to date — from their first checkmate to their first tournament.',
+        'school_features_title' => 'Everything an instructor needs',
+        'school_cta_title' => 'Ready to start?',
         'school_how_it_works' => 'How it works',
-        'school_step_1' => 'Create your instructor account',
-        'school_step_2' => 'Create your first class',
-        'school_step_3' => 'Add your students',
-        'school_step_4' => 'Follow the course and their progress',
+        'school_step_1' => 'Create your account',
+        'school_step_2' => 'Create your course or workshop',
+        'school_step_3' => 'Add your kids',
+        'school_step_4' => 'Follow their progress and take them to tournaments',
+
+        // From the course to the tournament (FSI circuit)
+        'fsi_title' => 'From the course to the tournament, friction free',
+        'fsi_subtitle' => 'Your lists are already in the right shape for the FSI circuit.',
+        'fsi_item_1' => 'Youth games',
+        'fsi_item_2' => 'Provincial championships',
+        'fsi_item_3' => 'School tournaments',
+        'fsi_item_4' => 'Club tournaments',
+        'fsi_note' => 'OpenELO does not replace the FSI: it keeps your data tidy, so entering a team takes minutes instead of evenings.',
 
         // Auth
         'auth_login_title' => 'Log in',
@@ -239,8 +250,8 @@ $translations = [
         'dash_new_student' => 'New student',
         'dash_recent_classes' => 'Your classes',
         'dash_recent_students' => 'Latest students',
-        'dash_empty_title' => 'Let\'s start with your first class',
-        'dash_empty_desc' => 'Create a class, then add the students who attend it.',
+        'dash_empty_title' => 'Let\'s start with your first course',
+        'dash_empty_desc' => 'Create a class, then add the kids who attend it. It takes a minute.',
 
         // Classes
         'class_list_title' => 'Classes',
@@ -325,8 +336,8 @@ $translations = [
     'it' => [
         // General
         'site_title' => 'OpenELO',
-        'site_tagline' => 'Piattaforma per Corsi e Scuole di Scacchi',
-        'site_description' => 'La piattaforma per istruttori di scacchi indipendenti e scuole di scacchi: crea le tue classi, gestisci gli studenti, segui i loro progressi.',
+        'site_tagline' => 'Gestisci facilmente corsi di scacchi e laboratori scolastici',
+        'site_description' => 'La piattaforma semplice per gli istruttori di scacchi: corsi, laboratori scolastici, studenti e un passaggio agevole verso il circuito FSI.',
         // LEGACY (missione sistema di rating) - conservata per riferimento:
         // 'site_tagline' => 'Sistema di Rating Scacchistico Aperto',
         // 'site_description' => 'Un sistema Elo gratuito e decentralizzato per comunità scacchistiche fuori dai circuiti FIDE.',
@@ -481,23 +492,34 @@ $translations = [
         'nav_rating_area' => 'Rating e Circuiti',
 
         // Landing page (missione scuola)
-        'school_hero_title' => 'Insegna scacchi, non burocrazia',
-        'school_hero_subtitle' => 'La piattaforma per istruttori di scacchi indipendenti e scuole di scacchi: crea le tue classi, gestisci i tuoi studenti, segui i loro progressi.',
-        'school_hero_cta' => 'Crea il tuo account gratuito',
+        'school_hero_title' => 'Gestisci facilmente corsi di scacchi e laboratori scolastici',
+        'school_hero_subtitle' => 'Classi, studenti e progressi in un unico posto. Semplice da usare e già pronto per il circuito FSI: Giochi Giovanili, campionati provinciali e scolastici.',
+        'school_hero_cta' => 'Inizia gratis',
         'school_hero_secondary' => 'Ho già un account',
-        'school_feature_1_title' => 'Le tue classi',
-        'school_feature_1_desc' => 'Crea una classe in pochi secondi: livello, orario, sede. Tutto il tuo corso in un unico posto.',
-        'school_feature_2_title' => 'I tuoi studenti',
-        'school_feature_2_desc' => 'Un\'unica rubrica per tutti i tuoi studenti, con i contatti dei genitori per i minorenni.',
-        'school_feature_3_title' => 'Pensata per gli istruttori',
-        'school_feature_3_desc' => 'Nata per l\'istruttore indipendente: nessuna federazione, nessuna burocrazia di circolo, nessun costo di avvio.',
-        'school_feature_4_title' => 'Rating scacchistico incluso',
-        'school_feature_4_desc' => 'Tieni traccia del livello e del rating di ogni studente e collega la tua scuola a un circuito di rating OpenELO.',
+        'school_feature_1_title' => 'Semplice, davvero',
+        'school_feature_1_desc' => 'Crei un corso in trenta secondi e aggiungi i ragazzi in un attimo. Niente da installare, niente da imparare.',
+        'school_feature_2_title' => 'Corsi e laboratori scolastici',
+        'school_feature_2_desc' => 'Gestisci allo stesso modo i corsi del circolo e i laboratori nelle scuole, con i contatti di genitori e insegnanti sempre a portata di mano.',
+        'school_feature_3_title' => 'Pronto per il circuito FSI',
+        'school_feature_3_desc' => 'Anagrafiche complete e ordinate: porti i tuoi ragazzi ai Giochi Giovanili, ai campionati provinciali e scolastici senza rifare gli elenchi ogni volta.',
+        'school_feature_4_title' => 'I progressi dei tuoi ragazzi',
+        'school_feature_4_desc' => 'Livello e rating di ogni studente sempre aggiornati, dal primo scacco matto al primo torneo.',
+        'school_features_title' => 'Tutto quello che serve a un istruttore',
+        'school_cta_title' => 'Pronto a iniziare?',
         'school_how_it_works' => 'Come funziona',
-        'school_step_1' => 'Crea il tuo account istruttore',
-        'school_step_2' => 'Crea la tua prima classe',
-        'school_step_3' => 'Aggiungi i tuoi studenti',
-        'school_step_4' => 'Segui il corso e i loro progressi',
+        'school_step_1' => 'Crea il tuo account',
+        'school_step_2' => 'Crea il corso o il laboratorio',
+        'school_step_3' => 'Aggiungi i tuoi ragazzi',
+        'school_step_4' => 'Segui i progressi e portali in gara',
+
+        // Dal corso alla gara (circuito FSI)
+        'fsi_title' => 'Dal corso alla gara, senza attriti',
+        'fsi_subtitle' => 'I tuoi elenchi sono già nella forma giusta per il circuito FSI.',
+        'fsi_item_1' => 'Giochi Giovanili',
+        'fsi_item_2' => 'Campionati provinciali',
+        'fsi_item_3' => 'Tornei scolastici',
+        'fsi_item_4' => 'Tornei del circolo',
+        'fsi_note' => 'OpenELO non sostituisce la FSI: tiene in ordine i tuoi dati, così iscrivere una squadra è questione di minuti invece che di serate.',
 
         // Autenticazione
         'auth_login_title' => 'Accedi',
@@ -557,8 +579,8 @@ $translations = [
         'dash_new_student' => 'Nuovo studente',
         'dash_recent_classes' => 'Le tue classi',
         'dash_recent_students' => 'Ultimi studenti',
-        'dash_empty_title' => 'Iniziamo dalla tua prima classe',
-        'dash_empty_desc' => 'Crea una classe, poi aggiungi gli studenti che la frequentano.',
+        'dash_empty_title' => 'Iniziamo dal tuo primo corso',
+        'dash_empty_desc' => 'Crea una classe, poi aggiungi i ragazzi che la frequentano. Ci vuole un minuto.',
 
         // Classi
         'class_list_title' => 'Classi',

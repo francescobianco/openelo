@@ -1,11 +1,11 @@
 {
   "name": "OpenELO",
   "short_name": "OpenELO",
-  "description": "Piattaforma per corsi e scuole di scacchi",
+  "description": "Gestisci facilmente corsi di scacchi e laboratori scolastici",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f1a",
-  "theme_color": "#4361ee",
+  "background_color": "#F1F6FA",
+  "theme_color": "#7FB236",
   "icons": [
     {
       "src": "logo.png",

@@ -77,11 +77,14 @@ $content = ob_get_clean();
     <meta name="description" content="<?= __('site_description') ?>">
     <link rel="icon" type="image/x-icon" href="<?= asset('favicon.ico') ?>">
     <link rel="manifest" href="<?= asset('manifest.json') ?>">
-    <meta name="theme-color" content="#4361ee">
+    <meta name="theme-color" content="#7FB236">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="OpenELO">
     <link rel="apple-touch-icon" href="<?= asset('logo.png') ?>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
     <link rel="stylesheet" href="<?= asset('style.css') ?>">
 </head>
 <body>
@@ -120,7 +123,7 @@ $content = ob_get_clean();
             <nav class="nav" id="mobile-nav">
                 <a href="./" class="nav-mobile-logo">
                     <img src="<?= asset('logo.png') ?>" alt="OpenELO Logo" style="height: 36px; width: 36px; vertical-align: middle;">
-                    <span style="font-size: 1.3rem; font-weight: 700; color: #fff;">Open<span style="color: #4361ee;">ELO</span></span>
+                    <span style="font-size: 1.3rem; font-weight: 900; color: var(--text-primary);">Open<span style="color: var(--brand-orange);">ELO</span></span>
                 </a>
                 <div class="nav-links">
                     <?php if ($currentInstructor): ?>
@@ -151,9 +154,9 @@ $content = ob_get_clean();
                     <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
                     */ ?>
                 </div>
-                <div class="nav-separator"></div>
                 <?php // Language switcher: hidden while FORCE_LANG pins the site to one language (we ship IT-only for now) ?>
                 <?php if (!defined('FORCE_LANG') || FORCE_LANG === ''): ?>
+                <div class="nav-separator"></div>
                 <select class="lang-select" onchange="changeLang(this.value)">
                     <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
                     <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>
@@ -194,7 +197,7 @@ $content = ob_get_clean();
 
     <footer class="footer">
         <p>
-            <img src="<?= asset('logo.png') ?>" alt="OpenELO" style="height: 18px; width: 18px; vertical-align: middle; margin-right: 0; margin-top: -4px"> <strong style="color: #fff;">Open<span style="color: #4361ee;">ELO</span></strong> <?= __('footer_text') ?><br class="footer-break"> <a href="https://github.com/francescobianco/openelo"><?= __('footer_github') ?></a>
+            <img src="<?= asset('logo.png') ?>" alt="OpenELO" style="height: 18px; width: 18px; vertical-align: middle; margin-right: 0; margin-top: -4px"> <strong style="color: #fff;">Open<span style="color: var(--brand-orange);">ELO</span></strong> <?= __('footer_text') ?><br class="footer-break"> <a href="https://github.com/francescobianco/openelo"><?= __('footer_github') ?></a>
             ~
             <a href="?page=about"><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
             ~

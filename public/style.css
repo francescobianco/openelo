@@ -1,7 +1,62 @@
 /**
  * OpenElo - Styles
+ *
+ * Look & feel ispirato a ChessKid: luminoso, colorato, forme molto arrotondate,
+ * bottoni "giocattolo" con ombra piena sotto, tipografia tonda e generosa.
+ *
+ * I nomi delle variabili sono rimasti quelli del vecchio tema scuro, così tutte
+ * le pagine esistenti (comprese quelle legacy del sistema di rating) continuano
+ * a funzionare senza toccarne il markup: cambia solo il valore.
+ * La palette scura precedente è conservata qui sotto, commentata.
  */
 
+:root {
+    /* ── Brand ─────────────────────────────────────────────────────────── */
+    --brand-green: #7FB236;
+    --brand-green-dark: #679622;
+    --brand-orange: #FF9E1B;
+    --brand-orange-dark: #DE8207;
+    --brand-blue: #2E9BE6;
+    --brand-blue-dark: #1B7CC0;
+    --brand-purple: #8E6FE0;
+    --brand-yellow: #FFC531;
+    --brand-navy: #21374D;
+
+    /* ── Superfici ─────────────────────────────────────────────────────── */
+    --bg-primary: #F1F6FA;
+    --bg-secondary: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-soft: #E9F1F8;
+
+    /* ── Testo ─────────────────────────────────────────────────────────── */
+    --text-primary: #21374D;
+    --text-secondary: #647F97;
+
+    /* ── Tratti e accenti ──────────────────────────────────────────────── */
+    --border: #DBE6EF;
+    --accent: #7FB236;
+    --accent-hover: #679622;
+    --link: #1B7CC0;
+
+    /* ── Stato ─────────────────────────────────────────────────────────── */
+    --success: #2E9E63;
+    --warning: #DE8207;
+    --error: #E05138;
+
+    /* ── Forma ─────────────────────────────────────────────────────────── */
+    --radius-sm: 10px;
+    --radius: 16px;
+    --radius-lg: 24px;
+    --radius-pill: 999px;
+    --shadow-sm: 0 2px 6px rgba(33, 55, 77, 0.06);
+    --shadow: 0 8px 22px rgba(33, 55, 77, 0.08);
+    --shadow-lg: 0 18px 46px rgba(33, 55, 77, 0.14);
+
+    /* Tipografia: tonda e amichevole, con ripiego di sistema se Nunito non carica */
+    --font: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Trebuchet MS', Roboto, sans-serif;
+}
+
+/* LEGACY — palette scura originale, conservata per riferimento:
 :root {
     --bg-primary: #0f0f1a;
     --bg-secondary: #1a1a2e;
@@ -15,6 +70,7 @@
     --warning: #f59e0b;
     --error: #ef4444;
 }
+*/
 
 * {
     margin: 0;
@@ -23,7 +79,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-family: var(--font);
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
@@ -37,7 +93,7 @@ main {
 }
 
 a {
-    color: var(--accent);
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -159,7 +215,7 @@ a:hover {
 .nav-submit-btn:hover {
     background: var(--accent-hover) !important;
     color: white !important;
-    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+    box-shadow: 0 6px 16px rgba(255, 158, 27, 0.35);
 }
 
 .nav-separator {
@@ -409,6 +465,7 @@ a:hover {
 .step-number {
     width: 30px;
     height: 30px;
+    color: #fff;
     background: var(--accent);
     border-radius: 50%;
     display: flex;
@@ -781,8 +838,8 @@ tr:hover {
 }
 
 .badge-pending {
-    background: rgba(99, 102, 241, 0.2);
-    color: var(--accent);
+    background: rgba(46, 155, 230, 0.16);
+    color: var(--brand-blue-dark);
 }
 
 /* Create page layout */
@@ -819,12 +876,12 @@ tr:hover {
 
 @keyframes glow-pulse {
     0% {
-        box-shadow: 0 0 5px rgba(67, 97, 238, 0.3);
+        box-shadow: 0 0 5px rgba(127, 178, 54, 0.35);
         border-color: var(--accent);
     }
     50% {
-        box-shadow: 0 0 20px rgba(67, 97, 238, 0.6), 0 0 40px rgba(67, 97, 238, 0.2);
-        border-color: rgba(67, 97, 238, 0.8);
+        box-shadow: 0 0 22px rgba(127, 178, 54, 0.55), 0 0 44px rgba(255, 158, 27, 0.25);
+        border-color: rgba(127, 178, 54, 0.85);
     }
     100% {
         box-shadow: none;
@@ -894,7 +951,7 @@ tr:hover {
     cursor: pointer;
     padding: 0.1rem 0.2rem;
     margin-right: 0.5rem;
-    color: white;
+    color: var(--text-secondary);
     line-height: 1;
     flex-shrink: 0;
     transition: opacity 0.15s;
@@ -928,7 +985,7 @@ tr:hover {
 }
 
 .pwa-install-block-name span {
-    color: #4361ee;
+    color: var(--brand-orange);
 }
 
 .pwa-install-block-sub {
@@ -1022,7 +1079,7 @@ tr:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(33, 55, 77, 0.45);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -1139,7 +1196,7 @@ tr:hover {
         align-items: flex-start;
         transition: left 0.3s ease;
         z-index: 1002;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+        box-shadow: 2px 0 24px rgba(33, 55, 77, 0.18);
         overflow-y: auto;
         pointer-events: auto;
     }
@@ -1188,8 +1245,8 @@ tr:hover {
         margin-top: 2rem;
         width: 100%;
         padding: 1rem;
-        background: rgba(67, 97, 238, 0.08);
-        border: 1px solid rgba(67, 97, 238, 0.2);
+        background: rgba(127, 178, 54, 0.10);
+        border: 1px solid rgba(127, 178, 54, 0.28);
         border-radius: 10px;
         margin-bottom: 0;
         flex-shrink: 0;
@@ -1202,7 +1259,7 @@ tr:hover {
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(33, 55, 77, 0.45);
         z-index: 999;
         pointer-events: auto;
     }
@@ -1506,4 +1563,608 @@ tr:hover {
     .header-actions {
         width: 100%;
     }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOOK & FEEL — ispirato a ChessKid
+   Luminoso, colorato, tondo. Questo blocco lavora sopra le regole qui sopra:
+   la struttura delle classi non cambia, cambiano forma, ombra e colore.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body {
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+h1, h2 { font-weight: 900; }
+h3, h4 { font-weight: 800; }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.header {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 12px rgba(33, 55, 77, 0.05);
+}
+
+.logo-text {
+    font-weight: 900;
+    letter-spacing: -0.02em;
+}
+
+.logo-text span { color: var(--brand-orange); }
+
+.nav a {
+    color: var(--text-primary);
+    font-weight: 700;
+    padding: 0.4rem 0.2rem;
+    border-bottom: 3px solid transparent;
+}
+
+.nav a:hover {
+    color: var(--brand-green-dark);
+}
+
+.nav a.active {
+    color: var(--brand-green-dark);
+    border-bottom-color: var(--brand-green);
+}
+
+/* CTA in barra: arancione, il colore dell'invito */
+.nav-submit-btn {
+    background: var(--brand-orange) !important;
+    color: #fff !important;
+    border-radius: 12px !important;
+    padding: 0.55rem 1.3rem !important;
+    font-weight: 800 !important;
+    border-bottom: 3px solid var(--brand-orange-dark) !important;
+}
+
+.nav-submit-btn:hover,
+.nav-submit-btn.active {
+    background: var(--brand-orange-dark) !important;
+    border-bottom-color: var(--brand-orange-dark) !important;
+    color: #fff !important;
+}
+
+.hamburger span { background: var(--text-primary); }
+
+.lang-select {
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+/* ── Bottoni "giocattolo": pieni, tondi, con lo scalino sotto ───────────── */
+.btn {
+    border-radius: 14px;
+    font-weight: 800;
+    padding: 0.85rem 1.8rem;
+    transition: transform 0.08s ease, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary {
+    background: var(--brand-green);
+    color: #fff;
+    border-bottom: 4px solid var(--brand-green-dark);
+}
+
+.btn-primary:hover {
+    background: var(--brand-green-dark);
+    color: #fff;
+}
+
+.btn-primary:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+}
+
+.btn-secondary {
+    background: #fff;
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-bottom-width: 4px;
+}
+
+.btn-secondary:hover {
+    border-color: var(--brand-green);
+    color: var(--brand-green-dark);
+}
+
+.btn-secondary:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+}
+
+.btn-danger {
+    border-bottom: 4px solid #B93A24;
+}
+
+.btn-danger:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+}
+
+.btn-sm {
+    border-radius: 10px;
+    padding: 0.45rem 1rem;
+}
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.hero {
+    position: relative;
+    padding: 5rem 2rem 6rem;
+    background: linear-gradient(170deg, #E9F4FF 0%, #F7FBFF 55%, var(--bg-primary) 100%);
+    overflow: hidden;
+}
+
+/* Scacchiera decorativa sul bordo basso della hero */
+.hero::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 44px;
+    background-image:
+        repeating-linear-gradient(90deg, rgba(127, 178, 54, 0.16) 0 22px, transparent 22px 44px),
+        repeating-linear-gradient(90deg, transparent 0 22px, rgba(127, 178, 54, 0.16) 22px 44px);
+    background-size: 100% 22px, 100% 22px;
+    background-position: 0 0, 0 22px;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+
+.hero h1 {
+    /* niente più testo in gradiente: su fondo chiaro il pieno legge meglio */
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--text-primary);
+    font-size: 3.1rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    max-width: 16em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 46em;
+    font-weight: 600;
+}
+
+.hero-buttons { position: relative; z-index: 1; }
+
+/* ── Stat card ───────────────────────────────────────────────────────────── */
+.stats { max-width: 900px; }
+
+.stat-card {
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.6rem 1.2rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+a.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card .number {
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--brand-green);
+}
+
+.stats > *:nth-child(2) .number { color: var(--brand-orange); }
+.stats > *:nth-child(3) .number { color: var(--brand-blue); }
+.stats > *:nth-child(4) .number { color: var(--brand-purple); }
+
+.stat-card .label {
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* ── Feature card: pastiglia colorata per l'icona ────────────────────────── */
+.features h2, .how-it-works h2 {
+    font-size: 2.2rem;
+    max-width: 20em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.feature-card {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 2rem 1.8rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    font-size: 2rem;
+    opacity: 1;
+    color: var(--brand-green-dark);
+    background: rgba(127, 178, 54, 0.16);
+}
+
+.features-grid > *:nth-child(2) .feature-icon {
+    color: var(--brand-orange-dark);
+    background: rgba(255, 158, 27, 0.18);
+}
+
+.features-grid > *:nth-child(3) .feature-icon {
+    color: var(--brand-blue-dark);
+    background: rgba(46, 155, 230, 0.16);
+}
+
+.features-grid > *:nth-child(4) .feature-icon {
+    color: #6B4FC7;
+    background: rgba(142, 111, 224, 0.16);
+}
+
+.feature-card h3 { font-size: 1.3rem; }
+
+.feature-card p {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* ── Come funziona ───────────────────────────────────────────────────────── */
+.how-it-works {
+    background: var(--bg-soft);
+}
+
+.step {
+    background: #fff;
+    border: none;
+    box-shadow: var(--shadow-sm);
+    font-weight: 700;
+    padding: 0.9rem 1.6rem 0.9rem 0.9rem;
+}
+
+.step-number {
+    width: 34px;
+    height: 34px;
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+.steps > *:nth-child(2) .step-number { background: var(--brand-orange); }
+.steps > *:nth-child(3) .step-number { background: var(--brand-blue); }
+.steps > *:nth-child(4) .step-number { background: var(--brand-purple); }
+
+/* ── Dal corso alla gara: il ponte verso il circuito FSI ─────────────────── */
+.fsi-section {
+    padding: 4rem 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.fsi-card {
+    background: linear-gradient(160deg, #FFFFFF 0%, #F3F9FF 100%);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 3rem 2rem;
+}
+
+.fsi-card h2 {
+    font-size: 2rem;
+    margin-bottom: 0.6rem;
+}
+
+.fsi-subtitle {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.fsi-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.fsi-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius-pill);
+    font-weight: 800;
+    font-size: 0.98rem;
+    color: var(--brand-green-dark);
+    background: rgba(127, 178, 54, 0.14);
+}
+
+.fsi-pills > *:nth-child(2) {
+    color: var(--brand-orange-dark);
+    background: rgba(255, 158, 27, 0.16);
+}
+
+.fsi-pills > *:nth-child(3) {
+    color: var(--brand-blue-dark);
+    background: rgba(46, 155, 230, 0.14);
+}
+
+.fsi-pills > *:nth-child(4) {
+    color: #6B4FC7;
+    background: rgba(142, 111, 224, 0.14);
+}
+
+.fsi-note {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    max-width: 44em;
+    margin: 0 auto;
+}
+
+/* ── Card e sezioni ──────────────────────────────────────────────────────── */
+.card,
+.create-section,
+.auth-card,
+.circuit-card {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.circuit-card {
+    border-radius: var(--radius);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.circuit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.circuit-card-link:hover .circuit-card {
+    border-color: transparent;
+}
+
+.circuit-card h3 { font-size: 1.15rem; }
+
+.circuit-meta {
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.create-section h2 {
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.7rem;
+}
+
+.section-header h2 { font-size: 1.6rem; }
+
+/* ── Form ────────────────────────────────────────────────────────────────── */
+.form-group label {
+    font-weight: 800;
+    font-size: 0.92rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+.search-bar input[type="search"],
+.inline-form select {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: inherit;
+    font-weight: 600;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.search-bar input[type="search"]:focus {
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 4px rgba(127, 178, 54, 0.15);
+}
+
+.form-group input::placeholder { color: #9FB2C4; }
+
+.form-fieldset {
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    background: #FAFCFE;
+}
+
+.form-fieldset legend { font-weight: 800; }
+
+/* ── Alert e badge ───────────────────────────────────────────────────────── */
+.alert {
+    border-radius: var(--radius);
+    font-weight: 700;
+    border-width: 2px;
+}
+
+.alert-success { background: #EAF7F0; }
+.alert-error   { background: #FDEEEB; }
+.alert-warning { background: #FEF4E6; }
+
+.badge { font-weight: 800; }
+
+/* ── Tabelle ─────────────────────────────────────────────────────────────── */
+.table-container {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+}
+
+th {
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+    font-weight: 800;
+}
+
+th:first-child { border-top-left-radius: var(--radius); }
+th:last-child  { border-top-right-radius: var(--radius); }
+
+tr:hover { background: #F7FBFF; }
+
+tbody tr:last-child td { border-bottom: none; }
+
+.rank, .rating { color: var(--brand-green-dark); }
+
+/* ── Stato vuoto: invitante, non triste ─────────────────────────────────── */
+.empty-state {
+    background: #fff;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 3rem 2rem;
+    font-weight: 600;
+}
+
+.empty-state h2 { margin-bottom: 0.5rem; }
+
+.empty-state .feature-icon { margin-bottom: 1.2rem; }
+
+/* ── Tab ─────────────────────────────────────────────────────────────────── */
+.tab { font-weight: 800; }
+
+.tab.active { color: var(--brand-green-dark); }
+
+.tabs-dropdown-trigger {
+    border-width: 2px;
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+/* ── Menu mobile e modali ────────────────────────────────────────────────── */
+.nav { background: #fff; }
+
+.modal-content {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ── Footer: navy profondo, chiude la pagina ────────────────────────────── */
+.footer {
+    background: var(--brand-navy);
+    border-top: none;
+    color: #C7D6E3;
+    padding: 2.5rem 2rem;
+}
+
+.footer p { color: #C7D6E3; }
+
+.footer a { color: #9CC7EA; }
+
+.pwa-install-btn {
+    border-radius: 12px;
+    font-weight: 800;
+    border-bottom: 3px solid var(--brand-green-dark);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .hero {
+        padding: 3.5rem 1.25rem 4.5rem;
+    }
+
+    .hero h1 { font-size: 2.1rem; }
+
+    .hero p { font-size: 1.05rem; }
+
+    .features h2,
+    .how-it-works h2,
+    .fsi-card h2 { font-size: 1.6rem; }
+
+    .fsi-section { padding: 2.5rem 1.25rem; }
+
+    .fsi-card { padding: 2rem 1.25rem; }
+
+    .nav-links a {
+        border-bottom: 1px solid var(--border);
+    }
+
+    .nav-links a.active {
+        color: var(--brand-green-dark);
+    }
+}
+
+/* Chiusura della landing: un ultimo invito, senza fronzoli */
+.cta-final {
+    text-align: center;
+    padding: 4rem 2rem 5rem;
+    background: var(--bg-soft);
+}
+
+.cta-final h2 {
+    font-size: 1.9rem;
+    max-width: 16em;
+    margin: 0 auto 1.8rem;
+}
+
+@media (max-width: 768px) {
+    .cta-final {
+        padding: 3rem 1.25rem;
+    }
+
+    .cta-final h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Pezzi decorativi nella hero: solo scenografia, invisibili agli screen reader */
+.hero-piece {
+    position: absolute;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+    color: var(--brand-green);
+    opacity: 0.16;
+}
+
+.hero-piece-1 { top: 12%;  left: 6%;   font-size: 7rem; transform: rotate(-12deg); }
+.hero-piece-2 { top: 63%;  left: 5%;   font-size: 5rem; color: var(--brand-orange); opacity: 0.2; }
+.hero-piece-3 { top: 20%;  right: 9%;  font-size: 5rem; color: var(--brand-blue); opacity: 0.18; transform: rotate(10deg); }
+.hero-piece-4 { top: 52%;  right: 5%;  font-size: 7.5rem; color: var(--brand-purple); opacity: 0.15; }
+
+@media (max-width: 1100px) {
+    .hero-piece { display: none; }
+}
+
+/* Le sezioni della landing riusano le stesse classi delle pagine applicative.
+   Dentro un .container (dashboard, elenchi) vanno però compattate: il margine
+   negativo delle statistiche serve solo a farle salire sopra la hero. */
+.container > .stats {
+    margin: 0 0 2rem;
+    padding: 0;
+    max-width: none;
+}
+
+.container > .circuits-section,
+.container > .fsi-section {
+    padding: 0;
+    margin: 0 0 2.5rem;
+    max-width: none;
+}
+
+.container > .circuits-section .section-header {
+    margin-bottom: 1.2rem;
 }

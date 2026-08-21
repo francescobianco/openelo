@@ -1,8 +1,18 @@
 # OpenELO
 
-Platform for managing **chess courses and chess schools**, built for the
-independent chess instructor: sign up, create your classes, add your students,
-follow their progress.
+> **Gestisci facilmente corsi di scacchi e laboratori scolastici.**
+
+Platform for chess instructors running **club courses and school workshops**:
+sign up, create your classes, add your kids, follow their progress.
+
+Two things drive every decision here:
+
+1. **Simplicity** — a course is set up in thirty seconds; nothing to install,
+   nothing to learn.
+2. **A smooth path into the Italian FSI circuit** — records stay complete and
+   tidy, so taking kids to youth games, provincial and school championships
+   does not mean rebuilding the lists every time. OpenELO is not an official
+   FSI service and does not replace it.
 
 > **Mission change (August 2026).** OpenELO started as a decentralized Elo
 > rating system for chess communities outside FIDE circuits. That product is
@@ -23,6 +33,7 @@ Open http://localhost:8080
 ### Chess school platform (current mission)
 
 - Instructor accounts: sign up, log in, email verification, password reset
+- Courses and school workshops handled the same way, with parent and teacher contacts
 - Classes: level, venue, schedule, dates, max students, archive
 - Students: contacts, guardian contacts for minors, level, rating, notes
 - Enrollments: a student can attend several classes; leaving a class keeps history
@@ -57,6 +68,14 @@ The UI is fully bilingual (IT/EN), but we ship in **Italian only** for now:
 `FORCE_LANG=it` pins the language at code level and hides the language switcher.
 All English translations are kept in `src/lang.php` and come back the moment
 `FORCE_LANG` is emptied.
+
+### Look & feel
+
+The interface is inspired by ChessKid: light, colourful, very rounded, with
+chunky buttons. All of it lives in `public/style.css` — the design tokens sit
+in `:root` (the previous dark palette is kept there, commented out) and a
+final section shapes the components. Headings use **Nunito** from Google Fonts
+with a system fallback, so the site still looks right if the font cannot load.
 
 ### Legacy Hosting Support
 

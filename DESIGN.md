@@ -12,20 +12,29 @@
 
 ## 1. Visione (missione attuale)
 
-**OpenElo** è una piattaforma per **istruttori di scacchi indipendenti e scuole di scacchi**.
+> **Payoff: gestisci facilmente corsi di scacchi e laboratori scolastici.**
 
-L'obiettivo è togliere di mezzo la burocrazia dell'insegnamento:
+**OpenElo** è una piattaforma per **istruttori di scacchi** che tengono corsi
+al circolo e laboratori nelle scuole.
+
+Il filo conduttore è uno solo: **semplicità**.
 
 * l'istruttore si registra da solo, in autonomia (email + password)
-* crea le proprie **classi** (corsi)
-* carica i propri **studenti** e li iscrive alle classi
-* segue il percorso e i progressi di ogni studente
+* crea i propri **corsi e laboratori** (le "classi")
+* carica i propri **ragazzi** e li iscrive alle classi
+* segue il percorso e i progressi di ognuno
+
+Il secondo pilastro è **il passaggio agevole verso il circuito FSI**: le
+anagrafiche sono complete e ordinate, così portare i ragazzi ai **Giochi
+Giovanili**, ai **campionati provinciali** e ai **tornei scolastici** non
+significa rifare gli elenchi ogni volta.
+
+OpenElo non sostituisce la FSI e non ne è un servizio ufficiale: tiene in
+ordine i dati dell'istruttore perché quel passaggio costi minuti e non serate.
 
 Il principio chiave è:
 
-> **l'istruttore è il proprietario dei suoi dati: le sue classi, i suoi studenti.**
-
-Nessuna federazione, nessun circolo obbligatorio, nessun costo di avvio.
+> **l'istruttore è il proprietario dei suoi dati: i suoi corsi, i suoi ragazzi.**
 
 ---
 
