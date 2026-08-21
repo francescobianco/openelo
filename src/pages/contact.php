@@ -25,47 +25,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Send email to admin
         $emailSubject = getEmailSubjectPrefix() . "📧 Contact: " . $subject;
-        $emailMessage = "
-        <!DOCTYPE html>
-        <html lang='{$lang}'>
-        <head>
-            <meta charset='UTF-8'>
-            <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: #1a1a2e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-                .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-                .field { margin: 15px 0; padding: 10px; background: white; border-radius: 5px; }
-                .label { font-weight: bold; color: #4361ee; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1>OpenELO Contact Form</h1>
-                </div>
-                <div class='content'>
-                    <div class='field'>
-                        <div class='label'>" . ($lang === 'it' ? 'Nome' : 'Name') . ":</div>
-                        <div>" . htmlspecialchars($name) . "</div>
-                    </div>
-                    <div class='field'>
-                        <div class='label'>Email:</div>
-                        <div>" . htmlspecialchars($email) . "</div>
-                    </div>
-                    <div class='field'>
-                        <div class='label'>" . ($lang === 'it' ? 'Oggetto' : 'Subject') . ":</div>
-                        <div>" . htmlspecialchars($subject) . "</div>
-                    </div>
-                    <div class='field'>
-                        <div class='label'>" . ($lang === 'it' ? 'Messaggio' : 'Message') . ":</div>
-                        <div>" . nl2br(htmlspecialchars($body)) . "</div>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        ";
+        $font = "'Nunito','Trebuchet MS',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+        $logoUrl = 'https://raw.githubusercontent.com/francescobianco/openelo/main/public/logo.png';
+
+        $fields = [
+            ($lang === 'it' ? 'Nome' : 'Name')       => htmlspecialchars($name),
+            'Email'                                  => htmlspecialchars($email),
+            ($lang === 'it' ? 'Oggetto' : 'Subject') => htmlspecialchars($subject),
+            ($lang === 'it' ? 'Messaggio' : 'Message') => nl2br(htmlspecialchars($body)),
+        ];
+
+        $rows = '';
+        foreach ($fields as $label => $value) {
+            $rows .= <<<ROW
+                            <tr>
+                                <td style="padding:0 0 14px;">
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F9FC; border-radius:12px;">
+                                        <tr>
+                                            <td style="padding:14px 18px; font-family:{$font}; font-size:15px; line-height:1.6; color:#21374D; font-weight:600;">
+                                                <span style="display:block; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:#647F97; margin-bottom:4px;">{$label}</span>
+                                                {$value}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+ROW;
+        }
+
+        $title = $lang === 'it' ? 'Nuovo messaggio dal form contatti' : 'New message from the contact form';
+
+        $emailMessage = <<<HTML
+<!DOCTYPE html>
+<html lang="{$lang}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>{$title}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+    <style>
+        body { margin: 0; padding: 0; background: #F1F6FA; }
+    </style>
+</head>
+<body style="margin:0; padding:0; background:#F1F6FA; -webkit-font-smoothing:antialiased;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F1F6FA;">
+        <tr>
+            <td align="center" style="padding:28px 14px 34px;">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:100%; background:#FFFFFF; border-radius:20px; border:1px solid #DBE6EF;">
+
+                    <tr>
+                        <td align="center" style="padding:30px 24px 22px;">
+                            <img src="{$logoUrl}" alt="OpenELO" width="46" height="46" style="display:inline-block; vertical-align:middle; border:0; border-radius:12px;">
+                            <span style="display:inline-block; vertical-align:middle; margin-left:10px; font-family:{$font}; font-size:26px; font-weight:900; letter-spacing:-0.5px; color:#21374D;">Open<span style="color:#FF9E1B;">ELO</span></span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="font-size:0; line-height:0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td width="34%" height="6" style="background:#7FB236; font-size:0; line-height:0;">&nbsp;</td>
+                                    <td width="33%" height="6" style="background:#FF9E1B; font-size:0; line-height:0;">&nbsp;</td>
+                                    <td width="33%" height="6" style="background:#2E9BE6; font-size:0; line-height:0;">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:30px 34px 10px; font-family:{$font}; font-size:19px; font-weight:900; color:#21374D;">
+                            {$title}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:14px 34px 30px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+{$rows}
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+HTML;
 
         $headers = [
             'MIME-Version: 1.0',

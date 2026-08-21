@@ -6,6 +6,11 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lang.php';
 
+// Palette delle email: gli stessi colori del sito (vedi :root in public/style.css)
+define('MAIL_BUTTON_COLOR',  '#7FB236'); // verde: azione principale
+define('MAIL_BUTTON_DANGER', '#E05138'); // rosso: cancellazioni, reset password
+define('MAIL_BUTTON_INFO',   '#2E9BE6'); // blu: comunicazioni
+
 /**
  * Get email subject prefix: always "OpenELO - ", with env tag for non-production
  */
@@ -15,53 +20,137 @@ function getEmailSubjectPrefix(): string {
 }
 
 /**
- * Send confirmation email
+ * Darken a hex colour — used for the "step" under the buttons, the same
+ * toy-like look the site has.
  */
-function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl, string $buttonColor = '#4361ee'): bool {
+function darkenColor(string $hex, float $amount = 0.8): string {
+    $hex = ltrim($hex, '#');
+    if (strlen($hex) === 3) {
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    }
+    $rgb = array_map(function(string $part) use ($amount): int {
+        return max(0, min(255, (int)round(hexdec($part) * $amount)));
+    }, str_split($hex, 2));
+
+    return sprintf('#%02x%02x%02x', $rgb[0], $rgb[1], $rgb[2]);
+}
+
+/**
+ * Send confirmation email
+ *
+ * Stesso look del sito: fondo chiaro, card bianca arrotondata, bottone pieno
+ * con lo scalino sotto. È costruita con tabelle e stili inline perché i client
+ * di posta buttano via quasi tutto quello che un browser capisce; il blocco
+ * <style> serve solo ai pochi client che lo rispettano.
+ */
+function sendConfirmationEmail(string $to, string $subject, string $message, string $confirmUrl, string $buttonColor = MAIL_BUTTON_COLOR, ?string $buttonLabel = null): bool {
     $subject = getEmailSubjectPrefix() . $subject;
     $lang = getCurrentLang();
 
-    $htmlMessage = "
-    <!DOCTYPE html>
-    <html lang='{$lang}'>
-    <head>
-        <meta charset='UTF-8'>
-        <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; color: #333; margin: 0; padding: 0; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #1a1a2e; color: white; padding: 24px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-            .header img { height: 40px; width: 40px; vertical-align: middle; margin-right: 10px; }
-            .header-title { display: inline-block; vertical-align: middle; font-size: 1.6rem; font-weight: 700; letter-spacing: 0.5px; }
-            .header-title span { color: #4361ee; }
-            .content { background: #f8f9fa; padding: 32px; border-radius: 0 0 8px 8px; font-size: 16px; }
-            .content p { margin: 0 0 16px 0; font-size: 16px; }
-            .button { display: inline-block; background: {$buttonColor}; color: white !important; padding: 14px 36px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; font-size: 16px; }
-            .footer { text-align: center; color: #666; font-size: 13px; margin-top: 20px; }
-        </style>
-    </head>
-    <body>
-        <div class='container'>
-            <div class='header'>
-                <img src='https://raw.githubusercontent.com/francescobianco/openelo/main/public/logo.png' alt='OpenELO' width='40' height='40'>
-                <span class='header-title'>Open<span>ELO</span></span>
-            </div>
-            <div class='content'>
-                <p>{$message}</p>
-                <p style='text-align: center;'>
-                    <a href='{$confirmUrl}' class='button'>" . ($lang === 'it' ? 'Conferma' : 'Confirm') . "</a>
-                </p>
-                <p style='font-size: 13px; color: #666;'>
-                    " . ($lang === 'it' ? 'Oppure copia questo link:' : 'Or copy this link:') . "<br>
-                    <code style='font-size: 12px; word-break: break-all;'>{$confirmUrl}</code>
-                </p>
-            </div>
-            <div class='footer'>
-                <p>OpenELO - " . __('site_tagline') . "</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    ";
+    $buttonShadow = darkenColor($buttonColor, 0.78);
+    $confirmLabel = $buttonLabel ?: ($lang === 'it' ? 'Conferma' : 'Confirm');
+    $copyLabel    = $lang === 'it' ? 'Oppure copia e incolla questo link nel browser:' : 'Or copy and paste this link into your browser:';
+    $tagline      = __('site_tagline');
+    $logoUrl      = 'https://raw.githubusercontent.com/francescobianco/openelo/main/public/logo.png';
+    $font         = "'Nunito','Trebuchet MS',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+
+    $htmlMessage = <<<HTML
+<!DOCTYPE html>
+<html lang="{$lang}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+    <title>{$subject}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
+    <style>
+        body { margin: 0; padding: 0; background: #F1F6FA; }
+        @media only screen and (max-width: 620px) {
+            .pad-side { padding-left: 22px !important; padding-right: 22px !important; }
+            .btn-link { padding: 15px 28px !important; font-size: 16px !important; }
+        }
+    </style>
+</head>
+<body style="margin:0; padding:0; background:#F1F6FA; -webkit-font-smoothing:antialiased;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F1F6FA;">
+        <tr>
+            <td align="center" style="padding:28px 14px 34px;">
+
+                <!-- Card -->
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:100%; background:#FFFFFF; border-radius:20px; border:1px solid #DBE6EF;">
+
+                    <!-- Testata con il logo -->
+                    <tr>
+                        <td align="center" style="padding:30px 24px 22px;">
+                            <img src="{$logoUrl}" alt="OpenELO" width="46" height="46" style="display:inline-block; vertical-align:middle; border:0; border-radius:12px;">
+                            <span style="display:inline-block; vertical-align:middle; margin-left:10px; font-family:{$font}; font-size:26px; font-weight:900; letter-spacing:-0.5px; color:#21374D;">Open<span style="color:#FF9E1B;">ELO</span></span>
+                        </td>
+                    </tr>
+
+                    <!-- Filo colorato di brand -->
+                    <tr>
+                        <td style="font-size:0; line-height:0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td width="34%" height="6" style="background:#7FB236; font-size:0; line-height:0;">&nbsp;</td>
+                                    <td width="33%" height="6" style="background:#FF9E1B; font-size:0; line-height:0;">&nbsp;</td>
+                                    <td width="33%" height="6" style="background:#2E9BE6; font-size:0; line-height:0;">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Messaggio -->
+                    <tr>
+                        <td class="pad-side" style="padding:34px 40px 4px; font-family:{$font}; font-size:17px; line-height:1.7; color:#21374D; font-weight:400;">
+                            {$message}
+                        </td>
+                    </tr>
+
+                    <!-- Bottone -->
+                    <tr>
+                        <td align="center" style="padding:26px 40px 30px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td align="center" style="background:{$buttonColor}; border-radius:14px; border-bottom:4px solid {$buttonShadow};">
+                                        <a class="btn-link" href="{$confirmUrl}" style="display:inline-block; padding:16px 42px; font-family:{$font}; font-size:17px; font-weight:800; color:#FFFFFF; text-decoration:none;">{$confirmLabel}</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Link di ripiego, per chi non può cliccare il bottone -->
+                    <tr>
+                        <td class="pad-side" style="padding:0 40px 34px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F9FC; border-radius:12px;">
+                                <tr>
+                                    <td style="padding:16px 18px; font-family:{$font}; font-size:13px; line-height:1.6; color:#647F97; font-weight:600;">
+                                        {$copyLabel}<br>
+                                        <span style="font-size:12px; color:#1B7CC0; word-break:break-all;">{$confirmUrl}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Piè di pagina -->
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:100%;">
+                    <tr>
+                        <td align="center" style="padding:22px 20px 0; font-family:{$font}; font-size:13px; line-height:1.6; color:#8298AC; font-weight:600;">
+                            <strong style="color:#647F97;">OpenELO</strong> &middot; {$tagline}
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+HTML;
 
     $headers = [
         'MIME-Version: 1.0',
@@ -281,7 +370,7 @@ function sendDeletionRequest(string $to, string $entityType, string $entityName,
             Click the button below to approve or reject the request.";
     }
 
-    return sendConfirmationEmail($to, $subject, $message, $url, '#dc2626');
+    return sendConfirmationEmail($to, $subject, $message, $url, MAIL_BUTTON_DANGER);
 }
 
 /**
@@ -464,13 +553,15 @@ function sendInstructorVerification(string $email, string $name, string $token):
 
     if ($lang === 'it') {
         $subject = "Conferma il tuo account istruttore";
-        $message = "Ciao <strong>{$name}</strong>,<br><br>benvenuto! Il tuo account istruttore è stato creato.<br><br>Clicca il pulsante qui sotto per confermare il tuo indirizzo email e attivare tutte le funzioni della piattaforma.";
+        $message = "Ciao <strong>{$name}</strong>,<br><br>il tuo account istruttore è pronto.<br><br>Conferma il tuo indirizzo email con il pulsante qui sotto per attivare tutte le funzioni della piattaforma.";
+        $button  = "Conferma la mia email";
     } else {
         $subject = "Confirm your instructor account";
-        $message = "Hi <strong>{$name}</strong>,<br><br>welcome! Your instructor account has been created.<br><br>Click the button below to confirm your email address and unlock all platform features.";
+        $message = "Hi <strong>{$name}</strong>,<br><br>your instructor account is ready.<br><br>Confirm your email address with the button below to unlock all platform features.";
+        $button  = "Confirm my email";
     }
 
-    return sendConfirmationEmail($email, $subject, $message, $url);
+    return sendConfirmationEmail($email, $subject, $message, $url, MAIL_BUTTON_COLOR, $button);
 }
 
 /**
@@ -482,13 +573,15 @@ function sendInstructorPasswordReset(string $email, string $name, string $token)
 
     if ($lang === 'it') {
         $subject = "Reimposta la tua password";
-        $message = "Ciao <strong>{$name}</strong>,<br><br>abbiamo ricevuto una richiesta di reimpostazione della password del tuo account istruttore.<br><br>Clicca il pulsante qui sotto per scegliere una nuova password. Se non hai richiesto tu questa operazione, puoi ignorare questa email.";
+        $message = "Ciao <strong>{$name}</strong>,<br><br>abbiamo ricevuto una richiesta di reimpostazione della password del tuo account istruttore.<br><br>Scegli una nuova password con il pulsante qui sotto. Se non hai richiesto tu questa operazione, puoi ignorare questa email.";
+        $button  = "Scegli una nuova password";
     } else {
         $subject = "Reset your password";
-        $message = "Hi <strong>{$name}</strong>,<br><br>we received a request to reset the password of your instructor account.<br><br>Click the button below to choose a new password. If you did not request this, you can safely ignore this email.";
+        $message = "Hi <strong>{$name}</strong>,<br><br>we received a request to reset the password of your instructor account.<br><br>Choose a new password with the button below. If you did not request this, you can safely ignore this email.";
+        $button  = "Choose a new password";
     }
 
-    return sendConfirmationEmail($email, $subject, $message, $url, '#e63946');
+    return sendConfirmationEmail($email, $subject, $message, $url, MAIL_BUTTON_DANGER, $button);
 }
 
 /**
@@ -501,10 +594,12 @@ function sendStudentClassInvite(string $email, string $studentName, string $clas
     if ($lang === 'it') {
         $subject = "Iscrizione al corso: {$className}";
         $message = "Ciao,<br><br><strong>{$instructorName}</strong> ha iscritto <strong>{$studentName}</strong> al corso <strong>{$className}</strong>.<br><br>Riceverai qui gli aggiornamenti relativi al corso.";
+        $button  = "Vai a OpenELO";
     } else {
         $subject = "Enrolled in class: {$className}";
         $message = "Hi,<br><br><strong>{$instructorName}</strong> enrolled <strong>{$studentName}</strong> in the class <strong>{$className}</strong>.<br><br>You will receive class updates at this address.";
+        $button  = "Go to OpenELO";
     }
 
-    return sendConfirmationEmail($email, $subject, $message, $url, '#2a9d8f');
+    return sendConfirmationEmail($email, $subject, $message, $url, MAIL_BUTTON_INFO, $button);
 }
