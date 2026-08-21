@@ -450,3 +450,61 @@ function sendCircuitFormulaConfirmation(string $managerEmail, string $circuitNam
 
     return sendConfirmationEmail($managerEmail, $subject, $message, $url);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chess School Platform - Instructor account emails
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Send a plain (non-confirmation) notification email using the same template.
+ */
+function sendInstructorVerification(string $email, string $name, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=verify&token=' . $token;
+
+    if ($lang === 'it') {
+        $subject = "Conferma il tuo account istruttore";
+        $message = "Ciao <strong>{$name}</strong>,<br><br>benvenuto! Il tuo account istruttore è stato creato.<br><br>Clicca il pulsante qui sotto per confermare il tuo indirizzo email e attivare tutte le funzioni della piattaforma.";
+    } else {
+        $subject = "Confirm your instructor account";
+        $message = "Hi <strong>{$name}</strong>,<br><br>welcome! Your instructor account has been created.<br><br>Click the button below to confirm your email address and unlock all platform features.";
+    }
+
+    return sendConfirmationEmail($email, $subject, $message, $url);
+}
+
+/**
+ * Password reset link for an instructor.
+ */
+function sendInstructorPasswordReset(string $email, string $name, string $token): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/?page=reset_password&token=' . $token;
+
+    if ($lang === 'it') {
+        $subject = "Reimposta la tua password";
+        $message = "Ciao <strong>{$name}</strong>,<br><br>abbiamo ricevuto una richiesta di reimpostazione della password del tuo account istruttore.<br><br>Clicca il pulsante qui sotto per scegliere una nuova password. Se non hai richiesto tu questa operazione, puoi ignorare questa email.";
+    } else {
+        $subject = "Reset your password";
+        $message = "Hi <strong>{$name}</strong>,<br><br>we received a request to reset the password of your instructor account.<br><br>Click the button below to choose a new password. If you did not request this, you can safely ignore this email.";
+    }
+
+    return sendConfirmationEmail($email, $subject, $message, $url, '#e63946');
+}
+
+/**
+ * Invite a student (or their guardian) to a class.
+ */
+function sendStudentClassInvite(string $email, string $studentName, string $className, string $instructorName): bool {
+    $lang = getCurrentLang();
+    $url = BASE_URL . '/';
+
+    if ($lang === 'it') {
+        $subject = "Iscrizione al corso: {$className}";
+        $message = "Ciao,<br><br><strong>{$instructorName}</strong> ha iscritto <strong>{$studentName}</strong> al corso <strong>{$className}</strong>.<br><br>Riceverai qui gli aggiornamenti relativi al corso.";
+    } else {
+        $subject = "Enrolled in class: {$className}";
+        $message = "Hi,<br><br><strong>{$instructorName}</strong> enrolled <strong>{$studentName}</strong> in the class <strong>{$className}</strong>.<br><br>You will receive class updates at this address.";
+    }
+
+    return sendConfirmationEmail($email, $subject, $message, $url, '#2a9d8f');
+}

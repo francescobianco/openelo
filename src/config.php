@@ -44,4 +44,11 @@ define('ELO_HIGH_RATING', 2200);
 
 // Lingue supportate
 define('SUPPORTED_LANGS', ['it', 'en']);
-define('DEFAULT_LANG', getenv('DEFAULT_LANG') ?: 'en');
+define('DEFAULT_LANG', getenv('DEFAULT_LANG') ?: 'it');
+
+// Lingua forzata a livello di codice.
+// Il multilingua resta una feature completa e funzionante (tutte le traduzioni
+// EN sono mantenute), ma andiamo online solo in italiano: finché FORCE_LANG
+// è valorizzato, il rilevamento lingua e il selettore in pagina sono disattivati.
+// Per riattivare il multilingua: FORCE_LANG='' (env) oppure svuotare il default qui sotto.
+define('FORCE_LANG', getenv('FORCE_LANG') !== false ? getenv('FORCE_LANG') : 'it');

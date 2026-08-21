@@ -1,23 +1,44 @@
 # OpenELO
 
-Open source chess rating system based on Elo, designed for tournaments and matches outside the FIDE circuit.
+Platform for managing **chess courses and chess schools**, built for the
+independent chess instructor: sign up, create your classes, add your students,
+follow their progress.
+
+> **Mission change (August 2026).** OpenELO started as a decentralized Elo
+> rating system for chess communities outside FIDE circuits. That product is
+> **still in the repository and still working** (see [Legacy](#legacy-rating-system)),
+> it is simply no longer the main entry point. See `DESIGN.md`.
 
 ## Quick Start
 
 ```bash
 docker compose up -d
+php -f migrate.php   # or visit /migrate.php
 ```
 
 Open http://localhost:8080
 
 ## Features
 
+### Chess school platform (current mission)
+
+- Instructor accounts: sign up, log in, email verification, password reset
+- Classes: level, venue, schedule, dates, max students, archive
+- Students: contacts, guardian contacts for minors, level, rating, notes
+- Enrollments: a student can attend several classes; leaving a class keeps history
+- Every query is scoped to the logged-in instructor: no data is ever shared
+
+### Legacy rating system
+
+Still available, just unlinked from the main navigation:
+
 - Decentralized rating system based on trust circuits
-- No login/password - everything works via email confirmations
-- Double validation for clubs and players
-- Triple validation for match results
+- No login/password — everything works via email confirmations
+- Double validation for clubs and players, triple validation for match results
 - FIDE-style K factor (40/20/10)
-- Multi-language support (EN/IT)
+
+Reachable at `?page=home_rating`, `?page=circuits`, `?page=clubs`,
+`?page=players`, `?page=matches`, `?page=create`, `?page=submit`.
 
 ## Configuration
 
@@ -25,9 +46,17 @@ Copy `.env.example` to `.env` and configure:
 
 - `BASE_URL` - Your app URL
 - `SMTP_*` - Email settings for production
-- `DEFAULT_LANG` - Default language (en/it)
+- `FORCE_LANG` - Pin the UI to one language (default `it`; set to empty to re-enable the language switcher)
+- `DEFAULT_LANG` - Default language when `FORCE_LANG` is empty (en/it)
 - `DB_TYPE` - Database type: `sqlite` (default) or `mysql`
 - `DB_*` - Database connection settings (for MySQL)
+
+### Language
+
+The UI is fully bilingual (IT/EN), but we ship in **Italian only** for now:
+`FORCE_LANG=it` pins the language at code level and hides the language switcher.
+All English translations are kept in `src/lang.php` and come back the moment
+`FORCE_LANG` is emptied.
 
 ### Legacy Hosting Support
 
@@ -48,15 +77,3 @@ php -f migrate.php
 # Or visit in browser (legacy hosting)
 https://yourdomain.com/migrate.php
 ```
-
-**Supported Databases:**
-- SQLite (default, no setup required)
-- MySQL/MariaDB
-
-## Development
-
-Emails are saved to `data/emails/` when SMTP is not configured.
-
-## License
-
-MIT

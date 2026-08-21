@@ -1,148 +1,110 @@
 <?php
 /**
- * OpenElo - Home Page
+ * Chess School Platform - Landing page
+ *
+ * New mission: a platform to run chess courses and chess schools, with the
+ * independent instructor as the primary user.
+ *
+ * The previous landing page (decentralized Elo rating system) is preserved
+ * untouched in src/pages/home_rating.php and is still reachable at
+ * ?page=home_rating.
  */
+
+require_once SRC_PATH . '/auth.php';
+
+// Logged-in instructors go straight to their dashboard: the landing page is
+// for visitors only.
+if (isLoggedIn()) {
+    header('Location: ?page=dashboard');
+    exit;
+}
 
 $db = Database::get();
 
-// Get stats
+// Platform-wide numbers (only shown once there is something to show)
 $stats = [
-    'circuits' => $db->query("SELECT COUNT(*) FROM circuits WHERE confirmed = 1 AND deleted_at IS NULL")->fetchColumn(),
-    'clubs' => $db->query("
-        SELECT COUNT(*) FROM clubs c
-        WHERE c.president_confirmed = 1
-        AND c.deleted_at IS NULL
-        AND EXISTS (SELECT 1 FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1)
-    ")->fetchColumn(),
-    'players' => $db->query("
-        SELECT COUNT(*) FROM players p
-        JOIN clubs c ON c.id = p.club_id
-        WHERE p.confirmed = 1 AND p.deleted_at IS NULL
-          AND c.deleted_at IS NULL AND c.president_confirmed = 1
-          AND EXISTS (SELECT 1 FROM circuit_clubs cc WHERE cc.club_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1)
-    ")->fetchColumn(),
-    'matches' => $db->query("
-        SELECT COUNT(*) FROM matches m
-        JOIN circuits ci ON ci.id = m.circuit_id
-        JOIN players pw ON pw.id = m.white_player_id
-        JOIN players pb ON pb.id = m.black_player_id
-        JOIN clubs cw ON cw.id = pw.club_id
-        JOIN clubs cb ON cb.id = pb.club_id
-        WHERE m.deleted_at IS NULL AND ci.deleted_at IS NULL
-          AND pw.deleted_at IS NULL AND pb.deleted_at IS NULL
-          AND cw.deleted_at IS NULL AND cb.deleted_at IS NULL
-    ")->fetchColumn(),
+    'instructors' => (int)$db->query("SELECT COUNT(*) FROM instructors WHERE deleted_at IS NULL AND status = 'active'")->fetchColumn(),
+    'classes'     => (int)$db->query("SELECT COUNT(*) FROM classes WHERE deleted_at IS NULL")->fetchColumn(),
+    'students'    => (int)$db->query("SELECT COUNT(*) FROM students WHERE deleted_at IS NULL")->fetchColumn(),
 ];
-
-// Get recent circuits
-$circuits = $db->query("
-    SELECT c.*,
-        (SELECT COUNT(*) FROM circuit_clubs cc WHERE cc.circuit_id = c.id AND cc.club_confirmed = 1 AND cc.circuit_confirmed = 1) as club_count,
-        (SELECT COUNT(DISTINCT p.id) FROM players p JOIN circuit_clubs cc2 ON cc2.club_id = p.club_id WHERE cc2.circuit_id = c.id AND cc2.club_confirmed = 1 AND cc2.circuit_confirmed = 1 AND p.confirmed = 1 AND p.deleted_at IS NULL) as player_count
-    FROM circuits c
-    WHERE c.confirmed = 1
-    AND c.deleted_at IS NULL
-    ORDER BY c.created_at DESC
-    LIMIT 6
-")->fetchAll();
 ?>
 
 <section class="hero">
-    <h1><?= __('hero_title') ?></h1>
-    <p><?= __('hero_subtitle') ?></p>
+    <h1><?= __('school_hero_title') ?></h1>
+    <p><?= __('school_hero_subtitle') ?></p>
     <div class="hero-buttons">
-        <a href="?page=circuits" class="btn btn-primary"><?= __('hero_cta') ?></a>
-        <a href="?page=create&highlight=circuit" class="btn btn-secondary" id="home-create-btn"><?= __('hero_create') ?></a>
+        <a href="?page=register" class="btn btn-primary"><?= __('school_hero_cta') ?></a>
+        <a href="?page=login" class="btn btn-secondary"><?= __('school_hero_secondary') ?></a>
     </div>
 </section>
 
+<?php if ($stats['instructors'] > 0): ?>
 <section class="stats">
-    <a href="?page=circuits" class="stat-card" style="text-decoration: none;">
-        <div class="number"><?= $stats['circuits'] ?></div>
-        <div class="label"><?= __('nav_circuits') ?></div>
-    </a>
-    <a href="?page=clubs" class="stat-card" style="text-decoration: none;">
-        <div class="number"><?= $stats['clubs'] ?></div>
-        <div class="label"><?= __('circuit_clubs') ?></div>
-    </a>
-    <a href="?page=players" class="stat-card" style="text-decoration: none;">
-        <div class="number"><?= $stats['players'] ?></div>
-        <div class="label"><?= __('circuit_players') ?></div>
-    </a>
-    <a href="?page=matches" class="stat-card" style="text-decoration: none;">
-        <div class="number"><?= $stats['matches'] ?></div>
-        <div class="label"><?= __('circuit_matches') ?></div>
-    </a>
+    <div class="stat-card">
+        <div class="number"><?= $stats['instructors'] ?></div>
+        <div class="label"><?= getCurrentLang() === 'it' ? 'Istruttori' : 'Instructors' ?></div>
+    </div>
+    <div class="stat-card">
+        <div class="number"><?= $stats['classes'] ?></div>
+        <div class="label"><?= __('nav_classes') ?></div>
+    </div>
+    <div class="stat-card">
+        <div class="number"><?= $stats['students'] ?></div>
+        <div class="label"><?= __('nav_students') ?></div>
+    </div>
 </section>
+<?php endif; ?>
 
 <section class="features">
     <h2><?= __('site_tagline') ?></h2>
     <div class="features-grid">
         <div class="feature-card">
             <div class="feature-icon">♜</div>
-            <h3><?= __('feature_1_title') ?></h3>
-            <p><?= __('feature_1_desc') ?></p>
+            <h3><?= __('school_feature_1_title') ?></h3>
+            <p><?= __('school_feature_1_desc') ?></p>
         </div>
         <div class="feature-card">
             <div class="feature-icon">♝</div>
-            <h3><?= __('feature_2_title') ?></h3>
-            <p><?= __('feature_2_desc') ?></p>
+            <h3><?= __('school_feature_2_title') ?></h3>
+            <p><?= __('school_feature_2_desc') ?></p>
         </div>
         <div class="feature-card">
             <div class="feature-icon">♛</div>
-            <h3><?= __('feature_3_title') ?></h3>
-            <p><?= __('feature_3_desc') ?></p>
+            <h3><?= __('school_feature_3_title') ?></h3>
+            <p><?= __('school_feature_3_desc') ?></p>
         </div>
         <div class="feature-card">
             <div class="feature-icon">♚</div>
-            <h3><?= __('feature_4_title') ?></h3>
-            <p><?= __('feature_4_desc') ?></p>
+            <h3><?= __('school_feature_4_title') ?></h3>
+            <p><?= __('school_feature_4_desc') ?></p>
         </div>
     </div>
 </section>
 
 <section class="how-it-works">
-    <h2><?= __('how_it_works') ?></h2>
+    <h2><?= __('school_how_it_works') ?></h2>
     <div class="steps">
         <div class="step">
             <div class="step-number">1</div>
-            <span><?= __('step_1') ?></span>
+            <span><?= __('school_step_1') ?></span>
         </div>
         <div class="step">
             <div class="step-number">2</div>
-            <span><?= __('step_2') ?></span>
+            <span><?= __('school_step_2') ?></span>
         </div>
         <div class="step">
             <div class="step-number">3</div>
-            <span><?= __('step_3') ?></span>
+            <span><?= __('school_step_3') ?></span>
         </div>
         <div class="step">
             <div class="step-number">4</div>
-            <span><?= __('step_4') ?></span>
-        </div>
-        <div class="step">
-            <div class="step-number">5</div>
-            <span><?= __('step_5') ?></span>
+            <span><?= __('school_step_4') ?></span>
         </div>
     </div>
 </section>
 
-<?php if (!empty($circuits)): ?>
-<section class="circuits-section">
-    <div class="section-header">
-        <h2><?= __('nav_circuits') ?></h2>
-        <a href="?page=circuits" class="btn btn-secondary"><?= __('hero_cta') ?></a>
-    </div>
-    <div class="circuits-grid">
-        <?php foreach ($circuits as $circuit): ?>
-        <div class="circuit-card">
-            <h3><a href="?page=circuit&id=<?= $circuit['id'] ?>"><?= htmlspecialchars($circuit['name']) ?></a></h3>
-            <div class="circuit-meta">
-                <span><?= $circuit['club_count'] ?> <?= __('circuit_clubs') ?></span>
-                <span><?= $circuit['player_count'] ?> <?= __('circuit_players') ?></span>
-            </div>
-        </div>
-        <?php endforeach; ?>
+<section class="hero" style="padding-top: 0;">
+    <div class="hero-buttons">
+        <a href="?page=register" class="btn btn-primary"><?= __('school_hero_cta') ?></a>
     </div>
 </section>
-<?php endif; ?>

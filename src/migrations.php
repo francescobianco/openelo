@@ -25,4 +25,8 @@ return [
     '20240101000011_add_circuit_formula',
     '20240101000012_add_ladder_position',
     '20240101000013_add_circuit_description',
+
+    // --- Chess School Platform (instructors / classes / students) ---
+    '20260821000001_create_instructors',
+    '20260821000002_create_classes_and_students',
 ];

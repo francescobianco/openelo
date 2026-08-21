@@ -1318,3 +1318,192 @@ tr:hover {
         order: 3;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Chess School Platform (instructors / classes / students)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Auth pages (login, register, password reset) */
+.auth-container {
+    max-width: 620px;
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+}
+
+.auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2.5rem;
+}
+
+.auth-card h1 {
+    font-size: 1.7rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.auth-alt {
+    text-align: center;
+    margin-top: 1.2rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* Forms: two fields side by side, textareas, hints, fieldsets */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.form-group label small {
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.form-fieldset {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.2rem 0.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-fieldset legend {
+    padding: 0 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn-block {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.btn-danger {
+    background: var(--error);
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.danger-zone {
+    margin-top: 2rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+/* Page header actions */
+.header-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Definition list used on the student card */
+.detail-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem 2rem;
+}
+
+.detail-list dt {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.detail-list dd {
+    margin: 0.2rem 0 0;
+}
+
+/* Search bar + compact inline forms */
+.search-bar {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-bar input[type="search"] {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.search-bar input[type="search"]:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.inline-form {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.inline-form select {
+    padding: 0.6rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .auth-card {
+        padding: 1.5rem;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+}

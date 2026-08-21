@@ -1,7 +1,7 @@
 {
   "name": "OpenELO",
   "short_name": "OpenELO",
-  "description": "Open Chess Rating System",
+  "description": "Piattaforma per corsi e scuole di scacchi",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f0f1a",

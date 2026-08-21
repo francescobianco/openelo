@@ -1,5 +1,138 @@
 # OpenElo – Design Document
 
+> **Nota di missione (agosto 2026).**
+> Il progetto cambia missione: da sistema di rating decentralizzato a
+> **piattaforma per la gestione di corsi e scuole di scacchi**.
+> L'utente principale è **l'istruttore indipendente**.
+> Il documento originale sul sistema di rating è conservato integralmente in
+> [Appendice A](#appendice-a--missione-precedente-sistema-di-rating): non è
+> stato eliminato nulla, né dai documenti né dal codice.
+
+---
+
+## 1. Visione (missione attuale)
+
+**OpenElo** è una piattaforma per **istruttori di scacchi indipendenti e scuole di scacchi**.
+
+L'obiettivo è togliere di mezzo la burocrazia dell'insegnamento:
+
+* l'istruttore si registra da solo, in autonomia (email + password)
+* crea le proprie **classi** (corsi)
+* carica i propri **studenti** e li iscrive alle classi
+* segue il percorso e i progressi di ogni studente
+
+Il principio chiave è:
+
+> **l'istruttore è il proprietario dei suoi dati: le sue classi, i suoi studenti.**
+
+Nessuna federazione, nessun circolo obbligatorio, nessun costo di avvio.
+
+---
+
+## 2. Utente principale
+
+L'**istruttore indipendente**:
+
+* insegna scacchi per conto proprio o dentro una scuola/accademia
+* ha un account vero (registrazione con email e password)
+* vede **solo** le proprie classi e i propri studenti (isolamento totale per istruttore)
+* può indicare il nome della sua scuola/accademia nel profilo
+
+In futuro: scuole con più istruttori, ruoli, genitori con accesso in lettura.
+
+---
+
+## 3. Concetti fondamentali (missione attuale)
+
+### 3.1 Istruttore (`instructors`)
+
+Account della piattaforma. Registrazione libera, conferma email (non bloccante:
+l'account è già usabile, il link serve a verificare l'indirizzo), reset password.
+
+### 3.2 Classe (`classes`)
+
+Un corso tenuto da un istruttore: nome, livello, sede, orario, date di inizio/fine,
+numero massimo di studenti, stato (`active` / `archived`).
+
+### 3.3 Studente (`students`)
+
+Una persona seguita dall'istruttore: anagrafica, contatti, contatti del genitore
+per i minorenni, livello, rating, note.
+Uno studente appartiene a **un** istruttore e può frequentare **più classi**.
+
+### 3.4 Iscrizione (`class_students`)
+
+Il legame studente ↔ classe. Le rimozioni sono "soft" (`status = 'left'`):
+lo storico delle iscrizioni non viene mai perso.
+
+---
+
+## 4. Modello dati (missione attuale)
+
+```
+instructors ──< classes ──< class_students >── students >── instructors
+     │                                                          │
+     └──< instructor_tokens (verifica email, reset password)     │
+                                                                 │
+students.player_id ─ ─ ─ (ponte opzionale verso il modello legacy `players`)
+```
+
+Ogni query dell'area scuola è filtrata per `instructor_id`: un istruttore non
+può in nessun caso vedere o modificare i dati di un altro.
+
+---
+
+## 5. Rapporto con il sistema di rating legacy
+
+Il sistema di rating (circuiti, circoli, giocatori, partite, Elo) **non è stato
+rimosso**: codice, tabelle e pagine sono intatti e ancora raggiungibili via URL
+(`?page=circuits`, `?page=home_rating`, ecc.), semplicemente non sono più
+collegati nella navigazione principale.
+
+L'ipotesi di riuso è precisa:
+
+| Legacy            | Scuola                                           |
+|-------------------|--------------------------------------------------|
+| circuito          | rete di scuole che si riconoscono a vicenda      |
+| società / circolo | la scuola dell'istruttore                        |
+| giocatore         | studente promosso a giocatore con rating         |
+| partita validata  | partita interna al corso / torneo di classe      |
+
+Il campo `students.player_id` è già predisposto come ponte fra i due mondi.
+
+---
+
+## 6. Lingua
+
+Il multilingua (IT/EN) resta una feature completa: tutte le traduzioni inglesi
+sono mantenute. Per il lancio però la lingua è **forzata a italiano** via
+`FORCE_LANG` (`src/config.php`), e il selettore di lingua è nascosto.
+Per riattivare il multilingua basta impostare `FORCE_LANG=''`.
+
+---
+
+## 7. Roadmap (da definire progressivamente)
+
+Prossime funzioni candidate, in ordine di utilità per l'istruttore:
+
+* lezioni e calendario del corso
+* registro presenze
+* pagamenti / quote di iscrizione
+* materiale didattico ed esercizi assegnati
+* progressi e valutazioni per studente
+* comunicazioni ai genitori
+* tornei interni alla scuola (aggancio al motore Elo legacy)
+
+---
+
+---
+
+# Appendice A — Missione precedente (sistema di rating)
+
+> Tutto quanto segue descrive la missione originale del progetto.
+> È conservato per riferimento: il codice corrispondente è ancora nel repository
+> e funzionante.
+
 ## 1. Visione
 
 **OpenElo** è un sistema open-source di rating scacchistico basato su Elo, pensato per tornei e partite **fuori dal circuito FIDE**, con l’obiettivo di:

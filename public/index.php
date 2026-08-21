@@ -16,13 +16,32 @@ require_once SRC_PATH . '/db.php';
 
 session_start();
 
+// Instructor authentication (chess school platform)
+require_once SRC_PATH . '/auth.php';
+
 // Initialize language before any output (sets cookie if needed)
 initLang();
 $lang = getCurrentLang();
 $page = $_GET['page'] ?? 'home';
 
 // Valid pages
-$validPages = ['home', 'circuits', 'clubs', 'players', 'matches', 'circuit', 'club', 'player', 'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact', 'about', 'security', 'api', 'favorites', 'formulas'];
+// --- Chess school platform (current mission) ---
+$schoolPages = [
+    'home', 'register', 'login', 'logout', 'verify', 'forgot_password', 'reset_password',
+    'dashboard', 'classes', 'class_detail', 'students', 'student_detail', 'account',
+];
+
+// --- Legacy OpenELO rating system (circuits / clubs / players / matches) ---
+// Kept fully working and reachable by URL, just no longer linked in the main nav.
+// Nothing here has been removed: this business logic will likely come back into
+// the school product (a school joins a circuit, students become rated players).
+$legacyPages = [
+    'home_rating', 'circuits', 'clubs', 'players', 'matches', 'circuit', 'club', 'player',
+    'player_history', 'create', 'submit', 'confirm', 'match', 'deletion', 'contact',
+    'about', 'security', 'api', 'favorites', 'formulas',
+];
+
+$validPages = array_merge($schoolPages, $legacyPages);
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -33,6 +52,15 @@ if ($page === 'api') {
     require_once SRC_PATH . '/pages/api.php';
     exit;
 }
+
+// Logout is a pure side effect + redirect: no layout needed
+if ($page === 'logout') {
+    require_once SRC_PATH . '/pages/logout.php';
+    exit;
+}
+
+// Is the visitor an authenticated instructor? Drives the navigation below.
+$currentInstructor = currentInstructor();
 
 // Start output buffering for page content
 ob_start();
@@ -75,7 +103,14 @@ $content = ob_get_clean();
                 <span class="logo-text">Open<span>ELO</span></span>
             </a>
             <div class="mobile-actions">
+                <?php if ($currentInstructor): ?>
+                <a href="?page=dashboard" class="nav-submit-btn <?= $page === 'dashboard' ? 'active' : '' ?>"><?= __('nav_dashboard') ?></a>
+                <?php else: ?>
+                <a href="?page=register" class="nav-submit-btn <?= $page === 'register' ? 'active' : '' ?>"><?= __('nav_register') ?></a>
+                <?php endif; ?>
+                <?php /* LEGACY (rating system) mobile CTA - kept for reference:
                 <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
+                */ ?>
                 <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
                     <span></span>
                     <span></span>
@@ -88,19 +123,42 @@ $content = ob_get_clean();
                     <span style="font-size: 1.3rem; font-weight: 700; color: #fff;">Open<span style="color: #4361ee;">ELO</span></span>
                 </a>
                 <div class="nav-links">
+                    <?php if ($currentInstructor): ?>
+                    <!-- Chess school area (logged-in instructor) -->
+                    <a href="?page=dashboard" <?= $page === 'dashboard' ? 'class="active"' : '' ?>><?= __('nav_dashboard') ?></a>
+                    <a href="?page=classes" <?= in_array($page, ['classes', 'class_detail']) ? 'class="active"' : '' ?>><?= __('nav_classes') ?></a>
+                    <a href="?page=students" <?= in_array($page, ['students', 'student_detail']) ? 'class="active"' : '' ?>><?= __('nav_students') ?></a>
+                    <a href="?page=account" <?= $page === 'account' ? 'class="active"' : '' ?>><?= __('nav_account') ?></a>
+                    <a href="?page=logout"><?= __('nav_logout') ?></a>
+                    <?php else: ?>
+                    <!-- Visitor -->
+                    <?php /* The About page still tells the rating-system story: unlinked from the
+                            main nav until it is rewritten for the school mission (still live at
+                            ?page=about and still linked in the footer):
                     <a href="?page=about" <?= $page === 'about' ? 'class="active"' : '' ?>><?= $lang === 'it' ? 'Chi Siamo' : 'About' ?></a>
+                    */ ?>
+                    <a href="?page=login" <?= $page === 'login' ? 'class="active"' : '' ?>><?= __('nav_login') ?></a>
+                    <a href="?page=register" class="nav-submit-btn <?= $page === 'register' ? 'active' : '' ?>"><?= __('nav_register') ?></a>
+                    <?php endif; ?>
+
+                    <?php /* LEGACY (rating system) navigation - the pages are still live at these URLs,
+                            they are just not part of the school-platform navigation any more:
                     <a href="?page=circuits" <?= $page === 'circuits' || $page === 'circuit' ? 'class="active"' : '' ?>><?= __('nav_circuits') ?></a>
                     <a href="?page=clubs" <?= $page === 'clubs' || $page === 'club' ? 'class="active"' : '' ?>><?= __('nav_clubs') ?></a>
                     <a href="?page=players" <?= $page === 'players' || $page === 'player' ? 'class="active"' : '' ?>><?= __('nav_players') ?></a>
                     <a href="?page=matches" <?= $page === 'matches' || $page === 'match' ? 'class="active"' : '' ?>><?= __('nav_matches') ?></a>
                     <a href="?page=create" <?= $page === 'create' ? 'class="active"' : '' ?>><?= __('nav_create') ?></a>
                     <a href="?page=submit" class="nav-submit-btn <?= $page === 'submit' ? 'active' : '' ?>"><?= __('nav_submit_result') ?></a>
+                    */ ?>
                 </div>
                 <div class="nav-separator"></div>
+                <?php // Language switcher: hidden while FORCE_LANG pins the site to one language (we ship IT-only for now) ?>
+                <?php if (!defined('FORCE_LANG') || FORCE_LANG === ''): ?>
                 <select class="lang-select" onchange="changeLang(this.value)">
                     <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
                     <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>
                 </select>
+                <?php endif; ?>
                 <div id="pwa-install-block" class="pwa-install-block">
                     <div class="pwa-install-block-header">
                         <img src="<?= asset('logo.png') ?>" alt="OpenELO" class="pwa-install-block-logo">
@@ -146,12 +204,14 @@ $content = ob_get_clean();
             ~
             <a href="?page=security"><?= $lang === 'it' ? 'Sicurezza & Privacy' : 'Security & Privacy' ?></a>
         </p>
+        <?php if (!defined('FORCE_LANG') || FORCE_LANG === ''): ?>
         <div class="footer-lang-select">
             <select class="lang-select" onchange="changeLang(this.value)">
                 <option value="en" <?= $lang === 'en' ? 'selected' : '' ?>>English</option>
                 <option value="it" <?= $lang === 'it' ? 'selected' : '' ?>>Italiano</option>
             </select>
         </div>
+        <?php endif; ?>
     </footer>
 
     <script>
