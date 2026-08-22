@@ -112,7 +112,8 @@ $flash = getFlash();
             <table>
                 <thead>
                     <tr>
-                        <th><?= __('student_last_name') ?></th>
+                        <th><?= __('student_full_name') ?></th>
+                        <th><?= __('student_birth_year') ?></th>
                         <th><?= __('student_level') ?></th>
                         <th><?= __('nav_classes') ?></th>
                     </tr>
@@ -120,7 +121,8 @@ $flash = getFlash();
                 <tbody>
                     <?php foreach ($students as $student): ?>
                     <tr>
-                        <td><a href="?page=student_detail&id=<?= (int)$student['id'] ?>"><?= htmlspecialchars(studentName($student)) ?></a></td>
+                        <td><a href="?page=student_detail&id=<?= (int)$student['id'] ?>"><?= htmlspecialchars(trim($student['last_name'] . ' ' . $student['first_name'])) ?></a></td>
+                        <td><?= !empty($student['birth_date']) && strtotime($student['birth_date']) ? date('Y', strtotime($student['birth_date'])) : __('common_not_set') ?></td>
                         <td><?= levelLabel($student['level']) ?></td>
                         <td><?= (int)$student['class_count'] ?></td>
                     </tr>

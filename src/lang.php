@@ -282,6 +282,11 @@ $translations = [
         'class_no_students' => 'No students enrolled yet.',
         'class_archive' => 'Archive',
         'class_restore' => 'Restore',
+        'class_tab_class' => 'Class',
+        'class_tab_register' => 'Register',
+        'class_tab_lessons' => 'Lessons',
+        'class_tab_calendar' => 'Calendar',
+        'class_tab_coming_soon' => 'This section will be available soon.',
 
         // Levels
         'level_beginner' => 'Beginner',
@@ -296,6 +301,8 @@ $translations = [
         'student_edit' => 'Edit student',
         'student_first_name' => 'First name',
         'student_last_name' => 'Last name',
+        'student_full_name' => 'Last name First name',
+        'student_birth_year' => 'Year',
         'student_email' => 'Email',
         'student_phone' => 'Phone',
         'student_birth_date' => 'Date of birth',
@@ -611,6 +618,11 @@ $translations = [
         'class_no_students' => 'Nessuno studente iscritto.',
         'class_archive' => 'Archivia',
         'class_restore' => 'Ripristina',
+        'class_tab_class' => 'Classe',
+        'class_tab_register' => 'Registro',
+        'class_tab_lessons' => 'Lezioni',
+        'class_tab_calendar' => 'Calendario',
+        'class_tab_coming_soon' => 'Questa sezione sarà disponibile prossimamente.',
 
         // Livelli
         'level_beginner' => 'Principiante',
@@ -625,6 +637,8 @@ $translations = [
         'student_edit' => 'Modifica studente',
         'student_first_name' => 'Nome',
         'student_last_name' => 'Cognome',
+        'student_full_name' => 'Cognome Nome',
+        'student_birth_year' => 'Anno',
         'student_email' => 'Email',
         'student_phone' => 'Telefono',
         'student_birth_date' => 'Data di nascita',

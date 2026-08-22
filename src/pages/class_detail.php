@@ -25,6 +25,11 @@ if (!$class) {
 
 $error   = null;
 $editing = ($_GET['action'] ?? '') === 'edit';
+$tab     = $_GET['tab'] ?? 'class';
+$tabs    = ['class', 'register', 'lessons', 'calendar'];
+if (!in_array($tab, $tabs, true) || $editing) {
+    $tab = 'class';
+}
 $db      = Database::get();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -166,6 +171,21 @@ $flash        = getFlash();
         </div>
     </div>
 
+    <div class="tabs">
+        <a href="?page=class_detail&id=<?= $classId ?>&tab=class" class="tab <?= $tab === 'class' ? 'active' : '' ?>"><?= __('class_tab_class') ?></a>
+        <a href="?page=class_detail&id=<?= $classId ?>&tab=register" class="tab <?= $tab === 'register' ? 'active' : '' ?>"><?= __('class_tab_register') ?></a>
+        <a href="?page=class_detail&id=<?= $classId ?>&tab=lessons" class="tab <?= $tab === 'lessons' ? 'active' : '' ?>"><?= __('class_tab_lessons') ?></a>
+        <a href="?page=class_detail&id=<?= $classId ?>&tab=calendar" class="tab <?= $tab === 'calendar' ? 'active' : '' ?>"><?= __('class_tab_calendar') ?></a>
+    </div>
+
+    <?php if ($tab !== 'class'): ?>
+    <div class="card empty-state">
+        <h2><?= __('class_tab_' . $tab) ?></h2>
+        <p><?= __('class_tab_coming_soon') ?></p>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($tab === 'class'): ?>
     <?php if (!empty($class['description']) && !$editing): ?>
     <div class="card">
         <p><?= nl2br(htmlspecialchars($class['description'])) ?></p>
@@ -348,4 +368,5 @@ $flash        = getFlash();
             <?php endif; ?>
         </div>
     </div>
+    <?php endif; ?>
 </div>
