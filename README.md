@@ -57,6 +57,7 @@ Copy `.env.example` to `.env` and configure:
 
 - `BASE_URL` - Your app URL
 - `SMTP_*` - Email settings for production
+- `CONTACT_MAIL_ENABLED` - Set to `1` to send contact form emails (default `0`: messages are only logged to `data/emails`)
 - `FORCE_LANG` - Pin the UI to one language (default `it`; set to empty to re-enable the language switcher)
 - `DEFAULT_LANG` - Default language when `FORCE_LANG` is empty (en/it)
 - `DB_TYPE` - Database type: `sqlite` (default) or `mysql`

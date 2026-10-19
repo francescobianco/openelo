@@ -121,8 +121,8 @@ HTML;
             'Reply-To: ' . $email,
         ];
 
-        // For development, log emails instead of sending
-        if (SMTP_HOST === 'smtp.example.com') {
+        // Log emails instead of sending in development or when contact mail is not enabled
+        if (!CONTACT_MAIL_ENABLED || SMTP_HOST === 'smtp.example.com') {
             $logDir = dirname(dirname(__DIR__)) . '/data/emails';
             if (!is_dir($logDir)) {
                 mkdir($logDir, 0755, true);

@@ -26,6 +26,9 @@ define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@openelo.org');
 define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'OpenELO');
 define('ADMIN_EMAIL', getenv('ADMIN_EMAIL') ?: 'admin@openelo.org');
+// Invio email dal form contatti: spento di default, va attivato esplicitamente
+// con CONTACT_MAIL_ENABLED=1. Da spento i messaggi finiscono in data/emails.
+define('CONTACT_MAIL_ENABLED', filter_var(getenv('CONTACT_MAIL_ENABLED') ?: '0', FILTER_VALIDATE_BOOLEAN));
 
 // App settings
 define('APP_ENV', getenv('APP_ENV') ?: '');
